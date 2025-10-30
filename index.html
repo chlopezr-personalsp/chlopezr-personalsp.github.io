@@ -1,632 +1,812 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Personal Shopper USA</title>
 
-<link rel="icon" type="image/svg+xml"
-      href='data:image/svg+xml;utf8,
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop stop-color="%2338bdf8" offset="0"/><stop stop-color="%235eead4" offset="1"/></linearGradient></defs>
-  <rect width="64" height="64" rx="12" fill="%230f172a"/>
-  <g transform="translate(8,10)">
-    <path d="M10 10 h28 l3 22 a4 4 0 0 1 -4 4 H11 a4 4 0 0 1 -4 -4 z" fill="url(%23g)"/>
-    <circle cx="18" cy="42" r="4" fill="%23e2e8f0"/>
-    <circle cx="38" cy="42" r="4" fill="%23e2e8f0"/>
-    <text x="14" y="22" font-size="10" fill="%23011" font-family="Inter, Arial" opacity=".9">$</text>
-  </g>
-</svg>'>
-
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-
+<!-- Estilos mínimos (compactos y legibles) -->
 <style>
   :root{
-    --bg:#0f172a;--panel:#111827;--muted:#94a3b8;--text:#e2e8f0;--brand:#38bdf8;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--line:#1f2937;
+    --bg:#0b1220; --panel:#111827; --muted:#94a3b8; --text:#e5e7eb;
+    --brand:#60a5fa; --ok:#10b981; --warn:#f59e0b; --bad:#ef4444; --chip:#1f2937;
+    --card:#0f172a; --accent:#1e293b; --line:#334155;
   }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 Inter,system-ui,Segoe UI,Roboto}
-  .wrap{max-width:1100px;margin:24px auto;padding:0 16px}
-  h1{display:flex;gap:10px;align-items:center;font-size:26px;margin:0 0 18px}
-  .app-logo{width:28px;height:28px;border-radius:7px;background:linear-gradient(135deg,#38bdf8,#5eead4);display:inline-block}
-  h2{font-size:18px;margin:18px 0 12px}
-  .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
-  .row4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+  html,body{height:100%;}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu;
+       background:linear-gradient(120deg,#0a0f1a,#101726,#0d1422); color:var(--text);}
+  .wrap{max-width:1200px;margin:0 auto;padding:16px;}
+  .brand-row{display:flex;align-items:center;gap:10px;justify-content:space-between}
+  .app-title{display:flex;align-items:center;gap:10px}
+  .logo{
+    width:28px;height:28px;border-radius:8px;background:linear-gradient(145deg,#60a5fa,#22d3ee);
+    display:inline-flex;align-items:center;justify-content:center;color:#0b1220;font-weight:900
+  }
+  .header-card{background:rgba(255,255,255,0.04);border:1px solid #1f2937;border-radius:14px;padding:12px 14px}
+
+  .toolbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .btn{
+    display:inline-flex;align-items:center;gap:6px;
+    background:#0f172a;color:var(--text);border:1px solid #334155;border-radius:8px;
+    padding:4px 8px;font-size:12px;line-height:1.1;cursor:pointer;white-space:nowrap
+  }
+  .btn:hover{background:#111827}
+  .btn.primary{background:#1d4ed8;border-color:#1d4ed8}
+  .btn.success{background:#059669;border-color:#059669}
+  .btn.warn{background:#b45309;border-color:#b45309}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+
+  .grid{display:grid;gap:12px}
+  .cards{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:580px){.cards{grid-template-columns:1fr}}
+
+  .card{background:rgba(255,255,255,0.04);border:1px solid #1f2937;border-radius:14px;padding:14px}
+  .k{color:var(--muted);font-size:12px}
+  .v{font-size:20px;font-weight:700}
+  .sub{color:var(--muted);font-size:11px}
+
+  .tabs{display:flex;gap:6px;margin:10px 0 6px}
+  .tab{padding:6px 10px;border:1px solid #334155;border-radius:10px;background:#0f172a;cursor:pointer;font-size:13px}
+  .tab.active{background:#1f2937;color:#e5e7eb;border-color:#475569}
+
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:900px){.row{grid-template-columns:1fr}}
+
+  .input, select{
+    width:100%;background:#0b1220;color:var(--text);border:1px solid #334155;border-radius:10px;padding:10px;
+    font-size:14px
+  }
+  label{font-size:12px;color:var(--muted);display:block;margin:8px 0 6px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{border-bottom:1px solid #1f2937;padding:8px 6px;text-align:left}
+  thead th{position:sticky;top:0;background:#0b1220;z-index:1}
+
+  .chip{display:inline-flex;align-items:center;gap:6px;background:#0f172a;border:1px solid #334155;color:#cbd5e1;
+        border-radius:999px;padding:2px 8px;font-size:12px}
+  .chip.ok{background:rgba(16,185,129,0.12);border-color:#065f46;color:#a7f3d0}
+  .chip.warn{background:rgba(245,158,11,0.12);border-color:#78350f;color:#fde68a}
+  .chip.bad{background:rgba(239,68,68,0.12);border-color:#7f1d1d;color:#fecaca}
+
+  .progress{height:10px;background:#0b1220;border:1px solid #334155;border-radius:999px;overflow:hidden}
+  .progress>div{height:100%;background:linear-gradient(90deg,#22d3ee,#60a5fa);width:0%}
+
   .muted{color:var(--muted)}
-  input,select,button{border-radius:10px;border:1px solid var(--line);background:#0b1220;color:var(--text);padding:10px 12px;width:100%}
-  input:focus,select:focus,button:focus{outline:2px solid var(--brand)}
-  .btn{background:#0b1220;border:1px solid var(--brand);color:#e6faff;font-weight:600;cursor:pointer;padding:8px 10px}
-  .btn.primary{background:var(--brand);color:#001018;border-color:transparent}
-  .btn.ok{background:var(--ok);border-color:transparent;color:#00140a}
-  .btn.warn{background:var(--warn);border-color:transparent;color:#140a00}
-  .btn.bad{background:var(--bad);border-color:transparent;color:#140101}
-
-  /* >>> Botones compactos reales en toolbar */
-  .toolbar{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
-  .btn.sm{padding:4px 8px !important;font-size:11px !important;line-height:1.1 !important;border-radius:8px !important}
-  .toolbar .btn{padding:4px 8px !important;font-size:11px !important;border-radius:8px !important}
-  /* <<< */
-
-  .grid{width:100%;border-collapse:collapse;margin-top:10px}
-  .grid th,.grid td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left}
   .right{text-align:right}
-  .badge{padding:6px 10px;border-radius:999px;font-weight:600;display:inline-block}
-  .b-ok{background:#052e14;color:#a8f3bf;border:1px solid #115e2a}
-  .b-warn{background:#3b2a05;color:#ffd58a;border:1px solid #8a5f07}
-  .b-bad{background:#3a0a0a;color:#ffb4b4;border:1px solid #7f1d1d}
-  .progress{height:10px;background:#0b1220;border:1px solid var(--line);border-radius:999px;overflow:hidden}
-  .progress>div{height:100%;background:linear-gradient(90deg,#22c55e,#16a34a);width:0%}
-  small.note{display:block;margin-top:6px;color:var(--muted)}
-  .mono{font-variant-numeric:tabular-nums}
-  .flex{display:flex;gap:8px;align-items:center}
-  .space{margin-top:8px}
-  .label{display:block;margin-bottom:6px;color:var(--muted);font-size:12px}
+  .center{text-align:center}
+  .mt8{margin-top:8px}
+  .mt12{margin-top:12px}
+  .mt16{margin-top:16px}
+  .mt24{margin-top:24px}
+
+  /* Compactar botones TRM/Sync como pediste */
+  #btnSync, #btnFetchTRM, #btnManualTRM { padding:2px 6px !important; font-size:11px !important; line-height:1.05 !important; border-radius:7px !important;}
+
+  /* Selects cortos en tablas */
+  .select-compact{padding:4px 6px;font-size:12px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1><span class="app-logo"></span> Personal Shopper USA</h1>
-
-  <!-- Toolbar con botones compactos -->
-  <div class="panel toolbar">
-    <button id="btnSync" class="btn sm">🔄 Sincronizar</button>
-    <button id="btnFetchTRM" class="btn sm">📈 TRM</button>
-    <button id="btnManualTRM" class="btn sm">✍️ TRM</button>
-    <div style="margin-left:auto" class="muted">TRM actual: <b class="mono" id="trmLabel">$ 0</b></div>
+  <!-- Encabezado -->
+  <div class="header-card">
+    <div class="brand-row">
+      <div class="app-title">
+        <div class="logo">PS</div>
+        <div>
+          <div style="font-weight:800;font-size:18px">Personal Shopper USA</div>
+          <div class="muted" style="font-size:12px">Control de costos, inventario y viabilidad en tiempo real</div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <button id="btnSync" class="btn">⟳ Sync</button>
+        <button id="btnFetchTRM" class="btn">⇅ TRM</button>
+        <button id="btnManualTRM" class="btn">✍ TRM</button>
+      </div>
+    </div>
   </div>
 
   <!-- KPIs -->
-  <div class="row">
-    <div class="panel">
-      <h2>Parámetros del viaje</h2>
+  <div class="grid cards mt12">
+    <div class="card">
+      <div class="k">Presupuesto Total (BT) USD</div>
+      <div class="v" id="kpiBT">$7,000.00</div>
+      <div class="sub" id="kpiBTcop">—</div>
+    </div>
+    <div class="card">
+      <div class="k">Costos del viaje (Overheads) USD</div>
+      <div class="v" id="kpiV">—</div>
+      <div class="sub" id="kpiVcop">—</div>
+    </div>
+    <div class="card">
+      <div class="k">Aporte por dólar (V/BT)</div>
+      <div class="v" id="kpiRO">—</div>
+      <div class="sub muted">Se usa para VSV</div>
+    </div>
+    <div class="card">
+      <div class="k">TRM vigente</div>
+      <div class="v" id="kpiTRM">—</div>
+      <div class="sub">Histórico por día</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" data-tab="config">⚙️ Configuración</div>
+    <div class="tab" data-tab="catalog">📚 Catálogo referencia</div>
+    <div class="tab" data-tab="semaforo">🚦 Consulta de semáforo</div>
+    <div class="tab" data-tab="inventario">📦 Inventario</div>
+    <div class="tab" data-tab="ventas">💵 Ventas</div>
+    <div class="tab" data-tab="reportes">📊 Reportes</div>
+  </div>
+
+  <!-- Paneles -->
+  <div id="panel-config" class="card">
+    <div class="row">
+      <div>
+        <label>Presupuesto total (BT) USD</label>
+        <input id="inpBT" class="input" type="number" step="0.01" value="7000">
+      </div>
+      <div>
+        <label>Margen objetivo GB% (sobre venta)</label>
+        <input id="inpGB" class="input" type="number" step="1" value="30">
+      </div>
+      <div>
+        <label>TRM (COP/USD) – día de hoy</label>
+        <input id="inpTRM" class="input" type="number" step="1" placeholder="Ej: 4200">
+      </div>
+      <div>
+        <label>Notas</label>
+        <input id="inpNotes" class="input" placeholder="Opcional">
+      </div>
+    </div>
+
+    <div class="mt16">
+      <div class="k">Costos del viaje (overheads)</div>
       <div class="row">
         <div>
-          <label class="label">Presupuesto total (BT, USD)</label>
-          <input id="btInput" type="number" value="7000" min="1" step="1"/>
+          <label>Descripción</label>
+          <input id="ohDesc" class="input" placeholder="Tiquetes / Hospedaje / Envío...">
         </div>
         <div>
-          <label class="label">Margen objetivo (GB %)</label>
-          <input id="gbInput" type="number" value="30" min="0" max="95" step="1"/>
+          <label>Categoría</label>
+          <select id="ohCat" class="input">
+            <option value="">— elegir —</option>
+            <option>Transporte</option>
+            <option>Hospedaje</option>
+            <option>Alimentación</option>
+            <option>Envío</option>
+            <option>Seguro</option>
+            <option>Comunicaciones</option>
+            <option>Otros</option>
+          </select>
+        </div>
+        <div>
+          <label>Valor USD</label>
+          <input id="ohUsd" class="input" type="number" step="0.01">
+        </div>
+        <div style="display:flex;align-items:flex-end">
+          <button id="ohAdd" class="btn success">＋ Agregar costo</button>
         </div>
       </div>
-      <div class="space muted">
-        rO = V / BT · El aporte por dólar se recalcula al sincronizar.
-      </div>
-    </div>
-    <div class="panel">
-      <h2>Ejecución y cobertura</h2>
-      <div class="row">
-        <div><small class="muted">Costos de viaje (V)</small><div class="mono" id="vTotal">$ 0.00</div></div>
-        <div><small class="muted">Compras acumuladas (USD)</small><div class="mono" id="invUsd">$ 0.00</div></div>
-      </div>
-      <div class="row space">
-        <div><small class="muted">Aporte cubierto (USD)</small><div class="mono" id="aportUsd">$ 0.00</div></div>
-        <div><small class="muted">rO (V/BT)</small><div class="mono" id="rOLabel">0.0000</div></div>
-      </div>
-      <div class="space">
-        <div class="progress"><div id="covBar"></div></div>
-        <small class="note" id="covText">0% · aporte cubierto: $ 0.00 USD</small>
+
+      <div class="mt8" style="max-height:280px;overflow:auto">
+        <table>
+          <thead><tr>
+            <th>Fecha</th><th>Descripción</th><th>Categoría</th><th class="right">USD</th><th class="right">COP</th><th class="center">Acciones</th>
+          </tr></thead>
+          <tbody id="ohTbody"></tbody>
+        </table>
       </div>
     </div>
   </div>
 
-  <!-- Costos de viaje -->
-  <div class="panel">
-    <h2>Costos del viaje (V)</h2>
-    <div class="row4">
+  <div id="panel-catalog" class="card" style="display:none">
+    <div class="k">Base de referencia (VR) en COP. Se usa para comparar en el semáforo.</div>
+    <div class="row">
       <div>
-        <label class="label">Descripción</label>
-        <input id="ovDesc" placeholder="Tiquetes, hotel, envíos...">
+        <label>Descripción / SKU</label>
+        <input id="catName" class="input" placeholder="Ej: Nike Air Max 90">
       </div>
       <div>
-        <label class="label">Categoría</label>
-        <select id="overheadCat"></select>
+        <label>Marca / Categoría (opcional)</label>
+        <input id="catMeta" class="input" placeholder="Nike / Calzado">
       </div>
       <div>
-        <label class="label">Valor (USD)</label>
-        <input id="ovUsd" type="number" min="0" step="0.01">
+        <label>Precio referencia (COP)</label>
+        <input id="catCOP" class="input" type="number" step="100">
       </div>
-      <div style="display:flex;align-items:end">
-        <button id="addOv" class="btn ok" style="width:100%">➕ Agregar</button>
+      <div style="display:flex;align-items:flex-end;gap:8px">
+        <button id="catAdd" class="btn success">＋ Agregar</button>
+        <button id="catSync" class="btn">⟳ Refrescar</button>
       </div>
     </div>
-    <table class="grid" id="ovTable"><thead>
-      <tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th class="right">USD</th><th></th></tr>
-    </thead><tbody></tbody></table>
+
+    <div class="mt8" style="max-height:300px;overflow:auto">
+      <table>
+        <thead><tr><th>Fecha</th><th>Descripción</th><th>Marca/Cat</th><th class="right">COP</th><th class="center">Acciones</th></tr></thead>
+        <tbody id="catTbody"></tbody>
+      </table>
+    </div>
   </div>
 
-  <!-- Catálogo de referencia -->
-  <div class="panel">
-    <h2>Catálogo de referencia (COP)</h2>
-    <div class="row4">
+  <div id="panel-semaforo" class="card" style="display:none">
+    <div class="row">
       <div>
-        <label class="label">Nombre</label>
-        <input id="catName" placeholder="Ej. Nike Air Max 90">
+        <label>Producto a evaluar (descripción)</label>
+        <input id="svName" class="input" placeholder="Ej: Nike Air Max 90">
       </div>
       <div>
-        <label class="label">Marca (opcional)</label>
-        <input id="catBrand" placeholder="Nike, Apple...">
+        <label>Costo compra (USD)</label>
+        <input id="svUnitUSD" class="input" type="number" step="0.01">
       </div>
       <div>
-        <label class="label">Categoría</label>
-        <select id="catCat"></select>
+        <label>Cantidad</label>
+        <input id="svQty" class="input" type="number" step="1" value="1">
       </div>
-      <div>
-        <label class="label">Tienda (opcional)</label>
-        <input id="catStore" placeholder="Nike Outlet...">
+      <div style="display:flex;align-items:flex-end;gap:8px">
+        <button id="svEval" class="btn primary">Calcular semáforo</button>
       </div>
     </div>
-    <div class="row" style="margin-top:10px">
-      <div>
-        <label class="label">Precio ref. (COP)</label>
-        <input id="catCOP" type="number" min="0" step="1000">
+
+    <div id="svResult" class="mt12" style="display:none">
+      <div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:12px">
+        <div class="card">
+          <div class="k">Parámetros</div>
+          <div class="mt8">Margen objetivo: <b id="svGB">—</b></div>
+          <div>Aporte por dólar (V/BT): <b id="svRO">—</b></div>
+          <div>TRM: <b id="svTRM">—</b></div>
+        </div>
+        <div class="card">
+          <div class="k">VSV (PVP sugerido por app)</div>
+          <div>VSV USD (unidad): <b id="svVsvUsd">—</b></div>
+          <div>VSV COP (unidad): <b id="svVsvCop">—</b></div>
+          <div class="muted">= costo*(1 + GB% + V/BT)</div>
+        </div>
+        <div class="card">
+          <div class="k">VR (referencia de mercado)</div>
+          <div>VR COP (unidad): <b id="svVrCop">—</b></div>
+          <div>Fuente: <b id="svSource">—</b></div>
+          <div class="muted" id="svSourceDetail">—</div>
+        </div>
       </div>
-      <div style="display:flex;align-items:end">
-        <button id="addRef" class="btn ok" style="width:100%">🧾 Registrar referencia</button>
+      <div class="mt12">
+        <span class="k">Relación VSV/VR:</span>
+        <span id="svRatio" class="chip">—</span>
+        <span id="svExplain" class="muted" style="margin-left:8px"></span>
+      </div>
+
+      <div class="mt16">
+        <label>¿Agregar a inventario? (PVP estimado requerido)</label>
+        <div class="row">
+          <div>
+            <label>Precio estimado de venta (COP, por unidad)</label>
+            <input id="svEstSellCOP" class="input" type="number" step="100" placeholder="Ej: 280000">
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:8px">
+            <button id="svAddToInv" class="btn success">＋ Incluir en inventario</button>
+          </div>
+        </div>
+        <div class="muted mt8">Se guardará costo, PVP estimado, aporte estimado y margen estimado.</div>
       </div>
     </div>
-    <table class="grid" id="catTable"><thead>
-      <tr><th>Producto</th><th>Marca</th><th>Cat.</th><th>Tienda</th><th class="right">COP ref.</th><th></th></tr>
-    </thead><tbody></tbody></table>
   </div>
 
-  <!-- Inventario -->
-  <div class="panel">
-    <h2>Inventario</h2>
-    <div class="row4">
-      <div>
-        <label class="label">Producto</label>
-        <input id="invName" placeholder="Ej. Tenis Samba">
-      </div>
-      <div>
-        <label class="label">Costo unitario (USD)</label>
-        <input id="invUnit" type="number" step="0.01" min="0">
-      </div>
-      <div>
-        <label class="label">Categoría</label>
-        <select id="prodCat"></select>
-      </div>
-      <div>
-        <label class="label">Tienda (opcional)</label>
-        <input id="invStore" placeholder="Adidas...">
-      </div>
+  <div id="panel-inventario" class="card" style="display:none">
+    <div class="k">Inventario actual</div>
+    <div class="mt8 progress"><div id="invProgress"></div></div>
+    <div class="muted" id="invProgressText" style="margin-top:6px">—</div>
+
+    <div class="mt12" style="max-height:340px;overflow:auto">
+      <table>
+        <thead><tr>
+          <th>Fecha</th><th>Producto</th><th>Cat/Tienda</th>
+          <th class="right">Costo USD</th><th class="right">Est. Venta COP</th>
+          <th class="right">Est. Aporte USD</th><th class="right">Est. Margen USD</th>
+          <th class="center">Acciones</th>
+        </tr></thead>
+        <tbody id="invTbody"></tbody>
+      </table>
     </div>
-    <div class="row" style="margin-top:10px">
-      <div>
-        <label class="label">Cantidad</label>
-        <input id="invQty" type="number" value="1" min="1" step="1">
-      </div>
-      <div class="flex" style="align-items:end">
-        <button id="btnEval" class="btn">🧮 Evaluar semáforo</button>
-        <button id="btnAddInv" class="btn ok">➕ Agregar a inventario</button>
-      </div>
-    </div>
-    <table class="grid" id="invTable"><thead>
-      <tr><th>Fecha</th><th>Producto</th><th>Cat.</th><th>Tienda</th><th class="right">USD</th><th class="right">Qty</th><th>Semáforo</th><th></th></tr>
-    </thead><tbody></tbody></table>
   </div>
 
-  <!-- Ventas -->
-  <div class="panel">
-    <h2>Ventas</h2>
-
-    <div class="flex" style="margin-bottom:8px">
-      <label class="flex" style="gap:6px;align-items:center">
-        <input type="checkbox" id="sellFromInventory"/>
-        Vender desde inventario
-      </label>
-      <select id="invSelect" disabled style="flex:1">
-        <option value="">— Selecciona un producto del inventario —</option>
-      </select>
-    </div>
-
-    <div class="row4">
+  <div id="panel-ventas" class="card" style="display:none">
+    <div class="k">Registrar venta</div>
+    <div class="row">
       <div>
-        <label class="label">Producto</label>
-        <input id="saleProduct" placeholder="Selecciona o escribe">
+        <label>Producto (del inventario)</label>
+        <select id="saleProduct" class="input select-compact"></select>
       </div>
       <div>
-        <label class="label">Categoría</label>
-        <select id="saleCat"></select>
+        <label>Cantidad</label>
+        <input id="saleQty" class="input" type="number" step="1" value="1">
       </div>
       <div>
-        <label class="label">Tienda (opcional)</label>
-        <input id="saleStore" placeholder="Outlet...">
+        <label>Precio de venta (COP, por unidad)</label>
+        <input id="saleCOP" class="input" type="number" step="100">
       </div>
-      <div>
-        <label class="label">Cantidad</label>
-        <input id="saleQty" type="number" value="1" min="1" step="1">
+      <div style="display:flex;align-items:flex-end;gap:8px">
+        <button id="saleSave" class="btn success">💾 Guardar venta</button>
       </div>
     </div>
 
-    <div class="row4" style="margin-top:10px">
-      <div>
-        <label class="label">Costo unitario USD</label>
-        <input id="saleUnitUsd" type="number" step="0.01" min="0">
-      </div>
-      <div>
-        <label class="label">TRM usada</label>
-        <input id="saleTRM" type="number" step="1" min="0" placeholder="Si vacío, usa TRM actual">
-      </div>
-      <div>
-        <label class="label">Precio venta (COP)</label>
-        <input id="saleCOP" type="number" step="1000" min="0">
-      </div>
-      <div style="display:flex;align-items:end">
-        <button id="btnAddSale" class="btn ok" style="width:100%">💾 Registrar venta</button>
-      </div>
+    <div class="mt12" style="max-height:340px;overflow:auto">
+      <table>
+        <thead><tr>
+          <th>Fecha</th><th>Producto</th><th>Cat/Tienda</th><th class="right">Cant.</th>
+          <th class="right">PVP (COP)</th><th class="right">Aporte USD</th><th class="right">Utilidad USD</th>
+          <th class="center">Acciones</th>
+        </tr></thead>
+        <tbody id="salesTbody"></tbody>
+      </table>
     </div>
-    <small class="note">Aporte USD = rO · (costo unitario USD · cantidad). Utilidad = venta_usd - costo - aporte.</small>
-
-    <table class="grid" id="saleTable"><thead>
-      <tr><th>Fecha</th><th>Producto</th><th class="right">Qty</th><th class="right">USD costo</th><th class="right">COP venta</th><th class="right">TRM</th><th class="right">Aporte USD</th><th class="right">Utilidad USD</th><th></th></tr>
-    </thead><tbody></tbody></table>
   </div>
 
+  <div id="panel-reportes" class="card" style="display:none">
+    <div class="grid" style="grid-template-columns:1fr 1fr;gap:12px">
+      <div class="card">
+        <div class="k">Reporte estimado (inventario)</div>
+        <div id="repEst">—</div>
+      </div>
+      <div class="card">
+        <div class="k">Reporte realizado (ventas)</div>
+        <div id="repReal">—</div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<!-- Supabase client -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-/* ========== CONFIG ========== */
-const SUPABASE_URL  = "https://ucrkhrehdedmubykzfzs.supabase.co";
+const SUPABASE_URL = "https://ucrkhrehdedmubykzfzs.supabase.co";
 const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcmtocmVoZGVkbXVieWt6ZnpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1OTc5MzgsImV4cCI6MjA3NzE3MzkzOH0.7CXUuyAPQlm_9RIKbaO9y8Kwjh9c6M7UJcu4xAIM7WA";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-/* ========== ESTADO ========== */
-let TRM = 0;       // COP / USD
-let BT  = 7000;    // presupuesto total
-let GB  = 30;      // %
-let rO  = 0;       // V / BT
+/* ---- Estado ---- */
+let BT = 7000;           // presupuesto total
+let GB = 30;             // margen objetivo %
+let TRM = 4200;          // COP/USD
+let OVERHEADS = [];      // {id, created_at, description, cat, usd}
+let CATALOG = [];        // {id, created_at, name, brand, cat, ref_cop}
+let INVENTORY = [];      // {id, created_at, name, cat, store, unit_usd, qty, est_sell_cop?, est_aporte_usd?, est_margin_usd?}
+let SALES = [];          // {id, created_at, product_id, product_name, cat, store, qty, unit_usd, trm_used, sale_cop, aporte_usd, profit_usd}
 
-const DEFAULT_COST_CATS = ["Transporte","Hospedaje","Alimentación","Equipaje","Seguros","Comunicaciones","Otros"];
-const DEFAULT_PROD_CATS = ["Calzado","Ropa","Accesorios","Electrónica","Perfumería","Juguetes","Hogar","Otros"];
+/* ---- Helpers ---- */
+const fmtUSD = n => "$" + (Number(n||0)).toFixed(2);
+const fmtCOP = n => "$" + (Math.round(Number(n||0))).toLocaleString("es-CO");
+const nowStr = () => new Date().toLocaleString("es-CO");
+const aportePorDolar = () => { // V/BT
+  const V = OVERHEADS.reduce((s,o)=>s+Number(o.usd||0),0);
+  return BT>0? (V/BT) : 0;
+};
+const vsvUSD = (unitUSD) => {
+  const rO = aportePorDolar(); // V/BT
+  const gb = GB/100;
+  return Number(unitUSD) * (1 + gb + rO);
+};
+const toCOP = (usd) => Number(usd)*Number(TRM);
 
-/* ========== HELPERS ========== */
-const $ = s => document.querySelector(s);
-const fmt = n => Number(n||0).toLocaleString("es-CO",{maximumFractionDigits:2});
-function buildSelectOptions(selectEl, arr) {
-  const seen = new Set();
-  selectEl.innerHTML = "";
-  arr.filter(x => (x ?? "").toString().trim() !== "")
-     .map(x => x.trim())
-     .forEach(v => { if(!seen.has(v)){ seen.add(v); }});
-  [...seen].sort((a,b)=>a.localeCompare(b,'es'))
-    .forEach(v=>{
-      const opt = document.createElement("option");
-      opt.value = v; opt.textContent = v;
-      selectEl.appendChild(opt);
+/* ---- UI refs ---- */
+const $ = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+/* ---- Tabs ---- */
+$$('.tab').forEach(t=>{
+  t.onclick=()=>{
+    $$('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    const tab = t.dataset.tab;
+    ['config','catalog','semaforo','inventario','ventas','reportes'].forEach(id=>{
+      $('#panel-'+id).style.display = (id===tab?'block':'none');
     });
-}
-async function distinctValues(table, column) {
-  const { data, error } = await supabase.from(table).select(column).not(column,'is',null);
-  if (error) { console.warn("distinctValues error", error); return []; }
-  return [...new Set(data.map(r => (r[column]||"").trim()).filter(Boolean))];
-}
-function rememberCat(key, value) {
-  if (!value) return;
-  const set = new Set(JSON.parse(localStorage.getItem(key)||"[]"));
-  set.add(value);
-  localStorage.setItem(key, JSON.stringify([...set].slice(-30)));
-}
-
-/* ========== CARGA INICIAL ========== */
-window.addEventListener("load", async ()=>{
-  $("#btInput").addEventListener("change",()=>{BT=Number($("#btInput").value||0);updateKPIs();});
-  $("#gbInput").addEventListener("change",()=>{GB=Number($("#gbInput").value||0);});
-
-  $("#btnFetchTRM").addEventListener("click", fetchTRM);
-  $("#btnManualTRM").addEventListener("click", manualTRM);
-  $("#btnSync").addEventListener("click", syncAll);
-
-  $("#addOv").addEventListener("click", addOverhead);
-  $("#addRef").addEventListener("click", addRef);
-  $("#btnEval").addEventListener("click", evalSemaforo);
-  $("#btnAddInv").addEventListener("click", addInventory);
-  $("#btnAddSale").addEventListener("click", ()=>saveSaleWithInventoryAware());
-
-  $("#sellFromInventory").addEventListener("change", e => toggleSellMode(e.target.checked));
-  $("#invSelect").addEventListener("change", handleInvSelection);
-
-  await refreshCategoryLists();
-  await loadInventoryOptions();
-
-  await syncAll();
+    if(tab==='ventas') fillSaleProducts();
+    if(tab==='inventario'){ renderInventory(); }
+    if(tab==='reportes'){ renderReports(); }
+  };
 });
 
-/* ========== TRM ========== */
-async function fetchTRM(){
+/* ---- KPIs render ---- */
+function renderKPIs(){
+  const V = OVERHEADS.reduce((s,o)=>s+Number(o.usd||0),0);
+  $('#kpiBT').textContent = fmtUSD(BT);
+  $('#kpiBTcop').textContent = fmtCOP(BT*TRM);
+  $('#kpiV').textContent = fmtUSD(V);
+  $('#kpiVcop').textContent = fmtCOP(V*TRM);
+  $('#kpiRO').textContent = (aportePorDolar()).toFixed(3);
+  $('#kpiTRM').textContent = fmtCOP(TRM) + " COP/USD";
+}
+
+/* ---- Overheads (CRUD) ---- */
+async function loadOverheads(){
+  const {data,error} = await supa.from('overheads').select('*').order('created_at',{ascending:false});
+  if(!error && data){ OVERHEADS = data; renderOverheads(); renderKPIs(); }
+}
+function renderOverheads(){
+  const tb = $('#ohTbody'); tb.innerHTML="";
+  OVERHEADS.forEach(o=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${new Date(o.created_at).toLocaleString('es-CO')}</td>
+      <td>${o.description||''}</td>
+      <td>${o.cat||''}</td>
+      <td class="right">${fmtUSD(o.usd)}</td>
+      <td class="right">${fmtCOP(o.usd*TRM)}</td>
+      <td class="center"><button class="btn" data-del="${o.id}">🗑 Eliminar</button></td>
+    `;
+    tb.appendChild(tr);
+  });
+  tb.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.onclick = async ()=>{
+      await supa.from('overheads').delete().eq('id', btn.dataset.del);
+      await loadOverheads();
+    };
+  });
+}
+$('#ohAdd').onclick = async ()=>{
+  const desc = $('#ohDesc').value.trim();
+  const cat = $('#ohCat').value.trim();
+  const usd = Number($('#ohUsd').value||0);
+  if(!desc || !usd){ alert('Ingresa descripción y valor USD'); return; }
+  await supa.from('overheads').insert({description:desc,cat,usd});
+  $('#ohDesc').value=''; $('#ohCat').value=''; $('#ohUsd').value='';
+  await loadOverheads();
+};
+
+/* ---- Catálogo (VR) ---- */
+async function loadCatalog(){
+  const {data,error} = await supa.from('catalog').select('*').order('created_at',{ascending:false});
+  if(!error && data){ CATALOG = data; renderCatalog(); }
+}
+function renderCatalog(){
+  const tb = $('#catTbody'); tb.innerHTML="";
+  CATALOG.forEach(c=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td>${new Date(c.created_at).toLocaleString('es-CO')}</td>
+      <td>${c.name||''}</td>
+      <td>${(c.brand||'')}${c.cat?(' / '+c.cat):''}</td>
+      <td class="right">${fmtCOP(c.ref_cop||0)}</td>
+      <td class="center"><button class="btn" data-del="${c.id}">🗑</button></td>
+    `;
+    tb.appendChild(tr);
+  });
+  tb.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.onclick=async ()=>{
+      await supa.from('catalog').delete().eq('id', btn.dataset.del);
+      await loadCatalog();
+    };
+  });
+}
+$('#catAdd').onclick=async ()=>{
+  const name=$('#catName').value.trim();
+  const meta=$('#catMeta').value.trim();
+  const cop=Number($('#catCOP').value||0);
+  if(!name||!cop){ alert('Ingresa descripción y COP'); return; }
+  let brand=null, cat=null;
+  if(meta){
+    const p = meta.split('/').map(s=>s.trim());
+    brand = p[0]||null; cat = p[1]||null;
+  }
+  await supa.from('catalog').insert({name,brand,cat,ref_cop:cop});
+  $('#catName').value=''; $('#catMeta').value=''; $('#catCOP').value='';
+  await loadCatalog();
+};
+$('#catSync').onclick = loadCatalog;
+
+/* ---- Semáforo ---- */
+async function buscarVR(descr){
+  // 1) Buscar similar en catálogo
+  const q = descr.toLowerCase();
+  let bestCat = null;
+  let bestScore = 0;
+  CATALOG.forEach(c=>{
+    const t = ((c.name||'') + ' ' + (c.brand||'') + ' ' + (c.cat||'')).toLowerCase();
+    // scoring simple por solape de palabras >3 chars
+    const words = q.split(/\s+/).filter(w=>w.length>3);
+    let score = 0; words.forEach(w=>{ if(t.includes(w)) score+=1; });
+    if(score>bestScore){ bestScore=score; bestCat=c; }
+  });
+
+  // 2) MercadoLibre (promedio top 5)
+  let mlCOP = null, mlDetail = '';
   try{
-    const res = await fetch("https://open.er-api.com/v6/latest/USD");
-    const js  = await res.json();
-    const rate = js?.rates?.COP;
-    if(!rate) throw new Error("TRM no disponible");
-    TRM = rate;
-    $("#trmLabel").textContent = `$ ${fmt(TRM)}`;
-  }catch(e){ alert("No se pudo obtener la TRM."); }
+    const r = await fetch('https://api.mercadolibre.com/sites/MCO/search?q='+encodeURIComponent(descr)+'&limit=5');
+    const j = await r.json();
+    if(j && j.results && j.results.length){
+      const precios = j.results.map(x=>x.price).filter(n=>n>0);
+      if(precios.length){
+        const sum = precios.reduce((a,b)=>a+b,0);
+        mlCOP = Math.round(sum/precios.length);
+        mlDetail = j.results.map(x=>x.title).slice(0,3).join(' | ');
+      }
+    }
+  }catch(e){ /* ignora */ }
+
+  // Determinar VR (mínimo)
+  let src = '—', vrCOP = null, srcDetail='';
+  const cCOP = bestCat? Number(bestCat.ref_cop||0) : null;
+  if(cCOP && mlCOP){ vrCOP = Math.min(cCOP, mlCOP); src = (vrCOP===cCOP?'Catálogo':'MercadoLibre'); }
+  else if(cCOP){ vrCOP = cCOP; src='Catálogo'; }
+  else if(mlCOP){ vrCOP = mlCOP; src='MercadoLibre'; }
+  if(src==='Catálogo' && bestCat){ srcDetail = `${bestCat.name} ${(bestCat.brand?('('+bestCat.brand+')'):'')}`; }
+  if(src==='MercadoLibre' && mlDetail){ srcDetail = mlDetail; }
+
+  return { vrCOP, src, srcDetail, catMatch: bestCat };
 }
-function manualTRM(){
-  const v = prompt("Ingresa TRM COP por USD", TRM || "");
-  if(v && !isNaN(Number(v))){
-    TRM = Number(v);
-    $("#trmLabel").textContent = `$ ${fmt(TRM)}`;
+
+$('#svEval').onclick = async ()=>{
+  const name = $('#svName').value.trim();
+  const unit = Number($('#svUnitUSD').value||0);
+  const qty = Number($('#svQty').value||0);
+  if(!name || unit<=0 || qty<=0){ alert('Completa nombre, costo y cantidad'); return; }
+
+  // Parámetros
+  const gb = GB/100;
+  const ro = aportePorDolar();
+
+  // VSV
+  const vsvUsd = vsvUSD(unit);
+  const vsvCop = toCOP(vsvUsd);
+
+  // VR
+  const {vrCOP, src, srcDetail} = await buscarVR(name);
+
+  // Render
+  $('#svGB').textContent = (GB.toFixed(0))+'%';
+  $('#svRO').textContent = ro.toFixed(3);
+  $('#svTRM').textContent = fmtCOP(TRM);
+  $('#svVsvUsd').textContent = fmtUSD(vsvUsd);
+  $('#svVsvCop').textContent = fmtCOP(vsvCop);
+  $('#svVrCop').textContent = vrCOP ? fmtCOP(vrCOP) : '—';
+  $('#svSource').textContent = src;
+  $('#svSourceDetail').textContent = srcDetail || '—';
+
+  let ratioTxt='—', explain='Sin referencia: ingresa precio manual.';
+  const ratioEl = $('#svRatio'); ratioEl.className='chip';
+  if(vrCOP){
+    const ratio = vsvCop/vrCOP;
+    ratioTxt = ratio.toFixed(2);
+    if(ratio<0.85){ ratioEl.classList.add('ok'); explain='Verde: competitivo.'; }
+    else if(ratio<=0.95){ ratioEl.classList.add('warn'); explain='Amarillo: ajusta/rotación.'; }
+    else { ratioEl.classList.add('bad'); explain='Rojo: no viable.'; }
   }
-}
+  $('#svRatio').textContent=ratioTxt;
+  $('#svExplain').textContent = explain;
 
-/* ========== SYNC ========== */
-async function syncAll(){
-  BT = Number($("#btInput").value||0); GB = Number($("#gbInput").value||30);
+  $('#svResult').style.display='block';
+};
 
-  const {data:ov, error:e1} = await supabase.from("overheads").select("*").order("created_at",{ascending:false});
-  if(e1){console.error(e1); alert("No pude traer costos."); return;}
-  paintOverheads(ov);
-  const V = ov.reduce((a,x)=>a+Number(x.usd||0),0);
+$('#svAddToInv').onclick = async ()=>{
+  const name = $('#svName').value.trim();
+  const unit = Number($('#svUnitUSD').value||0);
+  const qty = Number($('#svQty').value||0);
+  const estCOP = Number($('#svEstSellCOP').value||0);
+  if(!name || unit<=0 || qty<=0 || estCOP<=0){ alert('Completa los campos y el PVP estimado'); return; }
 
-  const {data:inv, error:e2} = await supabase.from("products").select("*").order("created_at",{ascending:false});
-  if(e2){console.error(e2); alert("No pude traer inventario."); return;}
-  paintInventory(inv);
+  const vsvUsdUnit = vsvUSD(unit);        // para referencia
+  const estUsdUnit = estCOP / TRM;        // PVP estimado en USD
+  const apUSDunit = unit * aportePorDolar();
+  const mgUSDunit = estUsdUnit - unit - apUSDunit;
 
-  const {data:cat, error:e3} = await supabase.from("catalog").select("*").order("created_at",{ascending:false});
-  if(e3){console.error(e3); alert("No pude traer catálogo."); return;}
-  paintCatalog(cat);
-
-  const {data:sales, error:e4} = await supabase.from("sales").select("*").order("created_at",{ascending:false});
-  if(e4){console.error(e4); alert("No pude traer ventas."); return;}
-  paintSales(sales);
-
-  const invUsd = inv.reduce((a,x)=>a+Number(x.unit_usd||0)*Number(x.qty||1),0);
-  rO = BT>0 ? (V/BT) : 0;
-  updateKPIs(V, invUsd);
-
-  await refreshCategoryLists();
-  await loadInventoryOptions();
-}
-
-/* ========== KPI / BARRA ========== */
-function updateKPIs(V=Number($("#vTotal").dataset.raw||0), invUsd=Number($("#invUsd").dataset.raw||0)){
-  $("#vTotal").textContent = `$ ${fmt(V)}`; $("#vTotal").dataset.raw = V;
-  $("#invUsd").textContent = `$ ${fmt(invUsd)}`; $("#invUsd").dataset.raw = invUsd;
-
-  const aporte = invUsd * (rO || 0);
-  $("#aportUsd").textContent = `$ ${fmt(aporte)}`;
-  $("#rOLabel").textContent = (rO||0).toFixed(4);
-
-  const pct = BT>0 ? Math.min(100, Math.round((aporte/BT)*100)) : 0;
-  $("#covBar").style.width = pct + "%";
-  $("#covText").textContent = `${pct}% · aporte cubierto: $ ${fmt(aporte)} USD`;
-}
-
-/* ========== LISTAS DESPLEGABLES ========= */
-async function refreshCategoryLists() {
-  const overheadCatSel = $("#overheadCat");
-  const prodCatSel     = $("#prodCat");
-  const saleCatSel     = $("#saleCat");
-  const catCatSel      = $("#catCat");
-
-  const dbOver = await distinctValues("overheads","cat");
-  const dbProd = await distinctValues("products","cat");
-  const lsOver = JSON.parse(localStorage.getItem("lastOverCats")||"[]");
-  const lsProd = JSON.parse(localStorage.getItem("lastProdCats")||"[]");
-
-  buildSelectOptions(overheadCatSel, [...DEFAULT_COST_CATS, ...dbOver, ...lsOver]);
-  buildSelectOptions(prodCatSel,     [...DEFAULT_PROD_CATS,  ...dbProd, ...lsProd]);
-  buildSelectOptions(saleCatSel,     [...DEFAULT_PROD_CATS,  ...dbProd, ...lsProd]);
-  buildSelectOptions(catCatSel,      [...DEFAULT_PROD_CATS,  ...dbProd, ...lsProd]);
-}
-function rememberOverCat(v){ rememberCat("lastOverCats", v); }
-function rememberProdCat(v){ rememberCat("lastProdCats", v); }
-
-/* ========== COSTOS ========== */
-async function addOverhead(){
-  const desc=$("#ovDesc").value?.trim();
-  const cat=$("#overheadCat").value?.trim();
-  const usd=Number($("#ovUsd").value||0);
-  if(!desc||usd<=0) return alert("Completa descripción y valor.");
-  const {error}=await supabase.from("overheads").insert({description:desc, cat, usd});
-  if(error){alert("No se pudo guardar costo"); return;}
-  rememberOverCat(cat);
-  $("#ovDesc").value=""; $("#ovUsd").value="";
-  await syncAll();
-}
-function paintOverheads(rows){
-  const tb=$("#ovTable tbody"); tb.innerHTML="";
-  rows.forEach(r=>{
-    const tr=document.createElement("tr");
-    tr.innerHTML=`<td>${new Date(r.created_at).toLocaleDateString()}</td>
-      <td>${r.description||""}</td>
-      <td>${r.cat||""}</td>
-      <td class="right mono">${fmt(r.usd||0)}</td>
-      <td><button class="btn bad sm" onclick="delOverhead('${r.id}')">Eliminar</button></td>`;
-    tb.appendChild(tr);
-  });
-}
-async function delOverhead(id){ await supabase.from("overheads").delete().eq("id",id); await syncAll(); }
-
-/* ========== CATÁLOGO ========== */
-async function addRef(){
-  const name=$("#catName").value?.trim();
-  if(!name) return alert("Nombre requerido");
-  const brand=$("#catBrand").value?.trim();
-  const cat=$("#catCat").value?.trim();
-  const store=$("#catStore").value?.trim();
-  const ref_cop=Number($("#catCOP").value||0);
-  const {error}=await supabase.from("catalog").insert({name,brand,cat,store,ref_cop});
-  if(error){alert("No se pudo guardar referencia");return;}
-  rememberProdCat(cat);
-  $("#catName").value=$("#catBrand").value=$("#catStore").value=""; $("#catCOP").value="";
-  await syncAll();
-}
-function paintCatalog(rows){
-  const tb=$("#catTable tbody"); tb.innerHTML="";
-  rows.forEach(r=>{
-    const tr=document.createElement("tr");
-    tr.innerHTML=`<td>${r.name}</td><td>${r.brand||""}</td><td>${r.cat||""}</td><td>${r.store||""}</td>
-      <td class="right mono">${fmt(r.ref_cop||0)}</td>
-      <td><button class="btn bad sm" onclick="delRef('${r.id}')">Eliminar</button></td>`;
-    tb.appendChild(tr);
-  });
-}
-async function delRef(id){ await supabase.from("catalog").delete().eq("id",id); await syncAll(); }
-
-/* ========== INVENTARIO ========== */
-async function addInventory(){
-  const name=$("#invName").value?.trim();
-  const unit=Number($("#invUnit").value||0);
-  const cat=$("#prodCat").value?.trim();
-  const store=$("#invStore").value?.trim();
-  const qty=Number($("#invQty").value||1);
-  if(!name||unit<=0||qty<=0) return alert("Completa producto, costo y cantidad.");
-
-  const tag = $("#lastSemaforo")?.textContent || "";
-  const {error}=await supabase.from("products").insert({name,cat,store,unit_usd:unit,qty,semaforo:tag});
-  if(error){alert("No se pudo guardar inventario");return;}
-  rememberProdCat(cat);
-  $("#invName").value=$("#invStore").value=""; $("#invUnit").value=""; $("#invQty").value=1;
-  $("#lastSemaforo")?.remove();
-  await syncAll();
-}
-function paintInventory(rows){
-  const tb=$("#invTable tbody"); tb.innerHTML="";
-  rows.forEach(r=>{
-    const badge = r.semaforo==="VERDE" ? "b-ok" : r.semaforo==="AMARILLO" ? "b-warn" : r.semaforo==="ROJO" ? "b-bad" : "";
-    const tag = r.semaforo ? `<span class="badge ${badge}">${r.semaforo}</span>` : "-";
-    const tr=document.createElement("tr");
-    tr.innerHTML=`<td>${new Date(r.created_at).toLocaleDateString()}</td>
-      <td>${r.name}</td><td>${r.cat||""}</td><td>${r.store||""}</td>
-      <td class="right mono">${fmt(r.unit_usd||0)}</td>
-      <td class="right mono">${fmt(r.qty||1)}</td>
-      <td>${tag}</td>
-      <td><button class="btn bad sm" onclick="delInv('${r.id}')">Eliminar</button></td>`;
-    tb.appendChild(tr);
-  });
-}
-async function delInv(id){ await supabase.from("products").delete().eq("id",id); await syncAll(); }
-
-/* ========== SEMÁFORO ========== */
-async function evalSemaforo(){
-  const name=$("#invName").value?.trim();
-  const unit=Number($("#invUnit").value||0);
-  const qty =Number($("#invQty").value||1);
-  if(!name||unit<=0) return alert("Completa producto y costo.");
-
-  const vsv_usd = unit + (unit*(GB/100)) + (unit*rO);
-
-  const {data:refs} = await supabase.from("catalog").select("*").ilike("name", `%${name}%`);
-  const refCop = Math.min(...(refs||[]).map(r=>Number(r.ref_cop||Infinity)));
-  const hasRef = isFinite(refCop);
-
-  let ratio = NaN, tag="Sin referencia", badge="b-warn";
-  if(hasRef && TRM>0){
-    const vsv_cop = vsv_usd * TRM * qty;
-    ratio = (vsv_cop / refCop);
-    if(ratio < 0.85) { tag="VERDE"; badge="b-ok"; }
-    else if(ratio <= 0.95) { tag="AMARILLO"; badge="b-warn"; }
-    else { tag="ROJO"; badge="b-bad"; }
+  // guardamos en DB (si las columnas existen, se persisten; si no, igual no falla si omitimos)
+  const insertObj = {
+    name, cat: null, store: null,
+    unit_usd: unit, qty,
+    // campos estimados (si en tu tabla existen, se guardan; si no, ignora)
+    est_sell_cop: estCOP,
+    est_sell_usd: estUsdUnit,
+    est_aporte_usd: apUSDunit,
+    est_margin_usd: mgUSDunit
+  };
+  let {error} = await supa.from('products').insert(insertObj);
+  if(error && error.message && error.message.includes('column "est_')){
+    // si la tabla no tiene las columnas, insertamos sin ellas
+    await supa.from('products').insert({name, unit_usd:unit, qty});
   }
+  await loadInventory();
+  alert('Artículo agregado al inventario con PVP estimado.');
+  // limpiar
+  $('#svName').value=''; $('#svUnitUSD').value=''; $('#svQty').value='1'; $('#svEstSellCOP').value='';
+  $('#svResult').style.display='none';
+};
 
-  const old = $("#lastSemaforo"); if(old) old.remove();
-  const b = document.createElement("div");
-  b.id="lastSemaforo";
-  b.className=`badge ${badge}`; b.style.marginLeft="8px";
-  b.textContent = tag;
-  $("#btnEval").after(b);
+/* ---- Inventario ---- */
+async function loadInventory(){
+  const {data,error} = await supa.from('products').select('*').order('created_at',{ascending:false});
+  if(!error && data){ INVENTORY = data; renderInventory(); }
+}
+function renderInventory(){
+  const tb = $('#invTbody'); tb.innerHTML="";
+  const V = OVERHEADS.reduce((s,o)=>s+Number(o.usd||0),0);
+  const aporteAcumUSD = INVENTORY.reduce((s,p)=>{
+    const apUnit = Number(p.unit_usd||0) * aportePorDolar();
+    return s + apUnit * Number(p.qty||0);
+  },0);
+  const prog = Math.min(100, (aporteAcumUSD / V) * 100 || 0);
+  $('#invProgress').style.width = prog.toFixed(1)+'%';
+  $('#invProgressText').textContent = `Aporte cubierto: ${prog.toFixed(1)}% (${fmtUSD(aporteAcumUSD)} de ${fmtUSD(V)})`;
 
-  if(!hasRef) alert("No hay referencia en catálogo con ese nombre. Regístrala en el módulo de Catálogo.");
+  INVENTORY.forEach(p=>{
+    const estCOP = (p.est_sell_cop!=null)? Number(p.est_sell_cop) : null;
+    const estUSD = (p.est_sell_usd!=null)? Number(p.est_sell_usd) : (estCOP? estCOP/TRM : null);
+    const apUSDunit = (p.est_aporte_usd!=null)? Number(p.est_aporte_usd) : (Number(p.unit_usd||0)*aportePorDolar());
+    const mgUSDunit = (p.est_margin_usd!=null)? Number(p.est_margin_usd) : (estUSD!=null? (estUSD-Number(p.unit_usd||0)-apUSDunit) : null);
+
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td>${new Date(p.created_at).toLocaleString('es-CO')}</td>
+      <td>${p.name||''}</td>
+      <td>${(p.cat||'—')}${p.store?(' / '+p.store):''}</td>
+      <td class="right">${fmtUSD(p.unit_usd||0)} × ${Number(p.qty||0)}</td>
+      <td class="right">${estCOP!=null? fmtCOP(estCOP): '—'}</td>
+      <td class="right">${(mgUSDunit!=null||apUSDunit!=null)? fmtUSD(apUSDunit): '—'}</td>
+      <td class="right">${mgUSDunit!=null? fmtUSD(mgUSDunit): '—'}</td>
+      <td class="center">
+        <button class="btn" data-del="${p.id}">🗑</button>
+      </td>
+    `;
+    tb.appendChild(tr);
+  });
+  tb.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.onclick=async ()=>{
+      await supa.from('products').delete().eq('id', btn.dataset.del);
+      await loadInventory(); fillSaleProducts();
+    };
+  });
 }
 
-/* ========== VENDER DESDE INVENTARIO ========== */
-async function loadInventoryOptions() {
-  const sel = $("#invSelect");
-  sel.innerHTML = '<option value="">— Selecciona un producto del inventario —</option>';
-
-  const { data, error } = await supabase
-    .from("products")
-    .select("id, name, cat, store, unit_usd, qty")
-    .order("created_at", { ascending: false });
-
-  if (error) { console.warn("loadInventoryOptions error", error); return; }
-  (data||[]).forEach(p=>{
-    const opt = document.createElement("option");
+/* ---- Ventas ---- */
+async function loadSales(){
+  const {data,error} = await supa.from('sales').select('*').order('created_at',{ascending:false});
+  if(!error && data){ SALES = data; renderSales(); }
+}
+function fillSaleProducts(){
+  const sel = $('#saleProduct'); sel.innerHTML="";
+  INVENTORY.forEach(p=>{
+    const opt=document.createElement('option');
     opt.value = p.id;
-    opt.textContent = `${p.name} · ${p.cat||'—'} · USD ${Number(p.unit_usd||0).toFixed(2)} · qty ${p.qty||1}`;
-    opt.dataset.product = p.name || "";
-    opt.dataset.cat     = p.cat || "";
-    opt.dataset.store   = p.store || "";
-    opt.dataset.unitUsd = p.unit_usd || 0;
-    opt.dataset.qty     = p.qty || 1;
+    opt.textContent = `${p.name} — ${fmtUSD(p.unit_usd)} × ${p.qty}`;
     sel.appendChild(opt);
   });
 }
-function toggleSellMode(checked){
-  const ids = ["saleProduct","saleCat","saleStore","saleQty","saleUnitUsd"];
-  ids.forEach(id=>{
-    const el = document.getElementById(id);
-    if(!el) return;
-    const lock = checked && ["saleProduct","saleCat","saleStore","saleUnitUsd"].includes(id);
-    if(id==="saleCat"){ el.disabled = checked; } else { el.readOnly = lock; }
-  });
-  $("#invSelect").disabled = !checked;
-}
-function handleInvSelection(){
-  const opt = $("#invSelect").selectedOptions[0];
-  if (!opt) return;
-  $("#saleProduct").value  = opt.dataset.product || "";
-  $("#saleCat").value      = opt.dataset.cat || "";
-  $("#saleStore").value    = opt.dataset.store || "";
-  $("#saleUnitUsd").value  = Number(opt.dataset.unitUsd||0);
-  $("#saleQty").value      = Number(opt.dataset.qty||1);
-  rememberCat("lastProdCats", opt.dataset.cat||"");
-}
-
-/* ========== VENTAS ========== */
-async function saveSaleWithInventoryAware(){
-  const product    = $("#saleProduct").value.trim();
-  const cat        = $("#saleCat").value?.trim();
-  const store      = $("#saleStore").value?.trim();
-  const qty        = Number($("#saleQty").value||1);
-  const unit_usd   = Number($("#saleUnitUsd").value||0);
-  const trm_used   = Number($("#saleTRM").value||0) || TRM;
-  const sale_cop   = Number($("#saleCOP").value||0);
-  const invId      = $("#sellFromInventory").checked ? ($("#invSelect").value || null) : null;
-
-  if(!product||unit_usd<=0||qty<=0||sale_cop<=0||trm_used<=0) return alert("Revisa producto, costo, cantidad, TRM y COP.");
-
-  const aporte_usd = (rO || 0) * (unit_usd * qty);
-
-  const payload = { product_name:product, cat, store, qty, unit_usd, trm_used, sale_cop, aporte_usd, product_id: invId };
-  const { error } = await supabase.from("sales").insert(payload);
-  if (error) { console.error(error); return alert("No se pudo registrar la venta"); }
-
-  rememberCat("lastProdCats", cat);
-  $("#saleProduct").value=$("#saleStore").value=""; $("#saleQty").value=1; $("#saleUnitUsd").value="";
-  $("#saleTRM").value=""; $("#saleCOP").value="";
-  $("#sellFromInventory").checked=false; toggleSellMode(false); $("#invSelect").value="";
-
-  await syncAll();
-}
-function paintSales(rows){
-  const tb=$("#saleTable tbody"); tb.innerHTML="";
-  rows.forEach(r=>{
-    const tr=document.createElement("tr");
-    tr.innerHTML=`<td>${new Date(r.created_at).toLocaleDateString()}</td>
-      <td>${r.product_name}</td>
-      <td class="right mono">${fmt(r.qty||1)}</td>
-      <td class="right mono">${fmt((Number(r.unit_usd||0)*Number(r.qty||1)))} </td>
-      <td class="right mono">${fmt(r.sale_cop||0)}</td>
-      <td class="right mono">${fmt(r.trm_used||0)}</td>
-      <td class="right mono">${fmt(r.aporte_usd||0)}</td>
-      <td class="right mono">${fmt(r.profit_usd||0)}</td>
-      <td><button class="btn bad sm" onclick="delSale('${r.id}')">Eliminar</button></td>`;
+function renderSales(){
+  const tb = $('#salesTbody'); tb.innerHTML="";
+  SALES.forEach(s=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td>${new Date(s.created_at).toLocaleString('es-CO')}</td>
+      <td>${s.product_name||'—'}</td>
+      <td>${(s.cat||'—')}${s.store?(' / '+s.store):''}</td>
+      <td class="right">${s.qty||0}</td>
+      <td class="right">${fmtCOP(s.sale_cop||0)}</td>
+      <td class="right">${fmtUSD(s.aporte_usd||0)}</td>
+      <td class="right">${fmtUSD(s.profit_usd||0)}</td>
+      <td class="center"><button class="btn" data-del="${s.id}">🗑</button></td>
+    `;
     tb.appendChild(tr);
   });
+  tb.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.onclick=async ()=>{
+      await supa.from('sales').delete().eq('id', btn.dataset.del);
+      await loadSales();
+    };
+  });
 }
-async function delSale(id){
-  if(!confirm("¿Eliminar esta venta?")) return;
-  await supabase.from("sales").delete().eq("id",id);
+
+$('#saleSave').onclick = async ()=>{
+  const pid = $('#saleProduct').value;
+  const p = INVENTORY.find(x=>String(x.id)===String(pid));
+  if(!p){ alert('Selecciona un producto'); return; }
+  const qty = Number($('#saleQty').value||0);
+  const saleCOP = Number($('#saleCOP').value||0);
+  if(qty<=0 || saleCOP<=0){ alert('Cantidad y PVP COP > 0'); return; }
+
+  const apUSDunit = Number(p.unit_usd||0)*aportePorDolar();
+  const saleUSDunit = saleCOP/TRM;
+  const profitUSDunit = saleUSDunit - Number(p.unit_usd||0) - apUSDunit;
+
+  // guardar venta
+  let ins = {
+    product_id: p.id,
+    product_name: p.name,
+    cat: p.cat||null,
+    store: p.store||null,
+    qty,
+    unit_usd: p.unit_usd,
+    trm_used: TRM,
+    sale_cop: saleCOP,
+    aporte_usd: apUSDunit*qty,
+    profit_usd: profitUSDunit*qty
+  };
+  let {error} = await supa.from('sales').insert(ins);
+  if(error && error.message && error.message.includes('profit_usd')){
+    // si la columna es generada y no permite setearla, inserta sin profit_usd (dejando que la DB lo calcule si existe)
+    delete ins.profit_usd;
+    await supa.from('sales').insert(ins);
+  }
+  await loadSales();
+  alert('Venta registrada');
+  $('#saleQty').value='1'; $('#saleCOP').value='';
+  renderReports();
+};
+
+/* ---- Reportes ---- */
+function renderReports(){
+  // Estimado: desde inventario (valores estimados)
+  let estCostUSD=0, estAporteUSD=0, estMarginUSD=0, estVentaCOP=0;
+  INVENTORY.forEach(p=>{
+    const qty = Number(p.qty||0);
+    const apUSDunit = (p.est_aporte_usd!=null)? Number(p.est_aporte_usd) : (Number(p.unit_usd||0)*aportePorDolar());
+    const estCOP = (p.est_sell_cop!=null)? Number(p.est_sell_cop) : null;
+    const estUSD = (p.est_sell_usd!=null)? Number(p.est_sell_usd) : (estCOP? estCOP/TRM : null);
+    const mgUSDunit = (p.est_margin_usd!=null)? Number(p.est_margin_usd) : (estUSD!=null? (estUSD-Number(p.unit_usd||0)-apUSDunit):0);
+
+    estCostUSD += Number(p.unit_usd||0)*qty;
+    estAporteUSD += apUSDunit*qty;
+    estMarginUSD += (mgUSDunit||0)*qty;
+    if(estCOP!=null) estVentaCOP += estCOP*qty;
+  });
+  $('#repEst').innerHTML = `
+    <div>Ventas estimadas: <b>${fmtCOP(estVentaCOP)}</b></div>
+    <div>COGS (USD): <b>${fmtUSD(estCostUSD)}</b></div>
+    <div>Aporte estimado (USD): <b>${fmtUSD(estAporteUSD)}</b></div>
+    <div>Margen estimado (USD): <b>${fmtUSD(estMarginUSD)}</b></div>
+  `;
+
+  // Realizado: desde ventas
+  let realCOP=0, realAporteUSD=0, realProfitUSD=0;
+  SALES.forEach(s=>{
+    realCOP += Number(s.sale_cop||0);
+    realAporteUSD += Number(s.aporte_usd||0);
+    realProfitUSD += Number(s.profit_usd||0);
+  });
+  $('#repReal').innerHTML = `
+    <div>Ventas realizadas: <b>${fmtCOP(realCOP)}</b> (${fmtUSD(realCOP/TRM)})</div>
+    <div>Aporte a costos (USD): <b>${fmtUSD(realAporteUSD)}</b></div>
+    <div>Utilidad (USD): <b>${fmtUSD(realProfitUSD)}</b></div>
+  `;
+}
+
+/* ---- TRM ---- */
+async function fetchTRM(){
+  try{
+    const r = await fetch('https://open.er-api.com/v6/latest/USD');
+    const j = await r.json();
+    if(j && j.rates && j.rates.COP){
+      TRM = Number(j.rates.COP);
+      $('#inpTRM').value = TRM;
+      renderKPIs();
+      alert('TRM actualizada');
+    }else throw new Error('Sin rates');
+  }catch(e){
+    alert('No se pudo actualizar TRM. Ingresa manual.');
+  }
+}
+$('#btnFetchTRM').onclick=fetchTRM;
+$('#btnManualTRM').onclick=()=>{ const v=prompt('TRM (COP/USD):', String(TRM)); if(v){ TRM=Number(v); $('#inpTRM').value=TRM; renderKPIs(); } };
+$('#inpTRM').onchange=()=>{ const v=Number($('#inpTRM').value||0); if(v>0){ TRM=v; renderKPIs(); } };
+
+/* ---- Sync (carga general) ---- */
+async function syncAll(){
+  await Promise.all([loadOverheads(), loadCatalog(), loadInventory(), loadSales()]);
+  renderKPIs(); fillSaleProducts(); renderReports();
+}
+$('#btnSync').onclick = syncAll;
+
+/* ---- Config listeners ---- */
+$('#inpBT').onchange=()=>{ BT = Number($('#inpBT').value||7000); renderKPIs(); renderInventory(); renderReports(); };
+$('#inpGB').onchange=()=>{ GB = Number($('#inpGB').value||30); };
+
+/* ---- Init ---- */
+(async function(){
+  // valores iniciales
+  BT = Number($('#inpBT').value||7000);
+  GB = Number($('#inpGB').value||30);
+  TRM = Number($('#inpTRM').value||4200) || 4200;
+  renderKPIs();
   await syncAll();
-}
+})();
 </script>
 </body>
 </html>
