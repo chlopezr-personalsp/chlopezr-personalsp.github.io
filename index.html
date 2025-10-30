@@ -33,6 +33,7 @@
   .btn.success{background:#059669;border-color:#059669}
   .btn.warn{background:#b45309;border-color:#b45309}
   .btn:disabled{opacity:.55;cursor:not-allowed}
+  /* Botones compactos */
   #btnSync,#btnFetchTRM,#btnManualTRM{padding:2px 6px!important;font-size:11px!important;line-height:1.05!important;border-radius:7px!important}
 
   .grid{display:grid;gap:12px}
@@ -82,7 +83,7 @@
 </head>
 <body>
 <div class="wrap">
-  <!-- Encabezado -->
+  <!-- Header -->
   <div class="header-card">
     <div class="brand-row">
       <div class="app-title">
@@ -124,7 +125,7 @@
     </div>
   </div>
 
-  <!-- KPIs de Presupuesto Real -->
+  <!-- KPIs Presupuesto Real -->
   <div class="grid cards" style="margin-top:12px">
     <div class="card">
       <div class="k">Compras acumuladas (Costo USD)</div>
@@ -153,7 +154,7 @@
     <div class="tab" data-tab="reportes">📊 Reportes</div>
   </div>
 
-  <!-- Panel Configuración -->
+  <!-- Panel Config -->
   <div id="panel-config" class="card">
     <div class="row">
       <div>
@@ -245,7 +246,7 @@
     </div>
   </div>
 
-  <!-- Panel Semáforo + Cámara -->
+  <!-- Panel Semáforo -->
   <div id="panel-semaforo" class="card" style="display:none">
     <div class="row">
       <div>
@@ -397,14 +398,17 @@
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- LIBRERÍAS: UMD para GitHub Pages -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
 <script>
+/* ======= CONFIG SUPABASE (USA UMD) ======= */
 const SUPABASE_URL = "https://ucrkhrehdedmubykzfzs.supabase.co";
 const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcmtocmVoZGVkbXVieWt6ZnpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1OTc5MzgsImV4cCI6MjA3NzE3MzkzOH0.7CXUuyAPQlm_9RIKbaO9y8Kwjh9c6M7UJcu4xAIM7WA";
-const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-/* Estado */
+/* ======= ESTADO ======= */
 let BT = 7000;
 let GB = 30;
 let TRM = 4200;
@@ -415,7 +419,7 @@ let SALES = [];
 let LAST_STORE = null;
 let camStream = null;
 
-/* Helpers */
+/* ======= HELPERS ======= */
 const fmtUSD = n => "$" + (Number(n||0)).toFixed(2);
 const fmtCOP = n => "$" + (Math.round(Number(n||0))).toLocaleString("es-CO");
 const aportePorDolar = () => {
@@ -427,22 +431,7 @@ const toCOP = (usd) => Number(usd)*Number(TRM);
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
 
-/* === Ajustes persistentes (BT, GB, TRM) === */
-async function saveSetting(key, num){
-  await supa.from('app_settings').upsert({ key, num }, { onConflict: 'key' });
-}
-async function loadSettings(){
-  const { data, error } = await supa.from('app_settings').select('*');
-  if(!error && data && data.length){
-    const map = {};
-    data.forEach(r=>{ map[r.key] = Number(r.num); });
-    if(Number.isFinite(map.BT)){ BT = map.BT; $('#inpBT').value = BT; }
-    if(Number.isFinite(map.GB)){ GB = map.GB; $('#inpGB').value = GB; }
-    if(Number.isFinite(map.TRM)){ TRM = map.TRM; $('#inpTRM').value = TRM; }
-  }
-}
-
-/* Tabs */
+/* ======= TABS ======= */
 $$('.tab').forEach(t=>{
   t.onclick=()=>{
     $$('.tab').forEach(x=>x.classList.remove('active'));
@@ -458,7 +447,7 @@ $$('.tab').forEach(t=>{
   };
 });
 
-/* KPIs */
+/* ======= KPIs ======= */
 function renderKPIs(){
   const V = OVERHEADS.reduce((s,o)=>s+Number(o.usd||0),0);
   const comprasUSD = INVENTORY.reduce((s,p)=>s+(Number(p.unit_usd||0)*Number(p.qty||0)),0);
@@ -487,7 +476,7 @@ function renderBudgetProgress(){
   $('#progBTText').textContent = `Uso de BT: ${pct.toFixed(1)}% — Real: ${fmtUSD(realUSD)} de ${fmtUSD(BT)}`;
 }
 
-/* Overheads */
+/* ======= OVERHEADS ======= */
 async function loadOverheads(){
   const {data,error} = await supa.from('overheads').select('*').order('created_at',{ascending:false});
   if(!error && data){ OVERHEADS = data; renderOverheads(); renderKPIs(); }
@@ -523,7 +512,7 @@ $('#ohAdd').onclick = async ()=>{
   await loadOverheads();
 };
 
-/* Catálogo */
+/* ======= CATÁLOGO ======= */
 async function loadCatalog(){
   const {data,error} = await supa.from('catalog').select('*').order('created_at',{ascending:false});
   if(!error && data){ CATALOG = data; renderCatalog(); }
@@ -561,7 +550,7 @@ $('#catAdd').onclick=async ()=>{
 };
 $('#catSync').onclick = loadCatalog;
 
-/* Tiendas (sugerencias) */
+/* ======= TIENDAS (sugerencias) ======= */
 function uniqueStores(){
   const set = new Set();
   INVENTORY.forEach(p=>{ if(p.store) set.add(p.store); });
@@ -581,7 +570,7 @@ function showLastStoreChip(){
 }
 $('#useLastStore').onclick = ()=>{ if(LAST_STORE){ $('#svStore').value = LAST_STORE; } };
 
-/* Buscar VR */
+/* ======= VR (Catálogo + MercadoLibre) ======= */
 async function buscarVR(descr){
   const q = descr.toLowerCase();
   let bestCat = null, bestScore=0;
@@ -613,7 +602,7 @@ async function buscarVR(descr){
   return { vrCOP, src, srcDetail };
 }
 
-/* Semáforo */
+/* ======= SEMÁFORO ======= */
 $('#svEval').onclick = async ()=>{
   const name = $('#svName').value.trim();
   const unit = Number($('#svUnitUSD').value||0);
@@ -649,8 +638,8 @@ function requireStore(valueNow){
   let store=(valueNow||'').trim();
   if(!store){
     const stores=uniqueStores();
-    const suggestion=stores.length?` (sugerencia: ${stores[0]})`:``;
-    store = prompt('Ingresa la TIENDA para registrar en inventario'+suggestion, stores[0]||'')||'';
+    const suggestion=stores.length?` (sugerencia: ${stores[0]})`:''; 
+    store = prompt('Ingresa la TIENDA para registrar en inventario'+suggestion, stores[0]||'')||''; 
     store = store.trim();
   }
   return store || null;
@@ -683,7 +672,7 @@ $('#svAddToInv').onclick = async ()=>{
   $('#svResult').style.display='none';
 };
 
-/* Inventario */
+/* ======= INVENTARIO ======= */
 async function loadInventory(){
   const {data,error} = await supa.from('products').select('*').order('created_at',{ascending:false});
   if(!error && data){ INVENTORY = data; renderInventory(); fillStoreDatalist(); showLastStoreChip(); renderKPIs(); }
@@ -723,7 +712,7 @@ function renderInventory(){
   });
 }
 
-/* Ventas */
+/* ======= VENTAS ======= */
 async function loadSales(){
   const {data,error} = await supa.from('sales').select('*').order('created_at',{ascending:false});
   if(!error && data){ SALES = data; renderSales(); fillStoreDatalist(); renderReports(); }
@@ -789,7 +778,7 @@ $('#saleSave').onclick = async ()=>{
   $('#saleQty').value='1'; $('#saleCOP').value='';
 };
 
-/* Reportes */
+/* ======= REPORTES ======= */
 function renderReports(){
   // Estimado (inventario)
   let estCostUSD=0, estAporteUSD=0, estMarginUSD=0, estVentaCOP=0;
@@ -826,7 +815,7 @@ function renderReports(){
   `;
 }
 
-/* TRM */
+/* ======= TRM ======= */
 async function fetchTRM(){
   try{
     const r = await fetch('https://open.er-api.com/v6/latest/USD');
@@ -834,7 +823,6 @@ async function fetchTRM(){
     if(j && j.rates && j.rates.COP){
       TRM = Number(j.rates.COP);
       $('#inpTRM').value = TRM;
-      await saveSetting('TRM', TRM);
       renderKPIs(); renderInventory(); renderReports();
       alert('TRM actualizada');
     }else throw new Error('Sin rates');
@@ -843,36 +831,27 @@ async function fetchTRM(){
   }
 }
 $('#btnFetchTRM').onclick=fetchTRM;
-$('#btnManualTRM').onclick=async ()=>{
+$('#btnManualTRM').onclick=()=>{
   const v=prompt('TRM (COP/USD):', String(TRM));
-  if(v){ TRM=Number(v); $('#inpTRM').value=TRM; await saveSetting('TRM', TRM); renderKPIs(); renderInventory(); renderReports(); }
+  if(v){ TRM=Number(v); $('#inpTRM').value=TRM; renderKPIs(); renderInventory(); renderReports(); }
 };
-$('#inpTRM').onchange=async ()=>{
+$('#inpTRM').onchange=()=>{
   const v=Number($('#inpTRM').value||0);
-  if(v>0){ TRM=v; await saveSetting('TRM', TRM); renderKPIs(); renderInventory(); renderReports(); }
+  if(v>0){ TRM=v; renderKPIs(); renderInventory(); renderReports(); }
 };
 
-/* Sync (primero carga BT/GB/TRM guardados) */
+/* ======= SYNC ======= */
 async function syncAll(){
-  await loadSettings();
   await Promise.all([loadOverheads(), loadCatalog(), loadInventory(), loadSales()]);
   renderKPIs(); fillSaleProducts(); renderReports(); fillStoreDatalist(); showLastStoreChip();
 }
 $('#btnSync').onclick = syncAll;
 
-/* Config listeners -> guardan en Supabase */
-$('#inpBT').onchange=async ()=>{ 
-  BT = Number($('#inpBT').value||7000); 
-  await saveSetting('BT', BT);
-  renderKPIs(); renderInventory(); renderReports(); 
-};
-$('#inpGB').onchange=async ()=>{ 
-  GB = Number($('#inpGB').value||30); 
-  await saveSetting('GB', GB);
-  renderKPIs(); renderInventory(); renderReports(); 
-};
+/* ======= CONFIG LISTENERS ======= */
+$('#inpBT').onchange=()=>{ BT = Number($('#inpBT').value||7000); renderKPIs(); renderInventory(); renderReports(); };
+$('#inpGB').onchange=()=>{ GB = Number($('#inpGB').value||30); renderKPIs(); renderInventory(); renderReports(); };
 
-/* Cámara + OCR */
+/* ======= CÁMARA + OCR ======= */
 const videoEl = $('#camVideo');
 const canvasEl = $('#camCanvas');
 const btnStart = $('#camStart');
@@ -931,7 +910,7 @@ btnStart.onclick = ()=> { if(!cameraSupported()){ alert('getUserMedia no soporta
 btnShot.onclick  = shotAndOCR;
 btnStop.onclick  = stopCamera;
 
-/* Init */
+/* ======= INIT ======= */
 (async function init(){
   $('#inpBT').value = BT;
   $('#inpGB').value = GB;
@@ -941,3 +920,4 @@ btnStop.onclick  = stopCamera;
 </script>
 </body>
 </html>
+
