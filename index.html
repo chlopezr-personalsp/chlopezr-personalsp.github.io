@@ -145,7 +145,7 @@
 
   <!-- Tabs -->
   <div class="tabs">
-    <div class="tab active" data-tab="config">⚙ Configuración</div>
+    <div class="tab active" data-tab="config">⚙️ Configuración</div>
     <div class="tab" data-tab="catalog">📚 Catálogo referencia</div>
     <div class="tab" data-tab="semaforo">🚦 Semáforo (con cámara)</div>
     <div class="tab" data-tab="inventario">📦 Inventario</div>
@@ -427,6 +427,21 @@ const toCOP = (usd) => Number(usd)*Number(TRM);
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
 
+/* === Ajustes persistentes (BT, GB, TRM) === */
+async function saveSetting(key, num){
+  await supa.from('app_settings').upsert({ key, num }, { onConflict: 'key' });
+}
+async function loadSettings(){
+  const { data, error } = await supa.from('app_settings').select('*');
+  if(!error && data && data.length){
+    const map = {};
+    data.forEach(r=>{ map[r.key] = Number(r.num); });
+    if(Number.isFinite(map.BT)){ BT = map.BT; $('#inpBT').value = BT; }
+    if(Number.isFinite(map.GB)){ GB = map.GB; $('#inpGB').value = GB; }
+    if(Number.isFinite(map.TRM)){ TRM = map.TRM; $('#inpTRM').value = TRM; }
+  }
+}
+
 /* Tabs */
 $$('.tab').forEach(t=>{
   t.onclick=()=>{
@@ -469,7 +484,7 @@ function renderBudgetProgress(){
   const realUSD = V + comprasUSD;
   const pct = Math.max(0, Math.min(100, BT>0 ? (realUSD/BT)*100 : 0));
   $('#progBT').style.width = pct.toFixed(1)+"%";
-  $('#progBTText').textContent = Uso de BT: ${pct.toFixed(1)}% — Real: ${fmtUSD(realUSD)} de ${fmtUSD(BT)};
+  $('#progBTText').textContent = `Uso de BT: ${pct.toFixed(1)}% — Real: ${fmtUSD(realUSD)} de ${fmtUSD(BT)}`;
 }
 
 /* Overheads */
@@ -566,7 +581,7 @@ function showLastStoreChip(){
 }
 $('#useLastStore').onclick = ()=>{ if(LAST_STORE){ $('#svStore').value = LAST_STORE; } };
 
-/* Buscar VR (Catálogo + MercadoLibre) */
+/* Buscar VR */
 async function buscarVR(descr){
   const q = descr.toLowerCase();
   let bestCat = null, bestScore=0;
@@ -593,7 +608,7 @@ async function buscarVR(descr){
   if(cCOP && mlCOP){ vrCOP=Math.min(cCOP,mlCOP); src=(vrCOP===cCOP?'Catálogo':'MercadoLibre'); }
   else if(cCOP){ vrCOP=cCOP; src='Catálogo'; }
   else if(mlCOP){ vrCOP=mlCOP; src='MercadoLibre'; }
-  if(src==='Catálogo' && bestCat){ srcDetail=${bestCat.name} ${(bestCat.brand?('('+bestCat.brand+')'):'')}; }
+  if(src==='Catálogo' && bestCat){ srcDetail=`${bestCat.name} ${(bestCat.brand?('('+bestCat.brand+')'):'')}`; }
   if(src==='MercadoLibre' && mlDetail){ srcDetail = mlDetail; }
   return { vrCOP, src, srcDetail };
 }
@@ -634,7 +649,7 @@ function requireStore(valueNow){
   let store=(valueNow||'').trim();
   if(!store){
     const stores=uniqueStores();
-    const suggestion=stores.length?` (sugerencia: ${stores[0]})`:'';
+    const suggestion=stores.length?` (sugerencia: ${stores[0]})`:``;
     store = prompt('Ingresa la TIENDA para registrar en inventario'+suggestion, stores[0]||'')||'';
     store = store.trim();
   }
@@ -679,7 +694,7 @@ function renderInventory(){
   const aporteAcumUSD = INVENTORY.reduce((s,p)=> s + (Number(p.unit_usd||0)*aportePorDolar()*Number(p.qty||0)), 0);
   const prog = Math.min(100, (V>0 ? (aporteAcumUSD/V)*100 : 0));
   $('#invProgress').style.width = prog.toFixed(1)+'%';
-  $('#invProgressText').textContent = Cobertura de costos del viaje: ${prog.toFixed(1)}% (${fmtUSD(aporteAcumUSD)} de ${fmtUSD(V)});
+  $('#invProgressText').textContent = `Cobertura de costos del viaje: ${prog.toFixed(1)}% (${fmtUSD(aporteAcumUSD)} de ${fmtUSD(V)})`;
 
   INVENTORY.forEach(p=>{
     const estCOP = (p.est_sell_cop!=null)? Number(p.est_sell_cop) : null;
@@ -718,7 +733,7 @@ function fillSaleProducts(){
   INVENTORY.forEach(p=>{
     const opt=document.createElement('option');
     opt.value = p.id;
-    opt.textContent = ${p.name} — ${fmtUSD(p.unit_usd)} × ${p.qty}${p.store?(' @ '+p.store):''};
+    opt.textContent = `${p.name} — ${fmtUSD(p.unit_usd)} × ${p.qty}${p.store?(' @ '+p.store):''}`;
     sel.appendChild(opt);
   });
 }
@@ -819,6 +834,7 @@ async function fetchTRM(){
     if(j && j.rates && j.rates.COP){
       TRM = Number(j.rates.COP);
       $('#inpTRM').value = TRM;
+      await saveSetting('TRM', TRM);
       renderKPIs(); renderInventory(); renderReports();
       alert('TRM actualizada');
     }else throw new Error('Sin rates');
@@ -827,25 +843,34 @@ async function fetchTRM(){
   }
 }
 $('#btnFetchTRM').onclick=fetchTRM;
-$('#btnManualTRM').onclick=()=>{
+$('#btnManualTRM').onclick=async ()=>{
   const v=prompt('TRM (COP/USD):', String(TRM));
-  if(v){ TRM=Number(v); $('#inpTRM').value=TRM; renderKPIs(); renderInventory(); renderReports(); }
+  if(v){ TRM=Number(v); $('#inpTRM').value=TRM; await saveSetting('TRM', TRM); renderKPIs(); renderInventory(); renderReports(); }
 };
-$('#inpTRM').onchange=()=>{
+$('#inpTRM').onchange=async ()=>{
   const v=Number($('#inpTRM').value||0);
-  if(v>0){ TRM=v; renderKPIs(); renderInventory(); renderReports(); }
+  if(v>0){ TRM=v; await saveSetting('TRM', TRM); renderKPIs(); renderInventory(); renderReports(); }
 };
 
-/* Sync */
+/* Sync (primero carga BT/GB/TRM guardados) */
 async function syncAll(){
+  await loadSettings();
   await Promise.all([loadOverheads(), loadCatalog(), loadInventory(), loadSales()]);
   renderKPIs(); fillSaleProducts(); renderReports(); fillStoreDatalist(); showLastStoreChip();
 }
 $('#btnSync').onclick = syncAll;
 
-/* Config listeners */
-$('#inpBT').onchange=()=>{ BT = Number($('#inpBT').value||7000); renderKPIs(); renderInventory(); renderReports(); };
-$('#inpGB').onchange=()=>{ GB = Number($('#inpGB').value||30); renderKPIs(); renderInventory(); renderReports(); };
+/* Config listeners -> guardan en Supabase */
+$('#inpBT').onchange=async ()=>{ 
+  BT = Number($('#inpBT').value||7000); 
+  await saveSetting('BT', BT);
+  renderKPIs(); renderInventory(); renderReports(); 
+};
+$('#inpGB').onchange=async ()=>{ 
+  GB = Number($('#inpGB').value||30); 
+  await saveSetting('GB', GB);
+  renderKPIs(); renderInventory(); renderReports(); 
+};
 
 /* Cámara + OCR */
 const videoEl = $('#camVideo');
@@ -908,7 +933,6 @@ btnStop.onclick  = stopCamera;
 
 /* Init */
 (async function init(){
-  // Pre-cargar BT/GB/TRM inputs con estado actual
   $('#inpBT').value = BT;
   $('#inpGB').value = GB;
   $('#inpTRM').value = TRM;
