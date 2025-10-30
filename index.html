@@ -82,6 +82,10 @@
   #btnSync, #btnFetchTRM, #btnManualTRM { padding:2px 6px !important; font-size:11px !important; line-height:1.05 !important; border-radius:7px !important;}
 
   .select-compact{padding:4px 6px;font-size:12px}
+
+  .hint{font-size:11px;color:#9ca3af;margin-top:4px}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;border:1px solid #334155;background:#0f172a;font-size:12px;cursor:pointer}
+  .pill:hover{background:#111827}
 </style>
 </head>
 <body>
@@ -245,9 +249,11 @@
         <input id="svQty" class="input" type="number" step="1" value="1">
       </div>
       <div>
-        <label>Tienda</label>
+        <label>Tienda (requerida al agregar)</label>
         <input id="svStore" class="input" list="storeList" placeholder="Ej: Nike Factory Orlando">
         <datalist id="storeList"></datalist>
+        <div class="hint">Sugerencias de tiendas usadas antes</div>
+        <div class="mt8"><span id="useLastStore" class="pill" style="display:none">Usar última tienda: <b id="lastStoreName"></b></span></div>
       </div>
       <div style="display:flex;align-items:flex-end;gap:8px">
         <button id="svEval" class="btn primary">Calcular semáforo</button>
@@ -287,12 +293,12 @@
           <div>
             <label>Precio estimado de venta (COP, por unidad)</label>
             <input id="svEstSellCOP" class="input" type="number" step="100" placeholder="Ej: 280000">
+            <div class="hint">La TIENDA es obligatoria al guardar en inventario.</div>
           </div>
           <div style="display:flex;align-items:flex-end;gap:8px">
             <button id="svAddToInv" class="btn success">＋ Incluir en inventario</button>
           </div>
         </div>
-        <div class="muted mt8">Se guarda costo, PVP estimado, TIENDA, aporte estimado y margen estimado.</div>
       </div>
     </div>
   </div>
@@ -378,6 +384,7 @@ let OVERHEADS = [];
 let CATALOG = [];
 let INVENTORY = [];
 let SALES = [];
+let LAST_STORE = null;
 
 /* ---- Helpers ---- */
 const fmtUSD = n => "$" + (Number(n||0)).toFixed(2);
@@ -409,7 +416,7 @@ $$('.tab').forEach(t=>{
     if(tab==='ventas') fillSaleProducts();
     if(tab==='inventario'){ renderInventory(); }
     if(tab==='reportes'){ renderReports(); }
-    if(tab==='semaforo'){ fillStoreDatalist(); }
+    if(tab==='semaforo'){ fillStoreDatalist(); showLastStoreChip(); }
   };
 });
 
@@ -501,7 +508,7 @@ $('#catAdd').onclick=async ()=>{
 };
 $('#catSync').onclick = loadCatalog;
 
-/* ---- Utilidades tiendas ---- */
+/* ---- Tiendas ---- */
 function uniqueStores(){
   const set = new Set();
   INVENTORY.forEach(p=>{ if(p.store) set.add(p.store); });
@@ -517,8 +524,16 @@ function fillStoreDatalist(){
     dl.appendChild(opt);
   });
 }
+function showLastStoreChip(){
+  const stores = uniqueStores();
+  LAST_STORE = stores.length? stores[0] : null;
+  const chip = $('#useLastStore'), name = $('#lastStoreName');
+  if(LAST_STORE){ chip.style.display='inline-flex'; name.textContent = LAST_STORE; }
+  else chip.style.display='none';
+}
+$('#useLastStore').onclick = ()=>{ if(LAST_STORE){ $('#svStore').value = LAST_STORE; } };
 
-/* ---- Búsqueda VR ---- */
+/* ---- Buscador VR ---- */
 async function buscarVR(descr){
   const q = descr.toLowerCase();
   let bestCat = null;
@@ -594,13 +609,27 @@ $('#svEval').onclick = async ()=>{
   $('#svResult').style.display='block';
 };
 
+function requireStore(valueNow){
+  let store = (valueNow||'').trim();
+  if(!store){
+    const stores = uniqueStores();
+    const suggestion = stores.length? ` (sugerencia: ${stores[0]})` : '';
+    store = prompt('Ingresa la TIENDA para registrar en inventario'+suggestion, stores[0]||'') || '';
+    store = store.trim();
+  }
+  return store || null;
+}
+
 $('#svAddToInv').onclick = async ()=>{
   const name = $('#svName').value.trim();
   const unit = Number($('#svUnitUSD').value||0);
   const qty = Number($('#svQty').value||0);
+  let store = $('#svStore').value;
+  store = requireStore(store);  // <<<<< TIENDA OBLIGATORIA
+  if(!name || unit<=0 || qty<=0){ alert('Completa los campos'); return; }
+
   const estCOP = Number($('#svEstSellCOP').value||0);
-  const store = $('#svStore').value.trim() || null;
-  if(!name || unit<=0 || qty<=0 || estCOP<=0){ alert('Completa los campos y el PVP estimado'); return; }
+  if(estCOP<=0){ alert('Ingresa el PVP estimado (COP)'); return; }
 
   const estUsdUnit = estCOP / TRM;
   const apUSDunit = unit * aportePorDolar();
@@ -621,7 +650,9 @@ $('#svAddToInv').onclick = async ()=>{
   await loadInventory();
   fillSaleProducts();
   fillStoreDatalist();
-  alert('Artículo agregado al inventario con tienda y PVP estimado.');
+  LAST_STORE = store;
+  showLastStoreChip();
+  alert('Artículo agregado al inventario con TIENDA y PVP estimado.');
   $('#svName').value=''; $('#svUnitUSD').value=''; $('#svQty').value='1'; $('#svEstSellCOP').value=''; $('#svStore').value='';
   $('#svResult').style.display='none';
 };
@@ -629,7 +660,7 @@ $('#svAddToInv').onclick = async ()=>{
 /* ---- Inventario ---- */
 async function loadInventory(){
   const {data,error} = await supa.from('products').select('*').order('created_at',{ascending:false});
-  if(!error && data){ INVENTORY = data; renderInventory(); fillStoreDatalist(); }
+  if(!error && data){ INVENTORY = data; renderInventory(); fillStoreDatalist(); showLastStoreChip(); }
 }
 function renderInventory(){
   const tb = $('#invTbody'); tb.innerHTML="";
@@ -638,7 +669,7 @@ function renderInventory(){
     const apUnit = Number(p.unit_usd||0) * aportePorDolar();
     return s + apUnit * Number(p.qty||0);
   },0);
-  const prog = Math.min(100, (aporteAcumUSD / V) * 100 || 0);
+  const prog = Math.min(100, (aporteAcumUSD / (V||1)) * 100 || 0);
   $('#invProgress').style.width = prog.toFixed(1)+'%';
   $('#invProgressText').textContent = `Aporte cubierto: ${prog.toFixed(1)}% (${fmtUSD(aporteAcumUSD)} de ${fmtUSD(V)})`;
 
@@ -803,7 +834,7 @@ $('#inpTRM').onchange=()=>{ const v=Number($('#inpTRM').value||0); if(v>0){ TRM=
 /* ---- Sync ---- */
 async function syncAll(){
   await Promise.all([loadOverheads(), loadCatalog(), loadInventory(), loadSales()]);
-  renderKPIs(); fillSaleProducts(); renderReports(); fillStoreDatalist();
+  renderKPIs(); fillSaleProducts(); renderReports(); fillStoreDatalist(); showLastStoreChip();
 }
 $('#btnSync').onclick = syncAll;
 
@@ -822,5 +853,3 @@ $('#inpGB').onchange=()=>{ GB = Number($('#inpGB').value||30); };
 </script>
 </body>
 </html>
-
-
