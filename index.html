@@ -2,201 +2,193 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Personal Shopper USA</title>
-  <meta name="theme-color" content="#111827" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Ctext y='50' font-size='48'%3E🛒%3C/text%3E%3C/svg%3E">
-  <!-- Tailwind (CDN) -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Supabase JS -->
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='%2300d4ff' d='M10 22h44l-4 26a6 6 0 0 1-6 5H20a6 6 0 0 1-6-5l-4-26z'/%3E%3Cpath fill='%2328a' d='M22 22v-4a10 10 0 0 1 20 0v4h-4v-4a6 6 0 0 0-12 0v4z'/%3E%3C/svg%3E" />
+  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    .btn-xs { padding: 0.25rem 0.5rem; font-size: 0.8rem; }
-    .btn-sm { padding: 0.35rem 0.6rem; font-size: 0.9rem; }
-    .card { @apply bg-white rounded-xl shadow p-4; }
-    .metric { @apply text-xs text-gray-600; }
+    :root{
+      --bg:#0c1724;--panel:#0f2236;--muted:#9bb3c7;--text:#e8f1f8;
+      --accent:#39c4ff;--accent-2:#28a;--ok:#16c784;--warn:#e7b416;--err:#ef4444;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,sans-serif}
+    .wrap{max-width:1100px;margin:24px auto;padding:0 16px}
+    header{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+    header h1{font-size:22px;margin:0}
+    header .hint{color:var(--muted);font-size:13px}
+    .row{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+    .card{background:var(--panel);border:1px solid #14314a;border-radius:12px;padding:14px}
+    .span-12{grid-column:span 12}
+    .span-6{grid-column:span 6}
+    .span-4{grid-column:span 4}
+    .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .kpi h4{margin:0 0 6px;font-size:13px;color:var(--muted)}
+    .kpi .v{font-weight:700;font-size:20px}
+    .kpi .s{color:var(--muted);font-size:12px}
+    .inputs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+    label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
+    input{width:100%;padding:10px;border-radius:10px;border:1px solid #1b3b56;background:#0a1a29;color:var(--text);outline:none}
+    input:focus{border-color:var(--accent)}
+    .btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+    .btn{display:inline-flex;align-items:center;gap:6px;border:1px solid #1b3b56;background:#0b1f31;color:var(--text);
+         padding:8px 10px;border-radius:10px;font-size:12.5px;cursor:pointer}
+    .btn.small{padding:6px 8px;font-size:12px;border-radius:9px}
+    .btn.primary{background:linear-gradient(180deg,#0f60a0,#0d4a7d);border-color:#0d4a7d}
+    .btn.ok{background:#0f3328;border-color:#125e49}
+    .btn.warn{background:#332a0f;border-color:#6f5a12}
+    .btn:active{transform:translateY(1px)}
+    .muted{color:var(--muted);font-size:12px}
+    .bar{height:10px;border-radius:8px;background:#0a1a29;border:1px solid #173651;overflow:hidden}
+    .bar > span{display:block;height:100%;width:0;background:linear-gradient(90deg,#1296ff,#36d1ff)}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width:900px){
+      .kpis{grid-template-columns:1fr 1fr}
+      .grid-2,.inputs{grid-template-columns:1fr}
+    }
   </style>
 </head>
-<body class="min-h-screen bg-gray-50">
-  <!-- Header -->
-  <header class="bg-white shadow">
-    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <span class="text-2xl">🛒</span>
-        <div>
-          <h1 class="text-2xl font-bold text-gray-800">Personal Shopper USA</h1>
-          <p class="text-xs text-gray-500">Control de costos, inventario y márgenes</p>
-        </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <button id="btn-refresh" class="btn-xs rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700">Actualizar</button>
-        <button id="btn-sync" class="btn-xs rounded-md bg-indigo-600 hover:bg-indigo-700 text-white">Sincronizar</button>
-      </div>
-    </div>
-  </header>
+<body>
+  <div class="wrap">
+    <header>
+      <img alt="logo" width="28" height="28"
+           src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='%2300d4ff' d='M10 22h44l-4 26a6 6 0 0 1-6 5H20a6 6 0 0 1-6-5l-4-26z'/%3E%3Cpath fill='%2328a' d='M22 22v-4a10 10 0 0 1 20 0v4h-4v-4a6 6 0 0 0-12 0v4z'/%3E%3C/svg%3E"/>
+      <h1>Personal Shopper USA</h1>
+      <div class="hint">Compra inteligente y rentable desde EE. UU.</div>
+    </header>
 
-  <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
-    <!-- Configuración -->
-    <section class="card">
-      <h2 class="text-lg font-semibold mb-3">Parámetros de viaje y finanzas</h2>
-      <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
-        <div>
-          <label class="metric">Presupuesto Total (BT) USD</label>
-          <input id="inp-bt" type="number" step="0.01" class="w-full border rounded-md p-2" />
-        </div>
-        <div>
-          <label class="metric">Margen Objetivo (GB%)</label>
-          <input id="inp-gb" type="number" step="0.01" class="w-full border rounded-md p-2" />
-        </div>
-        <div>
-          <label class="metric">TRM (COP/USD)</label>
-          <div class="flex gap-2">
-            <input id="inp-trm" type="number" step="0.01" class="w-full border rounded-md p-2" />
-            <button id="btn-trm" class="btn-sm rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700">↺</button>
-          </div>
-          <p class="text-[11px] text-gray-500 mt-1">↺ trae TRM del día (si prefieres, edítala manual)</p>
-        </div>
-        <div class="flex items-end">
-          <button id="btn-save-settings" class="btn-sm rounded-md bg-green-600 hover:bg-green-700 text-white w-full">Guardar cambios</button>
-        </div>
-        <div class="flex items-end">
-          <button id="btn-recalc" class="btn-sm rounded-md bg-sky-600 hover:bg-sky-700 text-white w-full">Recalcular</button>
-        </div>
-      </div>
-      <p class="text-xs text-gray-500 mt-2" id="settings-updated"></p>
-    </section>
+    <!-- BOTONES CABECERA -->
+    <div class="btns">
+      <button id="btn-sync" class="btn small">🔄 Sincronizar</button>
+      <button id="btn-trm" class="btn small">💱 Actualizar TRM</button>
+      <button id="btn-recalc" class="btn small">📊 Recalcular</button>
+    </div>
 
     <!-- KPIs -->
-    <section class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div class="card">
-        <p class="metric">Costos de viaje (V) USD</p>
-        <p id="kpi-v" class="text-2xl font-bold text-red-600">—</p>
-        <p id="kpi-v-cop" class="text-xs text-gray-500">—</p>
-      </div>
-      <div class="card">
-        <p class="metric">Presupuesto mercancía (M) USD = BT − V</p>
-        <p id="kpi-m" class="text-2xl font-bold text-emerald-600">—</p>
-        <p id="kpi-m-cop" class="text-xs text-gray-500">—</p>
-      </div>
-      <div class="card">
-        <p class="metric">rO = V / M</p>
-        <p id="kpi-ro" class="text-2xl font-bold text-indigo-600">—</p>
-        <p class="text-xs text-gray-500">USD de overhead por cada USD en mercancía</p>
-      </div>
-      <div class="card">
-        <p class="metric">Ejecución presupuesto **real**</p>
-        <div class="space-y-1">
-          <p id="kpi-real" class="text-2xl font-bold text-gray-800">—</p>
-          <p class="text-xs text-gray-500">= Costos de viaje + Compras ejecutadas</p>
-          <div class="w-full bg-gray-200 rounded-md h-3 overflow-hidden">
-            <div id="bar-real" class="bg-indigo-600 h-3" style="width:0%"></div>
-          </div>
-          <p id="kpi-real-pct" class="text-xs text-gray-500">—</p>
+    <div class="card span-12" style="margin-top:12px">
+      <div class="kpis">
+        <div class="kpi card">
+          <h4>Costos de viaje (V)</h4>
+          <div class="v" id="kpi-v">$0.00</div>
+          <div class="s" id="kpi-v-cop">$0</div>
+        </div>
+        <div class="kpi card">
+          <h4>M = BT − V (capacidad restante)</h4>
+          <div class="v" id="kpi-m">$0.00</div>
+          <div class="s" id="kpi-m-cop">$0</div>
+        </div>
+        <div class="kpi card">
+          <h4>rO = V / M</h4>
+          <div class="v" id="kpi-ro">0.0000</div>
+          <div class="s muted">Menor es mejor</div>
+        </div>
+        <div class="kpi card">
+          <h4>Presupuesto real acumulado (V + Compras)</h4>
+          <div class="v" id="kpi-real">$0.00 USD</div>
+          <div class="bar" style="margin-top:8px"><span id="bar-real" style="width:0%"></span></div>
+          <div class="s" id="kpi-real-pct" style="margin-top:6px">0% del BT</div>
         </div>
       </div>
-    </section>
+    </div>
 
-    <!-- (Resto de módulos existentes: costos, inventario, ventas, etc.) -->
-    <section class="card">
-      <h3 class="text-base font-semibold mb-2">Notas</h3>
-      <ul class="list-disc pl-5 text-sm text-gray-600 space-y-1">
-        <li>Al **Guardar cambios**, los valores quedan en Supabase (tabla <code>app_settings</code>).</li>
-        <li>Al **Recalcular**, se usan tus costos de viaje reales y compras para rO y KPIs.</li>
-        <li>El botón **↺** intenta traer la TRM del día; puedes editarla manualmente.</li>
-      </ul>
-    </section>
-  </main>
+    <!-- CONFIG -->
+    <div class="card span-12" style="margin-top:12px">
+      <h3 style="margin:0 0 6px">Configuración</h3>
+      <div class="inputs">
+        <div>
+          <label>Presupuesto total (BT) USD</label>
+          <input id="inp-bt" type="number" step="0.01" min="0" value="7000" />
+        </div>
+        <div>
+          <label>Margen objetivo GB% (sobre venta)</label>
+          <input id="inp-gb" type="number" step="0.1" min="0" max="100" value="30" />
+        </div>
+        <div>
+          <label>TRM (COP por 1 USD)</label>
+          <input id="inp-trm" type="number" step="0.0001" min="0" value="4200" />
+        </div>
+      </div>
+      <div class="btns">
+        <button id="btn-save-settings" class="btn primary small">💾 Guardar ajustes</button>
+        <span id="settings-updated" class="muted">—</span>
+      </div>
+    </div>
 
+    <!-- LUGARES PARA FUTUROS MÓDULOS -->
+    <div class="grid-2" style="margin-top:12px">
+      <div class="card">
+        <h3 style="margin:0 0 6px">Catálogo / Referencias (COP)</h3>
+        <p class="muted" style="margin:6px 0 0">
+          (Sección del catálogo, semáforo, inventario y ventas permanece igual a tu versión anterior.
+          Este archivo se centra en la <b>persistencia de BT/GB/TRM</b> y KPIs.)
+        </p>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 6px">Notas</h3>
+        <p class="muted" style="margin:6px 0 0">
+          Cambiar BT/GB/TRM y presionar <b>Guardar ajustes</b>.  
+          Luego puedes <b>Sincronizar</b> o <b>Recalcular</b> para refrescar KPIs con tus datos.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- =================== LÓGICA APP (Supabase + KPIs) =================== -->
   <script>
     // =============== SUPABASE CONFIG ===============
     const SUPABASE_URL = "https://ucrkhrehdedmubykzfzs.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcmtocmVoZGVkbXVieWt6ZnpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1OTc5MzgsImV4cCI6MjA3NzE3MzkzOH0.7CXUuyAPQlm_9RIKbaO9y8Kwjh9c6M7UJcu4xAIM7WA";
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // =============== UTILS ===============
-    const fmtCOP = v => {
-      if (isNaN(v)) return "—";
-      return "$" + Math.round(v).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    };
+    const fmtCOP = v => isNaN(v) ? "—" : "$" + Math.round(v).toLocaleString("es-CO");
 
-    // =============== STATE (solo en memoria para inputs) ===============
-    let SETTINGS = { bt: 7000, gb: 30, trm: 4200 }; // se sobre-escribe con Supabase al cargar
+    let SETTINGS = { bt: 7000, gb: 30, trm: 4200 };
 
-    // =============== CARGA INICIAL ===============
     document.addEventListener("DOMContentLoaded", async () => {
+      bindUI();
       await loadSettings();
-      await recalcKPIs();  // primera carga
-      wireEvents();
-      if (window.lucide) window.lucide.createIcons();
+      await recalcKPIs();
     });
 
-    // =============== EVENTOS ===============
-    function wireEvents() {
-      document.getElementById("btn-refresh").addEventListener("click", async () => {
-        await loadSettings();
-        await recalcKPIs();
-      });
-
-      document.getElementById("btn-sync").addEventListener("click", async () => {
-        await loadSettings();
-        await recalcKPIs();
-        alert("Sincronizado con Supabase.");
-      });
-
-      document.getElementById("btn-trm").addEventListener("click", async () => {
-        try {
-          // Intento 1: Datos abiertos Colombia (la API puede rate-limitar)
-          const r = await fetch("https://www.datos.gov.co/resource/32sa-8pi3.json?$limit=1&$order=vigenciadesde%20DESC");
-          const data = await r.json();
-          if (Array.isArray(data) && data.length && data[0].valor) {
-            const trm = parseFloat(data[0].valor);
-            document.getElementById("inp-trm").value = trm;
-          } else {
-            throw new Error("TRM no disponible");
-          }
-        } catch {
-          alert("No se pudo traer TRM. Ingresa el valor manualmente.");
-        }
-      });
-
+    function bindUI(){
       document.getElementById("btn-save-settings").addEventListener("click", saveSettings);
       document.getElementById("btn-recalc").addEventListener("click", recalcKPIs);
+      document.getElementById("btn-sync").addEventListener("click", syncData);
+      document.getElementById("btn-trm").addEventListener("click", updateTRM);
     }
 
-    // =============== SETTINGS: LOAD / SAVE ===============
+    // 🔄 Cargar configuración desde Supabase
     async function loadSettings() {
-      const { data, error } = await supabase
-        .from("app_settings")
-        .select("*")
-        .eq("id", 1)
-        .single();
-
+      const { data, error } = await supabase.from("app_settings").select("*").eq("id", 1).maybeSingle();
       if (error) {
-        console.error("Error loadSettings:", error);
-        alert("No se pudieron cargar los ajustes (app_settings). Revisa la tabla/políticas.");
+        console.error("Error cargando settings:", error);
+        alert("Error al cargar configuración. Verifica tabla y RLS.");
         return;
       }
-      SETTINGS.bt  = Number(data.budget_total_usd ?? 7000);
-      SETTINGS.gb  = Number(data.margin_target_pct ?? 30);
-      SETTINGS.trm = Number(data.trm_cop ?? 4200);
-
-      document.getElementById("inp-bt").value  = SETTINGS.bt;
-      document.getElementById("inp-gb").value  = SETTINGS.gb;
+      if (data) {
+        SETTINGS.bt = Number(data.budget_total_usd);
+        SETTINGS.gb = Number(data.margin_target_pct);
+        SETTINGS.trm = Number(data.trm_cop);
+      }
+      document.getElementById("inp-bt").value = SETTINGS.bt;
+      document.getElementById("inp-gb").value = SETTINGS.gb;
       document.getElementById("inp-trm").value = SETTINGS.trm;
 
+      let updated = (data && data.updated_at) ? new Date(data.updated_at) : new Date();
       document.getElementById("settings-updated").textContent =
-        `Última actualización: ${new Date(data.updated_at).toLocaleString('es-CO')}`;
+        `Última actualización: ${updated.toLocaleString('es-CO')}`;
+
+      console.log("Configuración cargada:", SETTINGS);
     }
 
+    // 💾 Guardar configuración
     async function saveSettings() {
-      const bt  = Number(document.getElementById("inp-bt").value);
-      const gb  = Number(document.getElementById("inp-gb").value);
+      const bt = Number(document.getElementById("inp-bt").value);
+      const gb = Number(document.getElementById("inp-gb").value);
       const trm = Number(document.getElementById("inp-trm").value);
 
-      if (!(bt > 0) || !(trm > 0) || gb < 0 || gb > 100) {
-        alert("Revisa los valores: BT>0, TRM>0, 0<=GB%<=100.");
+      if (!(bt > 0 && gb >= 0 && gb <= 100 && trm > 0)) {
+        alert("Revisa los valores: BT > 0, TRM > 0, 0 ≤ GB ≤ 100");
         return;
       }
 
@@ -213,67 +205,75 @@
         .single();
 
       if (error) {
-        console.error("Error saveSettings:", error);
-        alert("No se pudieron guardar los ajustes. Revisa RLS/políticas.");
+        console.error("Error guardando settings:", error);
+        alert("No se pudo guardar configuración. Revisa RLS.");
         return;
       }
 
-      SETTINGS.bt = bt; SETTINGS.gb = gb; SETTINGS.trm = trm;
-
+      SETTINGS = { bt, gb, trm };
       document.getElementById("settings-updated").textContent =
-        `Guardado • ${new Date(data.updated_at).toLocaleString('es-CO')}`;
+        `Guardado ${new Date().toLocaleString('es-CO')}`;
 
+      console.log("Configuración guardada:", SETTINGS);
       await recalcKPIs();
-      alert("Ajustes guardados y cálculos actualizados.");
     }
 
-    // =============== RECÁLCULOS ===============
-    async function recalcKPIs() {
-      // 1) V = suma de costos de viaje (tabla costs / travel_costs)
-      // Intentamos en 'costs' y, si no existe, en 'travel_costs'
-      let totalV = 0;
-      let { data: costs, error } = await supabase.from("costs").select("amount_usd");
-      if (error) {
-        // fallback si tu tabla se llama travel_costs
-        const fb = await supabase.from("travel_costs").select("amount_usd");
-        if (!fb.error && Array.isArray(fb.data)) {
-          costs = fb.data;
-          error = null;
+    // 🔁 Sincronización manual
+    async function syncData() {
+      await loadSettings();
+      await recalcKPIs();
+      alert("Sincronización completa ✅");
+    }
+
+    // 💱 Actualizar TRM desde API pública (colombia - datos abiertos)
+    async function updateTRM() {
+      try {
+        const resp = await fetch("https://www.datos.gov.co/resource/32sa-8pi3.json?$limit=1&$order=vigenciadesde%20DESC");
+        const data = await resp.json();
+        if (Array.isArray(data) && data[0] && data[0].valor) {
+          const trm = parseFloat(data[0].valor);
+          document.getElementById("inp-trm").value = trm;
+          alert("TRM actualizada: " + trm);
+        } else {
+          throw new Error("TRM no encontrada");
         }
+      } catch (e) {
+        console.warn(e);
+        alert("No se pudo obtener TRM; ingrésala manualmente y guarda.");
       }
-      if (!error && Array.isArray(costs)) {
-        totalV = costs.reduce((s, r) => s + Number(r.amount_usd || 0), 0);
-      }
+    }
 
-      // 2) Compras ejecutadas = inventario (products) * unit_usd
+    // 📊 Recalcular indicadores (usa tus tablas reales: costs, products)
+    async function recalcKPIs() {
+      // Total V (overheads/costos de viaje)
+      let totalV = 0;
+      try {
+        const { data: costs } = await supabase.from("costs").select("amount_usd");
+        if (costs) totalV = costs.reduce((s, r) => s + Number(r.amount_usd || 0), 0);
+      } catch {}
+
+      // Compras acumuladas (USD)
       let compras = 0;
-      const { data: prods } = await supabase.from("products").select("unit_usd, qty");
-      if (Array.isArray(prods)) {
-        compras = prods.reduce((s, r) => s + (Number(r.unit_usd || 0) * Number(r.qty || 0)), 0);
-      }
+      try {
+        const { data: prods } = await supabase.from("products").select("unit_usd, qty");
+        if (prods) compras = prods.reduce((s, r) => s + (r.unit_usd || 0) * (r.qty || 0), 0);
+      } catch {}
 
-      const BT = SETTINGS.bt;
-      const TRM = SETTINGS.trm;
+      const BT  = Number(SETTINGS.bt || 0);
+      const TRM = Number(SETTINGS.trm || 0);
+      const M   = Math.max(BT - totalV, 0);
+      const rO  = M > 0 ? totalV / M : 0;
+      const ejecReal = totalV + compras;
+      const pctReal  = BT > 0 ? (ejecReal / BT) * 100 : 0;
 
-      const M  = Math.max(BT - totalV, 0); // presupuesto mercancía
-      const rO = M > 0 ? (totalV / M) : 0;
-
-      const ejec_real = totalV + compras;
-      const pct_real  = BT > 0 ? Math.min((ejec_real / BT) * 100, 100) : 0;
-
-      // Pintar KPIs
       document.getElementById("kpi-v").textContent = `$${totalV.toFixed(2)}`;
       document.getElementById("kpi-v-cop").textContent = fmtCOP(totalV * TRM);
-
       document.getElementById("kpi-m").textContent = `$${M.toFixed(2)}`;
       document.getElementById("kpi-m-cop").textContent = fmtCOP(M * TRM);
-
       document.getElementById("kpi-ro").textContent = rO.toFixed(4);
-
-      document.getElementById("kpi-real").textContent = `$${ejec_real.toFixed(2)} (USD)`;
-      const bar = document.getElementById("bar-real");
-      bar.style.width = `${pct_real}%`;
-      document.getElementById("kpi-real-pct").textContent = `${pct_real.toFixed(1)}% del BT`;
+      document.getElementById("kpi-real").textContent = `$${ejecReal.toFixed(2)} USD`;
+      document.getElementById("bar-real").style.width = `${Math.min(pctReal,100)}%`;
+      document.getElementById("kpi-real-pct").textContent = `${pctReal.toFixed(1)}% del BT`;
     }
   </script>
 </body>
