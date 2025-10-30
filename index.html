@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Personal Shopper USA</title>
 
-<!-- Estilos mínimos (compactos y legibles) -->
 <style>
   :root{
     --bg:#0b1220; --panel:#111827; --muted:#94a3b8; --text:#e5e7eb;
@@ -79,10 +78,9 @@
   .mt16{margin-top:16px}
   .mt24{margin-top:24px}
 
-  /* Compactar botones TRM/Sync como pediste */
+  /* Botones TRM/Sync compactos */
   #btnSync, #btnFetchTRM, #btnManualTRM { padding:2px 6px !important; font-size:11px !important; line-height:1.05 !important; border-radius:7px !important;}
 
-  /* Selects cortos en tablas */
   .select-compact{padding:4px 6px;font-size:12px}
 </style>
 </head>
@@ -140,7 +138,7 @@
     <div class="tab" data-tab="reportes">📊 Reportes</div>
   </div>
 
-  <!-- Paneles -->
+  <!-- Panel Configuración -->
   <div id="panel-config" class="card">
     <div class="row">
       <div>
@@ -201,6 +199,7 @@
     </div>
   </div>
 
+  <!-- Panel Catálogo -->
   <div id="panel-catalog" class="card" style="display:none">
     <div class="k">Base de referencia (VR) en COP. Se usa para comparar en el semáforo.</div>
     <div class="row">
@@ -230,6 +229,7 @@
     </div>
   </div>
 
+  <!-- Panel Semáforo -->
   <div id="panel-semaforo" class="card" style="display:none">
     <div class="row">
       <div>
@@ -243,6 +243,11 @@
       <div>
         <label>Cantidad</label>
         <input id="svQty" class="input" type="number" step="1" value="1">
+      </div>
+      <div>
+        <label>Tienda</label>
+        <input id="svStore" class="input" list="storeList" placeholder="Ej: Nike Factory Orlando">
+        <datalist id="storeList"></datalist>
       </div>
       <div style="display:flex;align-items:flex-end;gap:8px">
         <button id="svEval" class="btn primary">Calcular semáforo</button>
@@ -287,11 +292,12 @@
             <button id="svAddToInv" class="btn success">＋ Incluir en inventario</button>
           </div>
         </div>
-        <div class="muted mt8">Se guardará costo, PVP estimado, aporte estimado y margen estimado.</div>
+        <div class="muted mt8">Se guarda costo, PVP estimado, TIENDA, aporte estimado y margen estimado.</div>
       </div>
     </div>
   </div>
 
+  <!-- Panel Inventario -->
   <div id="panel-inventario" class="card" style="display:none">
     <div class="k">Inventario actual</div>
     <div class="mt8 progress"><div id="invProgress"></div></div>
@@ -310,6 +316,7 @@
     </div>
   </div>
 
+  <!-- Panel Ventas -->
   <div id="panel-ventas" class="card" style="display:none">
     <div class="k">Registrar venta</div>
     <div class="row">
@@ -342,6 +349,7 @@
     </div>
   </div>
 
+  <!-- Panel Reportes -->
   <div id="panel-reportes" class="card" style="display:none">
     <div class="grid" style="grid-template-columns:1fr 1fr;gap:12px">
       <div class="card">
@@ -356,7 +364,6 @@
   </div>
 </div>
 
-<!-- Supabase client -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL = "https://ucrkhrehdedmubykzfzs.supabase.co";
@@ -364,32 +371,31 @@ const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
 /* ---- Estado ---- */
-let BT = 7000;           // presupuesto total
-let GB = 30;             // margen objetivo %
-let TRM = 4200;          // COP/USD
-let OVERHEADS = [];      // {id, created_at, description, cat, usd}
-let CATALOG = [];        // {id, created_at, name, brand, cat, ref_cop}
-let INVENTORY = [];      // {id, created_at, name, cat, store, unit_usd, qty, est_sell_cop?, est_aporte_usd?, est_margin_usd?}
-let SALES = [];          // {id, created_at, product_id, product_name, cat, store, qty, unit_usd, trm_used, sale_cop, aporte_usd, profit_usd}
+let BT = 7000;
+let GB = 30;
+let TRM = 4200;
+let OVERHEADS = [];
+let CATALOG = [];
+let INVENTORY = [];
+let SALES = [];
 
 /* ---- Helpers ---- */
 const fmtUSD = n => "$" + (Number(n||0)).toFixed(2);
 const fmtCOP = n => "$" + (Math.round(Number(n||0))).toLocaleString("es-CO");
 const nowStr = () => new Date().toLocaleString("es-CO");
-const aportePorDolar = () => { // V/BT
+const aportePorDolar = () => {
   const V = OVERHEADS.reduce((s,o)=>s+Number(o.usd||0),0);
   return BT>0? (V/BT) : 0;
 };
 const vsvUSD = (unitUSD) => {
-  const rO = aportePorDolar(); // V/BT
+  const rO = aportePorDolar();
   const gb = GB/100;
   return Number(unitUSD) * (1 + gb + rO);
 };
 const toCOP = (usd) => Number(usd)*Number(TRM);
 
-/* ---- UI refs ---- */
-const $ = sel => document.querySelector(sel);
-const $$ = sel => Array.from(document.querySelectorAll(sel));
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
 
 /* ---- Tabs ---- */
 $$('.tab').forEach(t=>{
@@ -403,10 +409,11 @@ $$('.tab').forEach(t=>{
     if(tab==='ventas') fillSaleProducts();
     if(tab==='inventario'){ renderInventory(); }
     if(tab==='reportes'){ renderReports(); }
+    if(tab==='semaforo'){ fillStoreDatalist(); }
   };
 });
 
-/* ---- KPIs render ---- */
+/* ---- KPIs ---- */
 function renderKPIs(){
   const V = OVERHEADS.reduce((s,o)=>s+Number(o.usd||0),0);
   $('#kpiBT').textContent = fmtUSD(BT);
@@ -417,7 +424,7 @@ function renderKPIs(){
   $('#kpiTRM').textContent = fmtCOP(TRM) + " COP/USD";
 }
 
-/* ---- Overheads (CRUD) ---- */
+/* ---- Overheads ---- */
 async function loadOverheads(){
   const {data,error} = await supa.from('overheads').select('*').order('created_at',{ascending:false});
   if(!error && data){ OVERHEADS = data; renderOverheads(); renderKPIs(); }
@@ -453,7 +460,7 @@ $('#ohAdd').onclick = async ()=>{
   await loadOverheads();
 };
 
-/* ---- Catálogo (VR) ---- */
+/* ---- Catálogo ---- */
 async function loadCatalog(){
   const {data,error} = await supa.from('catalog').select('*').order('created_at',{ascending:false});
   if(!error && data){ CATALOG = data; renderCatalog(); }
@@ -494,21 +501,35 @@ $('#catAdd').onclick=async ()=>{
 };
 $('#catSync').onclick = loadCatalog;
 
-/* ---- Semáforo ---- */
+/* ---- Utilidades tiendas ---- */
+function uniqueStores(){
+  const set = new Set();
+  INVENTORY.forEach(p=>{ if(p.store) set.add(p.store); });
+  SALES.forEach(s=>{ if(s.store) set.add(s.store); });
+  return Array.from(set);
+}
+function fillStoreDatalist(){
+  const dl = $('#storeList'); if(!dl) return;
+  dl.innerHTML = "";
+  uniqueStores().forEach(st=>{
+    const opt = document.createElement('option');
+    opt.value = st;
+    dl.appendChild(opt);
+  });
+}
+
+/* ---- Búsqueda VR ---- */
 async function buscarVR(descr){
-  // 1) Buscar similar en catálogo
   const q = descr.toLowerCase();
   let bestCat = null;
   let bestScore = 0;
   CATALOG.forEach(c=>{
     const t = ((c.name||'') + ' ' + (c.brand||'') + ' ' + (c.cat||'')).toLowerCase();
-    // scoring simple por solape de palabras >3 chars
     const words = q.split(/\s+/).filter(w=>w.length>3);
     let score = 0; words.forEach(w=>{ if(t.includes(w)) score+=1; });
     if(score>bestScore){ bestScore=score; bestCat=c; }
   });
 
-  // 2) MercadoLibre (promedio top 5)
   let mlCOP = null, mlDetail = '';
   try{
     const r = await fetch('https://api.mercadolibre.com/sites/MCO/search?q='+encodeURIComponent(descr)+'&limit=5');
@@ -521,9 +542,8 @@ async function buscarVR(descr){
         mlDetail = j.results.map(x=>x.title).slice(0,3).join(' | ');
       }
     }
-  }catch(e){ /* ignora */ }
+  }catch(e){ /* ignore */ }
 
-  // Determinar VR (mínimo)
   let src = '—', vrCOP = null, srcDetail='';
   const cCOP = bestCat? Number(bestCat.ref_cop||0) : null;
   if(cCOP && mlCOP){ vrCOP = Math.min(cCOP, mlCOP); src = (vrCOP===cCOP?'Catálogo':'MercadoLibre'); }
@@ -535,24 +555,21 @@ async function buscarVR(descr){
   return { vrCOP, src, srcDetail, catMatch: bestCat };
 }
 
+/* ---- Semáforo ---- */
 $('#svEval').onclick = async ()=>{
   const name = $('#svName').value.trim();
   const unit = Number($('#svUnitUSD').value||0);
   const qty = Number($('#svQty').value||0);
   if(!name || unit<=0 || qty<=0){ alert('Completa nombre, costo y cantidad'); return; }
 
-  // Parámetros
   const gb = GB/100;
   const ro = aportePorDolar();
 
-  // VSV
   const vsvUsd = vsvUSD(unit);
   const vsvCop = toCOP(vsvUsd);
 
-  // VR
   const {vrCOP, src, srcDetail} = await buscarVR(name);
 
-  // Render
   $('#svGB').textContent = (GB.toFixed(0))+'%';
   $('#svRO').textContent = ro.toFixed(3);
   $('#svTRM').textContent = fmtCOP(TRM);
@@ -582,18 +599,16 @@ $('#svAddToInv').onclick = async ()=>{
   const unit = Number($('#svUnitUSD').value||0);
   const qty = Number($('#svQty').value||0);
   const estCOP = Number($('#svEstSellCOP').value||0);
+  const store = $('#svStore').value.trim() || null;
   if(!name || unit<=0 || qty<=0 || estCOP<=0){ alert('Completa los campos y el PVP estimado'); return; }
 
-  const vsvUsdUnit = vsvUSD(unit);        // para referencia
-  const estUsdUnit = estCOP / TRM;        // PVP estimado en USD
+  const estUsdUnit = estCOP / TRM;
   const apUSDunit = unit * aportePorDolar();
   const mgUSDunit = estUsdUnit - unit - apUSDunit;
 
-  // guardamos en DB (si las columnas existen, se persisten; si no, igual no falla si omitimos)
   const insertObj = {
-    name, cat: null, store: null,
+    name, cat: null, store,
     unit_usd: unit, qty,
-    // campos estimados (si en tu tabla existen, se guardan; si no, ignora)
     est_sell_cop: estCOP,
     est_sell_usd: estUsdUnit,
     est_aporte_usd: apUSDunit,
@@ -601,20 +616,20 @@ $('#svAddToInv').onclick = async ()=>{
   };
   let {error} = await supa.from('products').insert(insertObj);
   if(error && error.message && error.message.includes('column "est_')){
-    // si la tabla no tiene las columnas, insertamos sin ellas
-    await supa.from('products').insert({name, unit_usd:unit, qty});
+    await supa.from('products').insert({name, store, unit_usd:unit, qty});
   }
   await loadInventory();
-  alert('Artículo agregado al inventario con PVP estimado.');
-  // limpiar
-  $('#svName').value=''; $('#svUnitUSD').value=''; $('#svQty').value='1'; $('#svEstSellCOP').value='';
+  fillSaleProducts();
+  fillStoreDatalist();
+  alert('Artículo agregado al inventario con tienda y PVP estimado.');
+  $('#svName').value=''; $('#svUnitUSD').value=''; $('#svQty').value='1'; $('#svEstSellCOP').value=''; $('#svStore').value='';
   $('#svResult').style.display='none';
 };
 
 /* ---- Inventario ---- */
 async function loadInventory(){
   const {data,error} = await supa.from('products').select('*').order('created_at',{ascending:false});
-  if(!error && data){ INVENTORY = data; renderInventory(); }
+  if(!error && data){ INVENTORY = data; renderInventory(); fillStoreDatalist(); }
 }
 function renderInventory(){
   const tb = $('#invTbody'); tb.innerHTML="";
@@ -659,14 +674,14 @@ function renderInventory(){
 /* ---- Ventas ---- */
 async function loadSales(){
   const {data,error} = await supa.from('sales').select('*').order('created_at',{ascending:false});
-  if(!error && data){ SALES = data; renderSales(); }
+  if(!error && data){ SALES = data; renderSales(); fillStoreDatalist(); }
 }
 function fillSaleProducts(){
   const sel = $('#saleProduct'); sel.innerHTML="";
   INVENTORY.forEach(p=>{
     const opt=document.createElement('option');
     opt.value = p.id;
-    opt.textContent = `${p.name} — ${fmtUSD(p.unit_usd)} × ${p.qty}`;
+    opt.textContent = `${p.name} — ${fmtUSD(p.unit_usd)} × ${p.qty}${p.store?(' @ '+p.store):''}`;
     sel.appendChild(opt);
   });
 }
@@ -706,7 +721,6 @@ $('#saleSave').onclick = async ()=>{
   const saleUSDunit = saleCOP/TRM;
   const profitUSDunit = saleUSDunit - Number(p.unit_usd||0) - apUSDunit;
 
-  // guardar venta
   let ins = {
     product_id: p.id,
     product_name: p.name,
@@ -721,7 +735,6 @@ $('#saleSave').onclick = async ()=>{
   };
   let {error} = await supa.from('sales').insert(ins);
   if(error && error.message && error.message.includes('profit_usd')){
-    // si la columna es generada y no permite setearla, inserta sin profit_usd (dejando que la DB lo calcule si existe)
     delete ins.profit_usd;
     await supa.from('sales').insert(ins);
   }
@@ -733,7 +746,7 @@ $('#saleSave').onclick = async ()=>{
 
 /* ---- Reportes ---- */
 function renderReports(){
-  // Estimado: desde inventario (valores estimados)
+  // Estimado (inventario)
   let estCostUSD=0, estAporteUSD=0, estMarginUSD=0, estVentaCOP=0;
   INVENTORY.forEach(p=>{
     const qty = Number(p.qty||0);
@@ -754,7 +767,7 @@ function renderReports(){
     <div>Margen estimado (USD): <b>${fmtUSD(estMarginUSD)}</b></div>
   `;
 
-  // Realizado: desde ventas
+  // Realizado (ventas)
   let realCOP=0, realAporteUSD=0, realProfitUSD=0;
   SALES.forEach(s=>{
     realCOP += Number(s.sale_cop||0);
@@ -787,10 +800,10 @@ $('#btnFetchTRM').onclick=fetchTRM;
 $('#btnManualTRM').onclick=()=>{ const v=prompt('TRM (COP/USD):', String(TRM)); if(v){ TRM=Number(v); $('#inpTRM').value=TRM; renderKPIs(); } };
 $('#inpTRM').onchange=()=>{ const v=Number($('#inpTRM').value||0); if(v>0){ TRM=v; renderKPIs(); } };
 
-/* ---- Sync (carga general) ---- */
+/* ---- Sync ---- */
 async function syncAll(){
   await Promise.all([loadOverheads(), loadCatalog(), loadInventory(), loadSales()]);
-  renderKPIs(); fillSaleProducts(); renderReports();
+  renderKPIs(); fillSaleProducts(); renderReports(); fillStoreDatalist();
 }
 $('#btnSync').onclick = syncAll;
 
@@ -800,7 +813,6 @@ $('#inpGB').onchange=()=>{ GB = Number($('#inpGB').value||30); };
 
 /* ---- Init ---- */
 (async function(){
-  // valores iniciales
   BT = Number($('#inpBT').value||7000);
   GB = Number($('#inpGB').value||30);
   TRM = Number($('#inpTRM').value||4200) || 4200;
@@ -810,3 +822,4 @@ $('#inpGB').onchange=()=>{ GB = Number($('#inpGB').value||30); };
 </script>
 </body>
 </html>
+
