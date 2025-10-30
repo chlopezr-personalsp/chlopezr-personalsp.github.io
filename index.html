@@ -1,281 +1,472 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Personal Shopper USA</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='%2300d4ff' d='M10 22h44l-4 26a6 6 0 0 1-6 5H20a6 6 0 0 1-6-5l-4-26z'/%3E%3Cpath fill='%2328a' d='M22 22v-4a10 10 0 0 1 20 0v4h-4v-4a6 6 0 0 0-12 0v4z'/%3E%3C/svg%3E" />
-  <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    :root{
-      --bg:#0c1724;--panel:#0f2236;--muted:#9bb3c7;--text:#e8f1f8;
-      --accent:#39c4ff;--accent-2:#28a;--ok:#16c784;--warn:#e7b416;--err:#ef4444;
-    }
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,sans-serif}
-    .wrap{max-width:1100px;margin:24px auto;padding:0 16px}
-    header{display:flex;align-items:center;gap:10px;margin-bottom:18px}
-    header h1{font-size:22px;margin:0}
-    header .hint{color:var(--muted);font-size:13px}
-    .row{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
-    .card{background:var(--panel);border:1px solid #14314a;border-radius:12px;padding:14px}
-    .span-12{grid-column:span 12}
-    .span-6{grid-column:span 6}
-    .span-4{grid-column:span 4}
-    .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-    .kpi h4{margin:0 0 6px;font-size:13px;color:var(--muted)}
-    .kpi .v{font-weight:700;font-size:20px}
-    .kpi .s{color:var(--muted);font-size:12px}
-    .inputs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
-    label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
-    input{width:100%;padding:10px;border-radius:10px;border:1px solid #1b3b56;background:#0a1a29;color:var(--text);outline:none}
-    input:focus{border-color:var(--accent)}
-    .btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
-    .btn{display:inline-flex;align-items:center;gap:6px;border:1px solid #1b3b56;background:#0b1f31;color:var(--text);
-         padding:8px 10px;border-radius:10px;font-size:12.5px;cursor:pointer}
-    .btn.small{padding:6px 8px;font-size:12px;border-radius:9px}
-    .btn.primary{background:linear-gradient(180deg,#0f60a0,#0d4a7d);border-color:#0d4a7d}
-    .btn.ok{background:#0f3328;border-color:#125e49}
-    .btn.warn{background:#332a0f;border-color:#6f5a12}
-    .btn:active{transform:translateY(1px)}
-    .muted{color:var(--muted);font-size:12px}
-    .bar{height:10px;border-radius:8px;background:#0a1a29;border:1px solid #173651;overflow:hidden}
-    .bar > span{display:block;height:100%;width:0;background:linear-gradient(90deg,#1296ff,#36d1ff)}
-    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    @media (max-width:900px){
-      .kpis{grid-template-columns:1fr 1fr}
-      .grid-2,.inputs{grid-template-columns:1fr}
-    }
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Personal Shopper USA</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='%2300d4ff' d='M10 22h44l-4 26a6 6 0 0 1-6 5H20a6 6 0 0 1-6-5l-4-26z'/%3E%3Cpath fill='%2328a' d='M22 22v-4a10 10 0 0 1 20 0v4h-4v-4a6 6 0 0 0-12 0v4z'/%3E%3C/svg%3E"/>
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#0b1623;--card:#0f2236;--border:#173651;--text:#e8f1f8;--muted:#9bb3c7;
+  --pri1:#1296ff;--pri2:#36d1ff;--ok:#16c784;--warn:#e7b416;--err:#ef4444;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Arial}
+.wrap{max-width:1180px;margin:20px auto;padding:0 16px}
+header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+header h1{font-size:22px;margin:0}
+header .sub{color:var(--muted);font-size:13px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.btn{display:inline-flex;align-items:center;gap:6px;background:#0b1f31;border:1px solid var(--border);
+     color:var(--text);padding:6px 10px;border-radius:10px;font-size:12px;cursor:pointer}
+.btn.small{padding:5px 8px;font-size:12px;border-radius:9px}
+.btn.primary{background:linear-gradient(180deg,#0f60a0,#0d4a7d);border-color:#0d4a7d}
+.btn.ok{background:#0f3328;border-color:#125e49}
+.btn.warn{background:#332a0f;border-color:#6f5a12}
+.btn:active{transform:translateY(1px)}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px}
+.span-12{grid-column:span 12}.span-8{grid-column:span 8}.span-6{grid-column:span 6}.span-4{grid-column:span 4}
+h3{margin:0 0 8px}
+label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
+input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);
+  background:#0a1a29;color:var(--text);outline:none}
+input:focus,select:focus{border-color:var(--pri1)}
+.inputs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.kpi h4{margin:0 0 4px;font-size:12px;color:var(--muted)}
+.kpi .v{font-weight:700;font-size:20px}
+.kpi .s{color:var(--muted);font-size:12px}
+.bar{height:10px;border-radius:8px;background:#0a1a29;border:1px solid var(--border);overflow:hidden}
+.bar>span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--pri1),var(--pri2))}
+.table{width:100%;border-collapse:collapse;margin-top:8px}
+.table th,.table td{border-bottom:1px solid #15324a;padding:8px;font-size:13px}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;border:1px solid var(--border);background:#0a1a29}
+.badge.ok{border-color:#0f5;border-color:#177; background:#0d2}
+.badge.warn{background:#332a0f}
+.badge.err{background:#3a1216}
+.note{color:var(--muted);font-size:12px;margin-top:8px}
+@media (max-width:1000px){.kpis{grid-template-columns:1fr 1fr}.inputs{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <img alt="logo" width="28" height="28"
-           src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='%2300d4ff' d='M10 22h44l-4 26a6 6 0 0 1-6 5H20a6 6 0 0 1-6-5l-4-26z'/%3E%3Cpath fill='%2328a' d='M22 22v-4a10 10 0 0 1 20 0v4h-4v-4a6 6 0 0 0-12 0v4z'/%3E%3C/svg%3E"/>
-      <h1>Personal Shopper USA</h1>
-      <div class="hint">Compra inteligente y rentable desde EE. UU.</div>
-    </header>
+<div class="wrap">
+  <header>
+    <img width="28" height="28" alt="logo"
+      src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath fill='%2300d4ff' d='M10 22h44l-4 26a6 6 0 0 1-6 5H20a6 6 0 0 1-6-5l-4-26z'/%3E%3Cpath fill='%2328a' d='M22 22v-4a10 10 0 0 1 20 0v4h-4v-4a6 6 0 0 0-12 0v4z'/%3E%3C/svg%3E"/>
+    <h1>Personal Shopper USA</h1>
+    <div class="sub">Control de costos, inventario, márgenes</div>
+  </header>
 
-    <!-- BOTONES CABECERA -->
-    <div class="btns">
-      <button id="btn-sync" class="btn small">🔄 Sincronizar</button>
-      <button id="btn-trm" class="btn small">💱 Actualizar TRM</button>
-      <button id="btn-recalc" class="btn small">📊 Recalcular</button>
-    </div>
-
-    <!-- KPIs -->
-    <div class="card span-12" style="margin-top:12px">
-      <div class="kpis">
-        <div class="kpi card">
-          <h4>Costos de viaje (V)</h4>
-          <div class="v" id="kpi-v">$0.00</div>
-          <div class="s" id="kpi-v-cop">$0</div>
-        </div>
-        <div class="kpi card">
-          <h4>M = BT − V (capacidad restante)</h4>
-          <div class="v" id="kpi-m">$0.00</div>
-          <div class="s" id="kpi-m-cop">$0</div>
-        </div>
-        <div class="kpi card">
-          <h4>rO = V / M</h4>
-          <div class="v" id="kpi-ro">0.0000</div>
-          <div class="s muted">Menor es mejor</div>
-        </div>
-        <div class="kpi card">
-          <h4>Presupuesto real acumulado (V + Compras)</h4>
-          <div class="v" id="kpi-real">$0.00 USD</div>
-          <div class="bar" style="margin-top:8px"><span id="bar-real" style="width:0%"></span></div>
-          <div class="s" id="kpi-real-pct" style="margin-top:6px">0% del BT</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- CONFIG -->
-    <div class="card span-12" style="margin-top:12px">
-      <h3 style="margin:0 0 6px">Configuración</h3>
-      <div class="inputs">
-        <div>
-          <label>Presupuesto total (BT) USD</label>
-          <input id="inp-bt" type="number" step="0.01" min="0" value="7000" />
-        </div>
-        <div>
-          <label>Margen objetivo GB% (sobre venta)</label>
-          <input id="inp-gb" type="number" step="0.1" min="0" max="100" value="30" />
-        </div>
-        <div>
-          <label>TRM (COP por 1 USD)</label>
-          <input id="inp-trm" type="number" step="0.0001" min="0" value="4200" />
-        </div>
-      </div>
-      <div class="btns">
-        <button id="btn-save-settings" class="btn primary small">💾 Guardar ajustes</button>
-        <span id="settings-updated" class="muted">—</span>
-      </div>
-    </div>
-
-    <!-- LUGARES PARA FUTUROS MÓDULOS -->
-    <div class="grid-2" style="margin-top:12px">
-      <div class="card">
-        <h3 style="margin:0 0 6px">Catálogo / Referencias (COP)</h3>
-        <p class="muted" style="margin:6px 0 0">
-          (Sección del catálogo, semáforo, inventario y ventas permanece igual a tu versión anterior.
-          Este archivo se centra en la <b>persistencia de BT/GB/TRM</b> y KPIs.)
-        </p>
-      </div>
-      <div class="card">
-        <h3 style="margin:0 0 6px">Notas</h3>
-        <p class="muted" style="margin:6px 0 0">
-          Cambiar BT/GB/TRM y presionar <b>Guardar ajustes</b>.  
-          Luego puedes <b>Sincronizar</b> o <b>Recalcular</b> para refrescar KPIs con tus datos.
-        </p>
-      </div>
-    </div>
+  <div class="toolbar">
+    <button id="btnSync" class="btn small">🔄 Sincronizar</button>
+    <button id="btnTRM"  class="btn small">💱 Actualizar TRM</button>
+    <button id="btnRecalc" class="btn small">📊 Recalcular</button>
   </div>
 
-  <!-- =================== LÓGICA APP (Supabase + KPIs) =================== -->
-  <script>
-    // =============== SUPABASE CONFIG ===============
-    const SUPABASE_URL = "https://ucrkhrehdedmubykzfzs.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcmtocmVoZGVkbXVieWt6ZnpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1OTc5MzgsImV4cCI6MjA3NzE3MzkzOH0.7CXUuyAPQlm_9RIKbaO9y8Kwjh9c6M7UJcu4xAIM7WA";
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  <!-- KPIs -->
+  <section class="card span-12" style="margin-top:12px">
+    <div class="kpis">
+      <div class="kpi card">
+        <h4>Costos de viaje (V)</h4>
+        <div class="v" id="kpiV">$0.00</div>
+        <div class="s" id="kpiVCOP">$0</div>
+      </div>
+      <div class="kpi card">
+        <h4>M = BT − V</h4>
+        <div class="v" id="kpiM">$0.00</div>
+        <div class="s" id="kpiMCOP">$0</div>
+      </div>
+      <div class="kpi card">
+        <h4>rO = V / M</h4>
+        <div class="v" id="kpiRO">0.0000</div>
+        <div class="s muted">USD overhead por USD mercancía</div>
+      </div>
+      <div class="kpi card">
+        <h4>Ejecución real (V + Compras)</h4>
+        <div class="v" id="kpiReal">$0.00 USD</div>
+        <div class="bar" style="margin-top:6px"><span id="barReal" style="width:0%"></span></div>
+        <div class="s" id="kpiRealPct" style="margin-top:6px">0% del BT</div>
+      </div>
+    </div>
+  </section>
 
-    const fmtCOP = v => isNaN(v) ? "—" : "$" + Math.round(v).toLocaleString("es-CO");
+  <!-- CONFIG -->
+  <section class="card span-12">
+    <h3>Parámetros de viaje y finanzas</h3>
+    <div class="inputs">
+      <div><label>Presupuesto Total (BT) USD</label><input id="inpBT" type="number" step="0.01" value="7000"/></div>
+      <div><label>Margen Objetivo (GB%)</label><input id="inpGB" type="number" step="0.1" min="0" max="100" value="30"/></div>
+      <div>
+        <label>TRM (COP/USD)</label>
+        <div style="display:flex;gap:8px">
+          <input id="inpTRM" type="number" step="0.0001" value="4200"/><button id="btnTRMInline" class="btn small">↻</button>
+        </div>
+        <div class="note">↻ trae TRM del día (si falla, edítala manual).</div>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button id="btnSave" class="btn primary small">💾 Guardar cambios</button>
+      <span id="lastUpd" class="note">—</span>
+    </div>
+  </section>
 
-    let SETTINGS = { bt: 7000, gb: 30, trm: 4200 };
+  <div class="grid" style="margin-top:12px">
+    <!-- Catálogo -->
+    <section class="card span-12">
+      <h3>Catálogo de referencia (COP)</h3>
+      <div class="inputs" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr">
+        <div><label>Nombre del producto</label><input id="catName" placeholder="Ej. Nike Air Max 90"/></div>
+        <div><label>Marca</label><input id="catBrand" placeholder="Nike"/></div>
+        <div><label>Categoría</label>
+          <select id="catCat">
+            <option>Calzado</option><option>Accesorios</option><option>Electrónica</option><option>Ropa</option><option>Otro</option>
+          </select>
+        </div>
+        <div><label>Tienda</label><input id="catStore" placeholder="Nike, Outlet..."/></div>
+        <div><label>Precio ref (COP)</label><input id="catRef" type="number" step="1" min="0"/></div>
+      </div>
+      <div class="toolbar">
+        <button id="btnAddRef" class="btn ok small">🧾 Registrar referencia</button>
+      </div>
+      <table class="table" id="tblCatalog">
+        <thead><tr><th>Producto</th><th>Marca</th><th>Cat.</th><th>Tienda</th><th>COP ref.</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
 
-    document.addEventListener("DOMContentLoaded", async () => {
-      bindUI();
-      await loadSettings();
-      await recalcKPIs();
-    });
+    <!-- Semáforo -->
+    <section class="card span-12">
+      <h3>Semáforo (previo al inventario)</h3>
+      <div class="inputs" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr">
+        <div><label>Producto</label><input id="semName" placeholder="Tenis Samba"/></div>
+        <div><label>Costo unitario (USD)</label><input id="semUnit" type="number" step="0.01"/></div>
+        <div><label>Categoría</label>
+          <select id="semCat"><option>Calzado</option><option>Accesorios</option><option>Electrónica</option><option>Ropa</option><option>Otro</option></select>
+        </div>
+        <div><label>Tienda</label><input id="semStore" placeholder="Obligatoria"/></div>
+        <div><label>Cantidad</label><input id="semQty" type="number" step="1" value="1"/></div>
+        <div><label>VSV sugerido (USD)</label><input id="semVSV" type="number" step="0.01" placeholder="auto"/></div>
+      </div>
+      <div class="toolbar">
+        <button id="btnEval" class="btn small">🚦 Evaluar semáforo</button>
+        <span id="semResult" class="badge">—</span>
+        <span id="semVR" class="note">VR: —</span>
+        <button id="btnAddInv" class="btn ok small">➕ Agregar a inventario</button>
+      </div>
+    </section>
 
-    function bindUI(){
-      document.getElementById("btn-save-settings").addEventListener("click", saveSettings);
-      document.getElementById("btn-recalc").addEventListener("click", recalcKPIs);
-      document.getElementById("btn-sync").addEventListener("click", syncData);
-      document.getElementById("btn-trm").addEventListener("click", updateTRM);
-    }
+    <!-- Inventario -->
+    <section class="card span-12">
+      <h3>Inventario</h3>
+      <table class="table" id="tblInv">
+        <thead><tr><th>Fecha</th><th>Producto</th><th>Cat.</th><th>Tienda</th><th>USD</th><th>Qty</th><th>VSV</th><th>VR (COP)</th><th>Semáforo</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
 
-    // 🔄 Cargar configuración desde Supabase
-    async function loadSettings() {
-      const { data, error } = await supabase.from("app_settings").select("*").eq("id", 1).maybeSingle();
-      if (error) {
-        console.error("Error cargando settings:", error);
-        alert("Error al cargar configuración. Verifica tabla y RLS.");
-        return;
-      }
-      if (data) {
-        SETTINGS.bt = Number(data.budget_total_usd);
-        SETTINGS.gb = Number(data.margin_target_pct);
-        SETTINGS.trm = Number(data.trm_cop);
-      }
-      document.getElementById("inp-bt").value = SETTINGS.bt;
-      document.getElementById("inp-gb").value = SETTINGS.gb;
-      document.getElementById("inp-trm").value = SETTINGS.trm;
+    <!-- Ventas -->
+    <section class="card span-12">
+      <h3>Ventas</h3>
+      <div class="inputs" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr">
+        <div><label>Artículo (inventario)</label><select id="saleProduct"></select></div>
+        <div><label>Precio venta (USD)</label><input id="saleUsd" type="number" step="0.01"/></div>
+        <div><label>Cantidad</label><input id="saleQty" type="number" step="1" value="1"/></div>
+        <div><label>Aporte USD (auto)</label><input id="saleAporte" type="number" step="0.01" disabled/></div>
+        <div><label>Utilidad USD (auto)</label><input id="saleProfit" type="number" step="0.01" disabled/></div>
+      </div>
+      <div class="toolbar">
+        <button id="btnDoSale" class="btn primary small">💸 Registrar venta</button>
+      </div>
+      <table class="table" id="tblSales">
+        <thead><tr><th>Fecha</th><th>Producto</th><th>Tienda</th><th>USD</th><th>Qty</th><th>Venta USD</th><th>Aporte</th><th>Utilidad</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
 
-      let updated = (data && data.updated_at) ? new Date(data.updated_at) : new Date();
-      document.getElementById("settings-updated").textContent =
-        `Última actualización: ${updated.toLocaleString('es-CO')}`;
+    <!-- Reportes -->
+    <section class="card span-12">
+      <h3>Reportes</h3>
+      <div class="kpis">
+        <div class="kpi card"><h4>Aporte cubierto</h4><div class="v" id="repAporte">$0.00</div></div>
+        <div class="kpi card"><h4>Utilidad realizada</h4><div class="v" id="repProfit">$0.00</div></div>
+        <div class="kpi card"><h4>Items inventario</h4><div class="v" id="repItems">0 ítems</div></div>
+        <div class="kpi card"><h4>Tickets</h4><div class="v" id="repTickets">0 ventas</div></div>
+      </div>
+    </section>
+  </div>
 
-      console.log("Configuración cargada:", SETTINGS);
-    }
+</div>
 
-    // 💾 Guardar configuración
-    async function saveSettings() {
-      const bt = Number(document.getElementById("inp-bt").value);
-      const gb = Number(document.getElementById("inp-gb").value);
-      const trm = Number(document.getElementById("inp-trm").value);
+<script>
+/* =================== Supabase =================== */
+const SUPABASE_URL="https://ucrkhrehdedmubykzfzs.supabase.co";
+const SUPABASE_ANON="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcmtocmVoZGVkbXVieWt6ZnpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1OTc5MzgsImV4cCI6MjA3NzE3MzkzOH0.7CXUuyAPQlm_9RIKbaO9y8Kwjh9c6M7UJcu4xAIM7WA";
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON);
 
-      if (!(bt > 0 && gb >= 0 && gb <= 100 && trm > 0)) {
-        alert("Revisa los valores: BT > 0, TRM > 0, 0 ≤ GB ≤ 100");
-        return;
-      }
+/* =================== Estado =================== */
+const fmtUSD=v=> `$${Number(v||0).toFixed(2)}`;
+const fmtCOP=v=>"$"+Math.round(Number(v||0)).toLocaleString("es-CO");
 
-      const { data, error } = await supabase
-        .from("app_settings")
-        .upsert({
-          id: 1,
-          budget_total_usd: bt,
-          margin_target_pct: gb,
-          trm_cop: trm,
-          updated_at: new Date().toISOString()
-        })
-        .select("*")
-        .single();
+let SETTINGS={bt:7000,gb:30,trm:4200};
+let CACHE={catalog:[],costs:[],products:[],sales:[]};
+const Q=(s)=>document.querySelector(s);
 
-      if (error) {
-        console.error("Error guardando settings:", error);
-        alert("No se pudo guardar configuración. Revisa RLS.");
-        return;
-      }
+/* =================== Init =================== */
+document.addEventListener("DOMContentLoaded",async()=>{
+  bindUI();
+  await loadSettings();
+  await syncAll();
+});
 
-      SETTINGS = { bt, gb, trm };
-      document.getElementById("settings-updated").textContent =
-        `Guardado ${new Date().toLocaleString('es-CO')}`;
+/* =================== UI binds =================== */
+function bindUI(){
+  Q("#btnSync").onclick=syncAll;
+  Q("#btnTRM").onclick=updateTRM;
+  Q("#btnTRMInline").onclick=updateTRM;
+  Q("#btnRecalc").onclick=recalcKPIs;
+  Q("#btnSave").onclick=saveSettings;
 
-      console.log("Configuración guardada:", SETTINGS);
-      await recalcKPIs();
-    }
+  Q("#btnAddRef").onclick=addCatalogRef;
+  Q("#btnEval").onclick=evaluateSemaphore;
+  Q("#btnAddInv").onclick=addToInventory;
 
-    // 🔁 Sincronización manual
-    async function syncData() {
-      await loadSettings();
-      await recalcKPIs();
-      alert("Sincronización completa ✅");
-    }
+  Q("#btnDoSale").onclick=registerSale;
+}
 
-    // 💱 Actualizar TRM desde API pública (colombia - datos abiertos)
-    async function updateTRM() {
-      try {
-        const resp = await fetch("https://www.datos.gov.co/resource/32sa-8pi3.json?$limit=1&$order=vigenciadesde%20DESC");
-        const data = await resp.json();
-        if (Array.isArray(data) && data[0] && data[0].valor) {
-          const trm = parseFloat(data[0].valor);
-          document.getElementById("inp-trm").value = trm;
-          alert("TRM actualizada: " + trm);
-        } else {
-          throw new Error("TRM no encontrada");
-        }
-      } catch (e) {
-        console.warn(e);
-        alert("No se pudo obtener TRM; ingrésala manualmente y guarda.");
-      }
-    }
+/* =================== Settings =================== */
+async function loadSettings(){
+  const {data,error}=await sb.from("app_settings").select("*").eq("id",1).maybeSingle();
+  if(error){console.warn("app_settings?",error)}
+  if(data){
+    SETTINGS.bt=Number(data.budget_total_usd||7000);
+    SETTINGS.gb=Number(data.margin_target_pct||30);
+    SETTINGS.trm=Number(data.trm_cop||4200);
+    Q("#lastUpd").textContent="Última actualización: "+(data.updated_at?new Date(data.updated_at).toLocaleString("es-CO"):"—");
+  }
+  Q("#inpBT").value=SETTINGS.bt;
+  Q("#inpGB").value=SETTINGS.gb;
+  Q("#inpTRM").value=SETTINGS.trm;
+}
+async function saveSettings(){
+  const bt=Number(Q("#inpBT").value||0);
+  const gb=Number(Q("#inpGB").value||0);
+  const trm=Number(Q("#inpTRM").value||0);
+  if(!(bt>0&&trm>0&&gb>=0&&gb<=100)){alert("Revisa BT, TRM y GB%");return;}
+  const {error}=await sb.from("app_settings").upsert({
+    id:1,budget_total_usd:bt,margin_target_pct:gb,trm_cop:trm,updated_at:new Date().toISOString()
+  });
+  if(error){alert("No se pudo guardar app_settings (revisa RLS)");return;}
+  SETTINGS={bt,gb,trm};
+  await recalcKPIs();
+  Q("#lastUpd").textContent="Guardado: "+new Date().toLocaleString("es-CO");
+}
 
-    // 📊 Recalcular indicadores (usa tus tablas reales: costs, products)
-    async function recalcKPIs() {
-      // Total V (overheads/costos de viaje)
-      let totalV = 0;
-      try {
-        const { data: costs } = await supabase.from("costs").select("amount_usd");
-        if (costs) totalV = costs.reduce((s, r) => s + Number(r.amount_usd || 0), 0);
-      } catch {}
+/* =================== TRM =================== */
+async function updateTRM(){
+  try{
+    const r=await fetch("https://www.datos.gov.co/resource/32sa-8pi3.json?$limit=1&$order=vigenciadesde%20DESC");
+    const j=await r.json();
+    const trm=parseFloat(j?.[0]?.valor);
+    if(!isFinite(trm)) throw new Error("TRM inválida");
+    Q("#inpTRM").value=trm;
+    alert("TRM del día: "+trm);
+  }catch(e){alert("No se pudo obtener TRM. Ingresa manual y guarda.");}
+}
 
-      // Compras acumuladas (USD)
-      let compras = 0;
-      try {
-        const { data: prods } = await supabase.from("products").select("unit_usd, qty");
-        if (prods) compras = prods.reduce((s, r) => s + (r.unit_usd || 0) * (r.qty || 0), 0);
-      } catch {}
+/* =================== Sync =================== */
+async function syncAll(){
+  const [cat,cost,prod,sale]=await Promise.all([
+    sb.from("catalog").select("*").order("created_at",{ascending:false}),
+    sb.from("costs").select("*").order("ts",{ascending:false}),
+    sb.from("products").select("*").order("ts",{ascending:false}),
+    sb.from("sales").select("*").order("ts",{ascending:false})
+  ]);
+  CACHE.catalog=cat.data||[];
+  CACHE.costs=cost.data||[];
+  CACHE.products=prod.data||[];
+  CACHE.sales=sale.data||[];
+  renderCatalog();renderInventory();renderSales();renderReports();
+  await recalcKPIs();
+  alert("Sincronizado ✅");
+}
 
-      const BT  = Number(SETTINGS.bt || 0);
-      const TRM = Number(SETTINGS.trm || 0);
-      const M   = Math.max(BT - totalV, 0);
-      const rO  = M > 0 ? totalV / M : 0;
-      const ejecReal = totalV + compras;
-      const pctReal  = BT > 0 ? (ejecReal / BT) * 100 : 0;
+/* =================== Catalog =================== */
+function renderCatalog(){
+  const tb=Q("#tblCatalog tbody"); tb.innerHTML="";
+  for(const r of CACHE.catalog){
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${r.name||""}</td><td>${r.brand||""}</td><td>${r.cat||""}</td>
+      <td>${r.store||""}</td><td>${fmtCOP(r.ref_cop||0)}</td>
+      <td><button class="btn small warn" onclick="delRef('${r.id}')">Eliminar</button></td>`;
+    tb.appendChild(tr);
+  }
+}
+async function addCatalogRef(){
+  const name=Q("#catName").value?.trim(); if(!name){alert("Nombre del producto obligatorio");return;}
+  const brand=Q("#catBrand").value?.trim()||null;
+  const cat=Q("#catCat").value||null;
+  const store=Q("#catStore").value?.trim()||null;
+  const ref=Number(Q("#catRef").value||0);
+  const up={name,brand,cat,store,ref_cop:ref,created_at:new Date().toISOString()};
+  const {data,error}=await sb.from("catalog").insert(up).select("*").single();
+  if(error){alert("No se pudo crear referencia");return;}
+  CACHE.catalog.unshift(data); renderCatalog();
+  Q("#catName").value="";Q("#catBrand").value="";Q("#catRef").value="";Q("#catStore").value="";
+}
+async function delRef(id){
+  await sb.from("catalog").delete().eq("id",id);
+  CACHE.catalog=CACHE.catalog.filter(x=>x.id!==id);
+  renderCatalog();
+}
 
-      document.getElementById("kpi-v").textContent = `$${totalV.toFixed(2)}`;
-      document.getElementById("kpi-v-cop").textContent = fmtCOP(totalV * TRM);
-      document.getElementById("kpi-m").textContent = `$${M.toFixed(2)}`;
-      document.getElementById("kpi-m-cop").textContent = fmtCOP(M * TRM);
-      document.getElementById("kpi-ro").textContent = rO.toFixed(4);
-      document.getElementById("kpi-real").textContent = `$${ejecReal.toFixed(2)} USD`;
-      document.getElementById("bar-real").style.width = `${Math.min(pctReal,100)}%`;
-      document.getElementById("kpi-real-pct").textContent = `${pctReal.toFixed(1)}% del BT`;
-    }
-  </script>
+/* =================== Semáforo =================== */
+function findVR(name,cat){
+  // Busca coincidencia exacta por nombre; si no, por categoría mínima
+  const exact=CACHE.catalog.find(r=>r.name?.toLowerCase()===name?.toLowerCase());
+  if(exact) return exact.ref_cop||0;
+  const byCat=CACHE.catalog.filter(r=>r.cat===cat).map(r=>r.ref_cop||0).sort((a,b)=>a-b)[0];
+  return byCat||0;
+}
+function currentRO(){ // rO = V/M
+  const V=CACHE.costs.reduce((s,r)=>s+Number(r.amount_usd||0),0);
+  const M=Math.max(SETTINGS.bt-V,0);
+  return M>0? V/M : 0;
+}
+function suggestVSV(unit){
+  // VSV = unit*(1+GB%) + aporte (rO por USD compra)
+  const gb=SETTINGS.gb/100;
+  const ro=currentRO();
+  return unit*(1+gb)+ro; // 1 unidad
+}
+function classify(vsv,vr_cop){
+  if(!vr_cop||vr_cop<=0) return {tag:"Sin referencia",cls:"",ratio:null};
+  const trm=SETTINGS.trm;
+  const vsv_cop=vsv*trm;
+  const ratio=vsv_cop/vr_cop;
+  if(ratio<0.85) return {tag:"Verde",cls:"ok",ratio};
+  if(ratio<=0.95) return {tag:"Amarillo",cls:"warn",ratio};
+  return {tag:"Rojo",cls:"err",ratio};
+}
+function evaluateSemaphore(){
+  const name=Q("#semName").value?.trim(); if(!name){alert("Ingresa producto");return;}
+  const unit=Number(Q("#semUnit").value||0); if(!(unit>0)){alert("Costo unitario inválido");return;}
+  const cat=Q("#semCat").value;
+  const store=Q("#semStore").value?.trim(); if(!store){alert("Debes ingresar la TIENDA");return;}
+  const qty=Number(Q("#semQty").value||1);
+
+  let vsv=Number(Q("#semVSV").value||0);
+  if(!(vsv>0)) vsv=suggestVSV(unit);
+
+  const vr=findVR(name,cat);
+  const res=classify(vsv,vr);
+  Q("#semResult").textContent = res.tag + (res.ratio?` (${res.ratio.toFixed(2)})`:"");
+  Q("#semResult").className = `badge ${res.cls||""}`;
+  Q("#semVR").textContent = `VR: ${vr?fmtCOP(vr):"—"} | VSV (USD): ${vsv.toFixed(2)} | TRM: ${SETTINGS.trm}`;
+  // Guardamos “pre-evaluación” en dataset para el botón de inventario
+  Q("#btnAddInv").dataset.payload = JSON.stringify({name,unit,cat,store,qty,vsv,vr_cop:vr,traffic:res.tag});
+}
+
+/* =================== Inventario =================== */
+function renderInventory(){
+  const tb=Q("#tblInv tbody"); tb.innerHTML="";
+  for(const r of CACHE.products){
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${r.ts?new Date(r.ts).toLocaleDateString("es-CO"):""}</td>
+      <td>${r.name||""}</td><td>${r.cat||""}</td><td>${r.store||""}</td>
+      <td>${fmtUSD(r.unit_usd||0)}</td><td>${r.qty||0}</td>
+      <td>${fmtUSD(r.vsv_usd||0)}</td><td>${fmtCOP(r.vr_cop||0)}</td>
+      <td><span class="badge ${r.traffic==="Verde"?"ok":r.traffic==="Amarillo"?"warn":r.traffic==="Rojo"?"err":""}">${r.traffic||"—"}</span></td>`;
+    tb.appendChild(tr);
+  }
+  // Refresh selector de ventas
+  const sel=Q("#saleProduct"); sel.innerHTML="";
+  CACHE.products.forEach(p=>{
+    const opt=document.createElement("option");
+    opt.value=p.id; opt.textContent=`${p.name} (${p.store||"?"}) — ${fmtUSD(p.unit_usd)} x${p.qty}`;
+    sel.appendChild(opt);
+  });
+}
+async function addToInventory(){
+  const raw=Q("#btnAddInv").dataset.payload;
+  if(!raw){alert("Primero evalúa el semáforo");return;}
+  const obj=JSON.parse(raw);
+  const row={ts:new Date().toISOString(),...obj};
+  const {data,error}=await sb.from("products").insert(row).select("*").single();
+  if(error){alert("No se pudo agregar a inventario");return;}
+  CACHE.products.unshift(data);
+  renderInventory();
+  renderReports();
+}
+
+/* =================== Ventas =================== */
+function renderSales(){
+  const tb=Q("#tblSales tbody"); tb.innerHTML="";
+  for(const r of CACHE.sales){
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${r.ts?new Date(r.ts).toLocaleDateString("es-CO"):""}</td>
+      <td>${r.name||""}</td><td>${r.store||""}</td>
+      <td>${fmtUSD(r.unit_usd||0)}</td><td>${r.qty||0}</td>
+      <td>${fmtUSD(r.sale_usd||0)}</td><td>${fmtUSD(r.aporte_usd||0)}</td><td>${fmtUSD(r.profit_usd||0)}</td>
+      <td><button class="btn small warn" onclick="delSale('${r.id}')">Eliminar</button></td>`;
+    tb.appendChild(tr);
+  }
+  Q("#repTickets").textContent = `${CACHE.sales.length} ventas`;
+}
+async function registerSale(){
+  const id=Q("#saleProduct").value; if(!id){alert("Selecciona artículo");return;}
+  const prod=CACHE.products.find(p=>p.id===id); if(!prod){alert("Artículo no encontrado");return;}
+  const qty=Number(Q("#saleQty").value||1); if(!(qty>0)){alert("Qty inválida");return;}
+  const sale=Number(Q("#saleUsd").value||0); if(!(sale>0)){alert("Precio de venta inválido");return;}
+
+  // aporte por USD de compra = rO actual
+  const aporte = currentRO() * (prod.unit_usd*qty);
+  const profit = sale - (prod.unit_usd*qty) - aporte;
+
+  Q("#saleAporte").value=aporte.toFixed(2);
+  Q("#saleProfit").value=profit.toFixed(2);
+
+  const row={ts:new Date().toISOString(),product_id:prod.id,name:prod.name,store:prod.store,
+    unit_usd:prod.unit_usd,qty,sale_usd:sale,aporte_usd:aporte,profit_usd:profit};
+  const {data,error}=await sb.from("sales").insert(row).select("*").single();
+  if(error){alert("No se pudo registrar venta");return;}
+  CACHE.sales.unshift(data); renderSales(); renderReports();
+}
+async function delSale(id){
+  await sb.from("sales").delete().eq("id",id);
+  CACHE.sales=CACHE.sales.filter(x=>x.id!==id);
+  renderSales(); renderReports();
+}
+
+/* =================== KPIs / Reportes =================== */
+async function recalcKPIs(){
+  const V=CACHE.costs.reduce((s,r)=>s+Number(r.amount_usd||0),0);
+  const compras=CACHE.products.reduce((s,r)=>s+(Number(r.unit_usd||0)*Number(r.qty||0)),0);
+  const BT=SETTINGS.bt, TRM=SETTINGS.trm;
+  const M=Math.max(BT - V, 0);
+  const rO=M>0? V/M : 0;
+  const real=V+compras;
+  const pct=BT>0? (real/BT)*100 : 0;
+
+  Q("#kpiV").textContent=fmtUSD(V);
+  Q("#kpiVCOP").textContent=fmtCOP(V*TRM);
+  Q("#kpiM").textContent=fmtUSD(M);
+  Q("#kpiMCOP").textContent=fmtCOP(M*TRM);
+  Q("#kpiRO").textContent=rO.toFixed(4);
+  Q("#kpiReal").textContent=fmtUSD(real)+" USD";
+  Q("#barReal").style.width=Math.min(pct,100)+"%";
+  Q("#kpiRealPct").textContent=pct.toFixed(1)+"% del BT";
+  renderReports();
+}
+function renderReports(){
+  const aporte=CACHE.sales.reduce((s,r)=>s+Number(r.aporte_usd||0),0);
+  const profit=CACHE.sales.reduce((s,r)=>s+Number(r.profit_usd||0),0);
+  const items=CACHE.products.reduce((s,r)=>s+Number(r.qty||0),0);
+  Q("#repAporte").textContent=fmtUSD(aporte);
+  Q("#repProfit").textContent=fmtUSD(profit);
+  Q("#repItems").textContent=`${items} ítems`;
+}
+</script>
 </body>
 </html>
-
