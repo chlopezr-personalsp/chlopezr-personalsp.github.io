@@ -4,7 +4,6 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Personal Shopper USA</title>
-
 <style>
   :root{
     --bg:#0b1220; --panel:#111827; --muted:#94a3b8; --text:#e5e7eb;
@@ -34,6 +33,7 @@
   .btn.success{background:#059669;border-color:#059669}
   .btn.warn{background:#b45309;border-color:#b45309}
   .btn:disabled{opacity:.55;cursor:not-allowed}
+  #btnSync,#btnFetchTRM,#btnManualTRM{padding:2px 6px!important;font-size:11px!important;line-height:1.05!important;border-radius:7px!important}
 
   .grid{display:grid;gap:12px}
   .cards{grid-template-columns:repeat(4,1fr)}
@@ -72,22 +72,10 @@
 
   .muted{color:var(--muted)}
   .right{text-align:right}
-  .center{text-align:center}
-  .mt8{margin-top:8px}
-  .mt12{margin-top:12px}
-  .mt16{margin-top:16px}
-  .mt24{margin-top:24px}
-
-  /* Botones TRM/Sync compactos */
-  #btnSync, #btnFetchTRM, #btnManualTRM { padding:2px 6px !important; font-size:11px !important; line-height:1.05 !important; border-radius:7px !important;}
-
-  .select-compact{padding:4px 6px;font-size:12px}
-
   .hint{font-size:11px;color:#9ca3af;margin-top:4px}
   .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;border:1px solid #334155;background:#0f172a;font-size:12px;cursor:pointer}
   .pill:hover{background:#111827}
 
-  /* Cámara */
   .camera-box{border:1px dashed #334155;border-radius:12px;padding:10px}
   video{width:100%;max-height:320px;border-radius:10px;background:#000}
 </style>
@@ -105,17 +93,17 @@
         </div>
       </div>
       <div class="toolbar">
-        <button id="btnSync" class="btn">⟳ Sync</button>
-        <button id="btnFetchTRM" class="btn">⇅ TRM</button>
-        <button id="btnManualTRM" class="btn">✍ TRM</button>
+        <button id="btnSync" class="btn" title="Sincronizar con Supabase">⟳ Sync</button>
+        <button id="btnFetchTRM" class="btn" title="Actualizar TRM automáticamente">⇅ TRM</button>
+        <button id="btnManualTRM" class="btn" title="Ingresar TRM manual">✍ TRM</button>
       </div>
     </div>
   </div>
 
   <!-- KPIs -->
-  <div class="grid cards mt12">
+  <div class="grid cards" style="margin-top:12px">
     <div class="card">
-      <div class="k">Presupuesto Total (BT) USD</div>
+      <div class="k">Presupuesto Estimado (BT) USD</div>
       <div class="v" id="kpiBT">$7,000.00</div>
       <div class="sub" id="kpiBTcop">—</div>
     </div>
@@ -133,6 +121,25 @@
       <div class="k">TRM vigente</div>
       <div class="v" id="kpiTRM">—</div>
       <div class="sub">Histórico por día</div>
+    </div>
+  </div>
+
+  <!-- KPIs de Presupuesto Real -->
+  <div class="grid cards" style="margin-top:12px">
+    <div class="card">
+      <div class="k">Compras acumuladas (Costo USD)</div>
+      <div class="v" id="kpiComprasUSD">—</div>
+      <div class="sub" id="kpiComprasCOP">—</div>
+    </div>
+    <div class="card">
+      <div class="k">Presupuesto Real Acumulado = Overheads + Compras</div>
+      <div class="v" id="kpiRealUSD">—</div>
+      <div class="sub" id="kpiRealCOP">—</div>
+    </div>
+    <div class="card" style="grid-column: span 2">
+      <div class="k">Uso del presupuesto estimado (BT)</div>
+      <div class="progress" style="margin-top:6px"><div id="progBT" style="width:0%"></div></div>
+      <div class="sub" id="progBTText" style="margin-top:6px">—</div>
     </div>
   </div>
 
@@ -156,6 +163,7 @@
       <div>
         <label>Margen objetivo GB% (sobre venta)</label>
         <input id="inpGB" class="input" type="number" step="1" value="30">
+        <div class="hint">Al cambiar, se recalculan KPIs, semáforo, inventario estimado y reportes</div>
       </div>
       <div>
         <label>TRM (COP/USD) – día de hoy</label>
@@ -167,7 +175,7 @@
       </div>
     </div>
 
-    <div class="mt16">
+    <div style="margin-top:16px">
       <div class="k">Costos del viaje (overheads)</div>
       <div class="row">
         <div>
@@ -196,7 +204,7 @@
         </div>
       </div>
 
-      <div class="mt8" style="max-height:280px;overflow:auto">
+      <div style="margin-top:8px;max-height:280px;overflow:auto">
         <table>
           <thead><tr>
             <th>Fecha</th><th>Descripción</th><th>Categoría</th><th class="right">USD</th><th class="right">COP</th><th class="center">Acciones</th>
@@ -229,7 +237,7 @@
       </div>
     </div>
 
-    <div class="mt8" style="max-height:300px;overflow:auto">
+    <div style="margin-top:8px;max-height:300px;overflow:auto">
       <table>
         <thead><tr><th>Fecha</th><th>Descripción</th><th>Marca/Cat</th><th class="right">COP</th><th class="center">Acciones</th></tr></thead>
         <tbody id="catTbody"></tbody>
@@ -257,33 +265,33 @@
         <input id="svStore" class="input" list="storeList" placeholder="Ej: Nike Factory Orlando">
         <datalist id="storeList"></datalist>
         <div class="hint">Sugerencias de tiendas usadas antes</div>
-        <div class="mt8"><span id="useLastStore" class="pill" style="display:none">Usar última tienda: <b id="lastStoreName"></b></span></div>
+        <div style="margin-top:8px"><span id="useLastStore" class="pill" style="display:none">Usar última tienda: <b id="lastStoreName"></b></span></div>
       </div>
     </div>
 
-    <div class="mt12 camera-box">
+    <div class="camera-box" style="margin-top:12px">
       <div class="k">Escanear etiqueta (OCR)</div>
-      <div class="mt8" style="display:flex;gap:8px;flex-wrap:wrap">
-        <button id="camStart" class="btn">📷 Abrir cámara</button>
-        <button id="camShot" class="btn" disabled>📸 Capturar</button>
-        <button id="camStop" class="btn" disabled>✖ Cerrar</button>
+      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+        <button id="camStart" class="btn" title="Abrir cámara">📷 Abrir cámara</button>
+        <button id="camShot" class="btn" disabled title="Capturar y leer">📸 Capturar</button>
+        <button id="camStop" class="btn" disabled title="Cerrar cámara">✖ Cerrar</button>
+        <span id="camHint" class="hint">Si no funciona, abre la app en <b>HTTPS</b> o <b>localhost</b> y concede permisos de cámara.</span>
       </div>
-      <div class="mt8">
+      <div style="margin-top:8px">
         <video id="camVideo" playsinline muted></video>
         <canvas id="camCanvas" style="display:none"></canvas>
       </div>
-      <div class="hint mt8">Consejos: buena iluminación, enfoque a la línea con el **precio** y el **modelo**.</div>
     </div>
 
-    <div class="mt12" style="display:flex;gap:8px;flex-wrap:wrap">
+    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
       <button id="svEval" class="btn primary">Calcular semáforo</button>
     </div>
 
-    <div id="svResult" class="mt12" style="display:none">
+    <div id="svResult" style="margin-top:12px;display:none">
       <div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:12px">
         <div class="card">
           <div class="k">Parámetros</div>
-          <div class="mt8">Margen objetivo: <b id="svGB">—</b></div>
+          <div style="margin-top:8px">Margen objetivo: <b id="svGB">—</b></div>
           <div>Aporte por dólar (V/BT): <b id="svRO">—</b></div>
           <div>TRM: <b id="svTRM">—</b></div>
         </div>
@@ -300,13 +308,13 @@
           <div class="muted" id="svSourceDetail">—</div>
         </div>
       </div>
-      <div class="mt12">
+      <div style="margin-top:12px">
         <span class="k">Relación VSV/VR:</span>
         <span id="svRatio" class="chip">—</span>
         <span id="svExplain" class="muted" style="margin-left:8px"></span>
       </div>
 
-      <div class="mt16">
+      <div style="margin-top:16px">
         <label>¿Agregar a inventario? (PVP estimado requerido)</label>
         <div class="row">
           <div>
@@ -325,10 +333,10 @@
   <!-- Panel Inventario -->
   <div id="panel-inventario" class="card" style="display:none">
     <div class="k">Inventario actual</div>
-    <div class="mt8 progress"><div id="invProgress"></div></div>
+    <div class="progress" style="margin-top:8px"><div id="invProgress"></div></div>
     <div class="muted" id="invProgressText" style="margin-top:6px">—</div>
 
-    <div class="mt12" style="max-height:340px;overflow:auto">
+    <div style="margin-top:12px;max-height:340px;overflow:auto">
       <table>
         <thead><tr>
           <th>Fecha</th><th>Producto</th><th>Cat/Tienda</th>
@@ -347,7 +355,7 @@
     <div class="row">
       <div>
         <label>Producto (del inventario)</label>
-        <select id="saleProduct" class="input select-compact"></select>
+        <select id="saleProduct" class="input"></select>
       </div>
       <div>
         <label>Cantidad</label>
@@ -362,7 +370,7 @@
       </div>
     </div>
 
-    <div class="mt12" style="max-height:340px;overflow:auto">
+    <div style="margin-top:12px;max-height:340px;overflow:auto">
       <table>
         <thead><tr>
           <th>Fecha</th><th>Producto</th><th>Cat/Tienda</th><th class="right">Cant.</th>
@@ -389,7 +397,6 @@
   </div>
 </div>
 
-<!-- Supabase + Tesseract -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
@@ -397,7 +404,7 @@ const SUPABASE_URL = "https://ucrkhrehdedmubykzfzs.supabase.co";
 const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcmtocmVoZGVkbXVieWt6ZnpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1OTc5MzgsImV4cCI6MjA3NzE3MzkzOH0.7CXUuyAPQlm_9RIKbaO9y8Kwjh9c6M7UJcu4xAIM7WA";
 const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-/* ---- Estado ---- */
+/* Estado */
 let BT = 7000;
 let GB = 30;
 let TRM = 4200;
@@ -408,25 +415,19 @@ let SALES = [];
 let LAST_STORE = null;
 let camStream = null;
 
-/* ---- Helpers ---- */
+/* Helpers */
 const fmtUSD = n => "$" + (Number(n||0)).toFixed(2);
 const fmtCOP = n => "$" + (Math.round(Number(n||0))).toLocaleString("es-CO");
-const nowStr = () => new Date().toLocaleString("es-CO");
 const aportePorDolar = () => {
   const V = OVERHEADS.reduce((s,o)=>s+Number(o.usd||0),0);
   return BT>0? (V/BT) : 0;
 };
-const vsvUSD = (unitUSD) => {
-  const rO = aportePorDolar();
-  const gb = GB/100;
-  return Number(unitUSD) * (1 + gb + rO);
-};
+const vsvUSD = (unitUSD) => Number(unitUSD) * (1 + GB/100 + aportePorDolar());
 const toCOP = (usd) => Number(usd)*Number(TRM);
-
 const $ = s => document.querySelector(s);
 const $$ = s => Array.from(document.querySelectorAll(s));
 
-/* ---- Tabs ---- */
+/* Tabs */
 $$('.tab').forEach(t=>{
   t.onclick=()=>{
     $$('.tab').forEach(x=>x.classList.remove('active'));
@@ -436,24 +437,42 @@ $$('.tab').forEach(t=>{
       $('#panel-'+id).style.display = (id===tab?'block':'none');
     });
     if(tab==='ventas') fillSaleProducts();
-    if(tab==='inventario'){ renderInventory(); }
+    if(tab==='inventario'){ renderInventory(); renderBudgetProgress(); }
     if(tab==='reportes'){ renderReports(); }
     if(tab==='semaforo'){ fillStoreDatalist(); showLastStoreChip(); }
   };
 });
 
-/* ---- KPIs ---- */
+/* KPIs */
 function renderKPIs(){
   const V = OVERHEADS.reduce((s,o)=>s+Number(o.usd||0),0);
+  const comprasUSD = INVENTORY.reduce((s,p)=>s+(Number(p.unit_usd||0)*Number(p.qty||0)),0);
+  const realUSD = V + comprasUSD;
+
   $('#kpiBT').textContent = fmtUSD(BT);
   $('#kpiBTcop').textContent = fmtCOP(BT*TRM);
   $('#kpiV').textContent = fmtUSD(V);
   $('#kpiVcop').textContent = fmtCOP(V*TRM);
   $('#kpiRO').textContent = (aportePorDolar()).toFixed(3);
   $('#kpiTRM').textContent = fmtCOP(TRM) + " COP/USD";
+
+  $('#kpiComprasUSD').textContent = fmtUSD(comprasUSD);
+  $('#kpiComprasCOP').textContent = fmtCOP(comprasUSD*TRM);
+  $('#kpiRealUSD').textContent = fmtUSD(realUSD);
+  $('#kpiRealCOP').textContent = fmtCOP(realUSD*TRM);
+
+  renderBudgetProgress();
+}
+function renderBudgetProgress(){
+  const V = OVERHEADS.reduce((s,o)=>s+Number(o.usd||0),0);
+  const comprasUSD = INVENTORY.reduce((s,p)=>s+(Number(p.unit_usd||0)*Number(p.qty||0)),0);
+  const realUSD = V + comprasUSD;
+  const pct = Math.max(0, Math.min(100, BT>0 ? (realUSD/BT)*100 : 0));
+  $('#progBT').style.width = pct.toFixed(1)+"%";
+  $('#progBTText').textContent = `Uso de BT: ${pct.toFixed(1)}% — Real: ${fmtUSD(realUSD)} de ${fmtUSD(BT)}`;
 }
 
-/* ---- Overheads ---- */
+/* Overheads */
 async function loadOverheads(){
   const {data,error} = await supa.from('overheads').select('*').order('created_at',{ascending:false});
   if(!error && data){ OVERHEADS = data; renderOverheads(); renderKPIs(); }
@@ -489,7 +508,7 @@ $('#ohAdd').onclick = async ()=>{
   await loadOverheads();
 };
 
-/* ---- Catálogo ---- */
+/* Catálogo */
 async function loadCatalog(){
   const {data,error} = await supa.from('catalog').select('*').order('created_at',{ascending:false});
   if(!error && data){ CATALOG = data; renderCatalog(); }
@@ -520,17 +539,14 @@ $('#catAdd').onclick=async ()=>{
   const cop=Number($('#catCOP').value||0);
   if(!name||!cop){ alert('Ingresa descripción y COP'); return; }
   let brand=null, cat=null;
-  if(meta){
-    const p = meta.split('/').map(s=>s.trim());
-    brand = p[0]||null; cat = p[1]||null;
-  }
+  if(meta){ const p=meta.split('/').map(s=>s.trim()); brand=p[0]||null; cat=p[1]||null; }
   await supa.from('catalog').insert({name,brand,cat,ref_cop:cop});
   $('#catName').value=''; $('#catMeta').value=''; $('#catCOP').value='';
   await loadCatalog();
 };
 $('#catSync').onclick = loadCatalog;
 
-/* ---- Tiendas ---- */
+/* Tiendas (sugerencias) */
 function uniqueStores(){
   const set = new Set();
   INVENTORY.forEach(p=>{ if(p.store) set.add(p.store); });
@@ -538,13 +554,8 @@ function uniqueStores(){
   return Array.from(set);
 }
 function fillStoreDatalist(){
-  const dl = $('#storeList'); if(!dl) return;
-  dl.innerHTML = "";
-  uniqueStores().forEach(st=>{
-    const opt = document.createElement('option');
-    opt.value = st;
-    dl.appendChild(opt);
-  });
+  const dl = $('#storeList'); if(!dl) return; dl.innerHTML = "";
+  uniqueStores().forEach(st=>{ const opt=document.createElement('option'); opt.value=st; dl.appendChild(opt); });
 }
 function showLastStoreChip(){
   const stores = uniqueStores();
@@ -555,145 +566,120 @@ function showLastStoreChip(){
 }
 $('#useLastStore').onclick = ()=>{ if(LAST_STORE){ $('#svStore').value = LAST_STORE; } };
 
-/* ---- Buscador VR ---- */
+/* Buscar VR (Catálogo + MercadoLibre) */
 async function buscarVR(descr){
   const q = descr.toLowerCase();
-  let bestCat = null;
-  let bestScore = 0;
+  let bestCat = null, bestScore=0;
   CATALOG.forEach(c=>{
-    const t = ((c.name||'') + ' ' + (c.brand||'') + ' ' + (c.cat||'')).toLowerCase();
+    const t=((c.name||'')+' '+(c.brand||'')+' '+(c.cat||'')).toLowerCase();
     const words = q.split(/\s+/).filter(w=>w.length>3);
-    let score = 0; words.forEach(w=>{ if(t.includes(w)) score+=1; });
+    let score=0; words.forEach(w=>{ if(t.includes(w)) score+=1; });
     if(score>bestScore){ bestScore=score; bestCat=c; }
   });
 
-  let mlCOP = null, mlDetail = '';
+  let mlCOP = null, mlDetail='';
   try{
     const r = await fetch('https://api.mercadolibre.com/sites/MCO/search?q='+encodeURIComponent(descr)+'&limit=5');
     const j = await r.json();
     if(j && j.results && j.results.length){
       const precios = j.results.map(x=>x.price).filter(n=>n>0);
-      if(precios.length){
-        const sum = precios.reduce((a,b)=>a+b,0);
-        mlCOP = Math.round(sum/precios.length);
-        mlDetail = j.results.map(x=>x.title).slice(0,3).join(' | ');
-      }
+      if(precios.length){ mlCOP = Math.round(precios.reduce((a,b)=>a+b,0)/precios.length);
+        mlDetail = j.results.map(x=>x.title).slice(0,3).join(' | '); }
     }
-  }catch(e){ /* ignore */ }
+  }catch(e){}
 
-  let src = '—', vrCOP = null, srcDetail='';
   const cCOP = bestCat? Number(bestCat.ref_cop||0) : null;
-  if(cCOP && mlCOP){ vrCOP = Math.min(cCOP, mlCOP); src = (vrCOP===cCOP?'Catálogo':'MercadoLibre'); }
-  else if(cCOP){ vrCOP = cCOP; src='Catálogo'; }
-  else if(mlCOP){ vrCOP = mlCOP; src='MercadoLibre'; }
-  if(src==='Catálogo' && bestCat){ srcDetail = `${bestCat.name} ${(bestCat.brand?('('+bestCat.brand+')'):'')}`; }
+  let src='—', vrCOP=null, srcDetail='';
+  if(cCOP && mlCOP){ vrCOP=Math.min(cCOP,mlCOP); src=(vrCOP===cCOP?'Catálogo':'MercadoLibre'); }
+  else if(cCOP){ vrCOP=cCOP; src='Catálogo'; }
+  else if(mlCOP){ vrCOP=mlCOP; src='MercadoLibre'; }
+  if(src==='Catálogo' && bestCat){ srcDetail=`${bestCat.name} ${(bestCat.brand?('('+bestCat.brand+')'):'')}`; }
   if(src==='MercadoLibre' && mlDetail){ srcDetail = mlDetail; }
-
-  return { vrCOP, src, srcDetail, catMatch: bestCat };
+  return { vrCOP, src, srcDetail };
 }
 
-/* ---- Semáforo ---- */
+/* Semáforo */
 $('#svEval').onclick = async ()=>{
   const name = $('#svName').value.trim();
   const unit = Number($('#svUnitUSD').value||0);
-  const qty = Number($('#svQty').value||0);
+  const qty  = Number($('#svQty').value||0);
   if(!name || unit<=0 || qty<=0){ alert('Completa nombre, costo y cantidad'); return; }
-
-  const gb = GB/100;
-  const ro = aportePorDolar();
 
   const vsvUsd = vsvUSD(unit);
   const vsvCop = toCOP(vsvUsd);
-
   const {vrCOP, src, srcDetail} = await buscarVR(name);
 
-  $('#svGB').textContent = (GB.toFixed(0))+'%';
-  $('#svRO').textContent = ro.toFixed(3);
+  $('#svGB').textContent = GB.toFixed(0)+'%';
+  $('#svRO').textContent = aportePorDolar().toFixed(3);
   $('#svTRM').textContent = fmtCOP(TRM);
   $('#svVsvUsd').textContent = fmtUSD(vsvUsd);
   $('#svVsvCop').textContent = fmtCOP(vsvCop);
-  $('#svVrCop').textContent = vrCOP ? fmtCOP(vrCOP) : '—';
+  $('#svVrCop').textContent = vrCOP? fmtCOP(vrCOP) : '—';
   $('#svSource').textContent = src;
   $('#svSourceDetail').textContent = srcDetail || '—';
 
-  let ratioTxt='—', explain='Sin referencia: ingresa precio manual.';
   const ratioEl = $('#svRatio'); ratioEl.className='chip';
+  let ratioTxt='—', explain='Sin referencia: ingresa precio manual.';
   if(vrCOP){
-    const ratio = vsvCop/vrCOP;
-    ratioTxt = ratio.toFixed(2);
+    const ratio=vsvCop/vrCOP; ratioTxt=ratio.toFixed(2);
     if(ratio<0.85){ ratioEl.classList.add('ok'); explain='Verde: competitivo.'; }
-    else if(ratio<=0.95){ ratioEl.classList.add('warn'); explain='Amarillo: ajusta/rotación.'; }
+    else if(ratio<=0.95){ ratioEl.classList.add('warn'); explain='Amarillo: ajustar/rotación.'; }
     else { ratioEl.classList.add('bad'); explain='Rojo: no viable.'; }
   }
   $('#svRatio').textContent=ratioTxt;
-  $('#svExplain').textContent = explain;
-
+  $('#svExplain').textContent=explain;
   $('#svResult').style.display='block';
 };
-
 function requireStore(valueNow){
-  let store = (valueNow||'').trim();
+  let store=(valueNow||'').trim();
   if(!store){
-    const stores = uniqueStores();
-    const suggestion = stores.length? ` (sugerencia: ${stores[0]})` : '';
-    store = prompt('Ingresa la TIENDA para registrar en inventario'+suggestion, stores[0]||'') || '';
+    const stores=uniqueStores();
+    const suggestion=stores.length?` (sugerencia: ${stores[0]})`:'';
+    store = prompt('Ingresa la TIENDA para registrar en inventario'+suggestion, stores[0]||'')||'';
     store = store.trim();
   }
   return store || null;
 }
-
 $('#svAddToInv').onclick = async ()=>{
   const name = $('#svName').value.trim();
   const unit = Number($('#svUnitUSD').value||0);
-  const qty = Number($('#svQty').value||0);
-  let store = $('#svStore').value;
+  const qty  = Number($('#svQty').value||0);
+  let store  = $('#svStore').value;
   store = requireStore(store);
   if(!name || unit<=0 || qty<=0){ alert('Completa los campos'); return; }
-
   const estCOP = Number($('#svEstSellCOP').value||0);
   if(estCOP<=0){ alert('Ingresa el PVP estimado (COP)'); return; }
 
   const estUsdUnit = estCOP / TRM;
-  const apUSDunit = unit * aportePorDolar();
-  const mgUSDunit = estUsdUnit - unit - apUSDunit;
+  const apUSDunit  = unit*aportePorDolar();
+  const mgUSDunit  = estUsdUnit - unit - apUSDunit;
 
-  const insertObj = {
-    name, cat: null, store,
-    unit_usd: unit, qty,
-    est_sell_cop: estCOP,
-    est_sell_usd: estUsdUnit,
-    est_aporte_usd: apUSDunit,
-    est_margin_usd: mgUSDunit
-  };
-  let {error} = await supa.from('products').insert(insertObj);
-  if(error && error.message && error.message.includes('column "est_')){
-    await supa.from('products').insert({name, store, unit_usd:unit, qty});
+  let {error} = await supa.from('products').insert({
+    name, store, unit_usd:unit, qty,
+    est_sell_cop:estCOP, est_sell_usd:estUsdUnit,
+    est_aporte_usd:apUSDunit, est_margin_usd:mgUSDunit
+  });
+  if(error && error.message && error.message.includes('est_')){
+    await supa.from('products').insert({name,store,unit_usd:unit,qty});
   }
-  await loadInventory();
-  fillSaleProducts();
-  fillStoreDatalist();
-  LAST_STORE = store;
-  showLastStoreChip();
-  alert('Artículo agregado al inventario con TIENDA y PVP estimado.');
+  await loadInventory(); fillSaleProducts(); fillStoreDatalist(); showLastStoreChip(); renderKPIs();
+  alert('Artículo agregado al inventario.');
   $('#svName').value=''; $('#svUnitUSD').value=''; $('#svQty').value='1'; $('#svEstSellCOP').value=''; $('#svStore').value='';
   $('#svResult').style.display='none';
 };
 
-/* ---- Inventario ---- */
+/* Inventario */
 async function loadInventory(){
   const {data,error} = await supa.from('products').select('*').order('created_at',{ascending:false});
-  if(!error && data){ INVENTORY = data; renderInventory(); fillStoreDatalist(); showLastStoreChip(); }
+  if(!error && data){ INVENTORY = data; renderInventory(); fillStoreDatalist(); showLastStoreChip(); renderKPIs(); }
 }
 function renderInventory(){
   const tb = $('#invTbody'); tb.innerHTML="";
   const V = OVERHEADS.reduce((s,o)=>s+Number(o.usd||0),0);
-  const aporteAcumUSD = INVENTORY.reduce((s,p)=>{
-    const apUnit = Number(p.unit_usd||0) * aportePorDolar();
-    return s + apUnit * Number(p.qty||0);
-  },0);
-  const prog = Math.min(100, (aporteAcumUSD / (V||1)) * 100 || 0);
+  const aporteAcumUSD = INVENTORY.reduce((s,p)=> s + (Number(p.unit_usd||0)*aportePorDolar()*Number(p.qty||0)), 0);
+  const prog = Math.min(100, (V>0 ? (aporteAcumUSD/V)*100 : 0));
   $('#invProgress').style.width = prog.toFixed(1)+'%';
-  $('#invProgressText').textContent = `Aporte cubierto: ${prog.toFixed(1)}% (${fmtUSD(aporteAcumUSD)} de ${fmtUSD(V)})`;
+  $('#invProgressText').textContent = `Cobertura de costos del viaje: ${prog.toFixed(1)}% (${fmtUSD(aporteAcumUSD)} de ${fmtUSD(V)})`;
 
   INVENTORY.forEach(p=>{
     const estCOP = (p.est_sell_cop!=null)? Number(p.est_sell_cop) : null;
@@ -705,29 +691,27 @@ function renderInventory(){
     tr.innerHTML=`
       <td>${new Date(p.created_at).toLocaleString('es-CO')}</td>
       <td>${p.name||''}</td>
-      <td>${(p.cat||'—')}${p.store?(' / '+p.store):''}</td>
+      <td>${p.store? p.store : '—'}</td>
       <td class="right">${fmtUSD(p.unit_usd||0)} × ${Number(p.qty||0)}</td>
       <td class="right">${estCOP!=null? fmtCOP(estCOP): '—'}</td>
-      <td class="right">${(mgUSDunit!=null||apUSDunit!=null)? fmtUSD(apUSDunit): '—'}</td>
+      <td class="right">${fmtUSD(apUSDunit)}</td>
       <td class="right">${mgUSDunit!=null? fmtUSD(mgUSDunit): '—'}</td>
-      <td class="center">
-        <button class="btn" data-del="${p.id}">🗑</button>
-      </td>
+      <td class="center"><button class="btn" data-del="${p.id}">🗑</button></td>
     `;
     tb.appendChild(tr);
   });
   tb.querySelectorAll('[data-del]').forEach(btn=>{
     btn.onclick=async ()=>{
       await supa.from('products').delete().eq('id', btn.dataset.del);
-      await loadInventory(); fillSaleProducts();
+      await loadInventory(); fillSaleProducts(); renderKPIs();
     };
   });
 }
 
-/* ---- Ventas ---- */
+/* Ventas */
 async function loadSales(){
   const {data,error} = await supa.from('sales').select('*').order('created_at',{ascending:false});
-  if(!error && data){ SALES = data; renderSales(); fillStoreDatalist(); }
+  if(!error && data){ SALES = data; renderSales(); fillStoreDatalist(); renderReports(); }
 }
 function fillSaleProducts(){
   const sel = $('#saleProduct'); sel.innerHTML="";
@@ -745,7 +729,7 @@ function renderSales(){
     tr.innerHTML=`
       <td>${new Date(s.created_at).toLocaleString('es-CO')}</td>
       <td>${s.product_name||'—'}</td>
-      <td>${(s.cat||'—')}${s.store?(' / '+s.store):''}</td>
+      <td>${s.store||'—'}</td>
       <td class="right">${s.qty||0}</td>
       <td class="right">${fmtCOP(s.sale_cop||0)}</td>
       <td class="right">${fmtUSD(s.aporte_usd||0)}</td>
@@ -761,7 +745,6 @@ function renderSales(){
     };
   });
 }
-
 $('#saleSave').onclick = async ()=>{
   const pid = $('#saleProduct').value;
   const p = INVENTORY.find(x=>String(x.id)===String(pid));
@@ -777,7 +760,6 @@ $('#saleSave').onclick = async ()=>{
   let ins = {
     product_id: p.id,
     product_name: p.name,
-    cat: p.cat||null,
     store: p.store||null,
     qty,
     unit_usd: p.unit_usd,
@@ -786,29 +768,24 @@ $('#saleSave').onclick = async ()=>{
     aporte_usd: apUSDunit*qty,
     profit_usd: profitUSDunit*qty
   };
-  let {error} = await supa.from('sales').insert(ins);
-  if(error && error.message && error.message.includes('profit_usd')){
-    delete ins.profit_usd;
-    await supa.from('sales').insert(ins);
-  }
+  await supa.from('sales').insert(ins);
   await loadSales();
   alert('Venta registrada');
   $('#saleQty').value='1'; $('#saleCOP').value='';
-  renderReports();
 };
 
-/* ---- Reportes ---- */
+/* Reportes */
 function renderReports(){
   // Estimado (inventario)
   let estCostUSD=0, estAporteUSD=0, estMarginUSD=0, estVentaCOP=0;
   INVENTORY.forEach(p=>{
-    const qty = Number(p.qty||0);
+    const qty=Number(p.qty||0);
     const apUSDunit = (p.est_aporte_usd!=null)? Number(p.est_aporte_usd) : (Number(p.unit_usd||0)*aportePorDolar());
     const estCOP = (p.est_sell_cop!=null)? Number(p.est_sell_cop) : null;
     const estUSD = (p.est_sell_usd!=null)? Number(p.est_sell_usd) : (estCOP? estCOP/TRM : null);
-    const mgUSDunit = (p.est_margin_usd!=null)? Number(p.est_margin_usd) : (estUSD!=null? (estUSD-Number(p.unit_usd||0)-apUSDunit):0);
+    const mgUSDunit = (p.est_margin_usd!=null)? Number(p.est_margin_usd) : (estUSD!=null? (estUSD-Number(p.unit_usd||0)-apUSDunit) : 0);
 
-    estCostUSD += Number(p.unit_usd||0)*qty;
+    estCostUSD   += Number(p.unit_usd||0)*qty;
     estAporteUSD += apUSDunit*qty;
     estMarginUSD += (mgUSDunit||0)*qty;
     if(estCOP!=null) estVentaCOP += estCOP*qty;
@@ -834,7 +811,7 @@ function renderReports(){
   `;
 }
 
-/* ---- TRM ---- */
+/* TRM */
 async function fetchTRM(){
   try{
     const r = await fetch('https://open.er-api.com/v6/latest/USD');
@@ -842,7 +819,7 @@ async function fetchTRM(){
     if(j && j.rates && j.rates.COP){
       TRM = Number(j.rates.COP);
       $('#inpTRM').value = TRM;
-      renderKPIs();
+      renderKPIs(); renderInventory(); renderReports();
       alert('TRM actualizada');
     }else throw new Error('Sin rates');
   }catch(e){
@@ -850,27 +827,39 @@ async function fetchTRM(){
   }
 }
 $('#btnFetchTRM').onclick=fetchTRM;
-$('#btnManualTRM').onclick=()=>{ const v=prompt('TRM (COP/USD):', String(TRM)); if(v){ TRM=Number(v); $('#inpTRM').value=TRM; renderKPIs(); } };
-$('#inpTRM').onchange=()=>{ const v=Number($('#inpTRM').value||0); if(v>0){ TRM=v; renderKPIs(); } };
+$('#btnManualTRM').onclick=()=>{
+  const v=prompt('TRM (COP/USD):', String(TRM));
+  if(v){ TRM=Number(v); $('#inpTRM').value=TRM; renderKPIs(); renderInventory(); renderReports(); }
+};
+$('#inpTRM').onchange=()=>{
+  const v=Number($('#inpTRM').value||0);
+  if(v>0){ TRM=v; renderKPIs(); renderInventory(); renderReports(); }
+};
 
-/* ---- Sync ---- */
+/* Sync */
 async function syncAll(){
   await Promise.all([loadOverheads(), loadCatalog(), loadInventory(), loadSales()]);
   renderKPIs(); fillSaleProducts(); renderReports(); fillStoreDatalist(); showLastStoreChip();
 }
 $('#btnSync').onclick = syncAll;
 
-/* ---- Config listeners ---- */
+/* Config listeners */
 $('#inpBT').onchange=()=>{ BT = Number($('#inpBT').value||7000); renderKPIs(); renderInventory(); renderReports(); };
-$('#inpGB').onchange=()=>{ GB = Number($('#inpGB').value||30); };
+$('#inpGB').onchange=()=>{ GB = Number($('#inpGB').value||30); renderKPIs(); renderInventory(); renderReports(); };
 
-/* ---- Cámara + OCR ---- */
-const videoEl = document.getElementById('camVideo');
-const canvasEl = document.getElementById('camCanvas');
-const btnStart = document.getElementById('camStart');
-const btnShot  = document.getElementById('camShot');
-const btnStop  = document.getElementById('camStop');
+/* Cámara + OCR */
+const videoEl = $('#camVideo');
+const canvasEl = $('#camCanvas');
+const btnStart = $('#camStart');
+const btnShot  = $('#camShot');
+const btnStop  = $('#camStop');
 
+function cameraSupported(){
+  return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+}
+if(!cameraSupported()){
+  $('#camHint').textContent = 'Este navegador no soporta cámara (getUserMedia). Prueba Chrome móvil/desktop en HTTPS.';
+}
 async function startCamera(){
   try{
     camStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' }, audio:false });
@@ -878,7 +867,7 @@ async function startCamera(){
     await videoEl.play();
     btnStart.disabled = true; btnShot.disabled = false; btnStop.disabled = false;
   }catch(e){
-    alert('No se pudo abrir la cámara. Asegúrate de usar HTTPS o localhost y dar permisos.');
+    alert('No se pudo abrir la cámara. Usa HTTPS o localhost y concede permisos.');
   }
 }
 function stopCamera(){
@@ -894,20 +883,16 @@ async function shotAndOCR(){
   ctx.drawImage(videoEl,0,0,canvasEl.width,canvasEl.height);
   const dataURL = canvasEl.toDataURL('image/png');
 
-  // OCR
   const res = await Tesseract.recognize(dataURL,'eng+spa',{ logger:m=>console.log(m) });
   const text = (res && res.data && res.data.text) ? res.data.text : '';
   if(!text.trim()){ alert('No se leyó texto. Intenta de nuevo con mejor iluminación.'); return; }
 
-  // Extraer precio (usa primer $XX.XX o XX.XX plausible)
   const priceMatch = text.match(/\$?\s?(\d{1,4}(?:[.,]\d{2})?)/);
   if(priceMatch){
     let val = priceMatch[1].replace(',','.');
     const num = Number(val);
     if(num>0 && num<10000){ $('#svUnitUSD').value = String(num); }
   }
-
-  // Extraer descripción (marca/modelo heurístico)
   const lines = text.split('\n').map(s=>s.trim()).filter(Boolean);
   const brands = ['NIKE','ADIDAS','PUMA','CONVERSE','LEVI','TOMMY','COACH','MICHAEL KORS','SAMSUNG','APPLE','SONY','BOSE','HP','DELL'];
   let brand = lines.find(l=>brands.some(b=>l.toUpperCase().includes(b)));
@@ -915,11 +900,20 @@ async function shotAndOCR(){
   const desc = (brand?brand+' ':'') + (model?model:'');
   if(desc.trim().length>=4){ $('#svName').value = desc.trim(); }
 
-  // Si ya hay descripción, intenta buscar VR
-  if($('#svName').value.trim().length>=4){
-    $('#svEval').click();
-  }
+  if($('#svName').value.trim().length>=4){ $('#svEval').click(); }
 }
+btnStart.onclick = ()=> { if(!cameraSupported()){ alert('getUserMedia no soportado'); return; } startCamera(); };
+btnShot.onclick  = shotAndOCR;
+btnStop.onclick  = stopCamera;
 
-btnStart.onclick = startCamera;
-btn
+/* Init */
+(async function init(){
+  // Pre-cargar BT/GB/TRM inputs con estado actual
+  $('#inpBT').value = BT;
+  $('#inpGB').value = GB;
+  $('#inpTRM').value = TRM;
+  await syncAll();
+})();
+</script>
+</body>
+</html>
