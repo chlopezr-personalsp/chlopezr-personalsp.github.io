@@ -86,6 +86,10 @@
   .hint{font-size:11px;color:#9ca3af;margin-top:4px}
   .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;border:1px solid #334155;background:#0f172a;font-size:12px;cursor:pointer}
   .pill:hover{background:#111827}
+
+  /* Cámara */
+  .camera-box{border:1px dashed #334155;border-radius:12px;padding:10px}
+  video{width:100%;max-height:320px;border-radius:10px;background:#000}
 </style>
 </head>
 <body>
@@ -136,7 +140,7 @@
   <div class="tabs">
     <div class="tab active" data-tab="config">⚙️ Configuración</div>
     <div class="tab" data-tab="catalog">📚 Catálogo referencia</div>
-    <div class="tab" data-tab="semaforo">🚦 Consulta de semáforo</div>
+    <div class="tab" data-tab="semaforo">🚦 Semáforo (con cámara)</div>
     <div class="tab" data-tab="inventario">📦 Inventario</div>
     <div class="tab" data-tab="ventas">💵 Ventas</div>
     <div class="tab" data-tab="reportes">📊 Reportes</div>
@@ -233,7 +237,7 @@
     </div>
   </div>
 
-  <!-- Panel Semáforo -->
+  <!-- Panel Semáforo + Cámara -->
   <div id="panel-semaforo" class="card" style="display:none">
     <div class="row">
       <div>
@@ -255,9 +259,24 @@
         <div class="hint">Sugerencias de tiendas usadas antes</div>
         <div class="mt8"><span id="useLastStore" class="pill" style="display:none">Usar última tienda: <b id="lastStoreName"></b></span></div>
       </div>
-      <div style="display:flex;align-items:flex-end;gap:8px">
-        <button id="svEval" class="btn primary">Calcular semáforo</button>
+    </div>
+
+    <div class="mt12 camera-box">
+      <div class="k">Escanear etiqueta (OCR)</div>
+      <div class="mt8" style="display:flex;gap:8px;flex-wrap:wrap">
+        <button id="camStart" class="btn">📷 Abrir cámara</button>
+        <button id="camShot" class="btn" disabled>📸 Capturar</button>
+        <button id="camStop" class="btn" disabled>✖ Cerrar</button>
       </div>
+      <div class="mt8">
+        <video id="camVideo" playsinline muted></video>
+        <canvas id="camCanvas" style="display:none"></canvas>
+      </div>
+      <div class="hint mt8">Consejos: buena iluminación, enfoque a la línea con el **precio** y el **modelo**.</div>
+    </div>
+
+    <div class="mt12" style="display:flex;gap:8px;flex-wrap:wrap">
+      <button id="svEval" class="btn primary">Calcular semáforo</button>
     </div>
 
     <div id="svResult" class="mt12" style="display:none">
@@ -370,7 +389,9 @@
   </div>
 </div>
 
+<!-- Supabase + Tesseract -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script>
 const SUPABASE_URL = "https://ucrkhrehdedmubykzfzs.supabase.co";
 const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcmtocmVoZGVkbXVieWt6ZnpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1OTc5MzgsImV4cCI6MjA3NzE3MzkzOH0.7CXUuyAPQlm_9RIKbaO9y8Kwjh9c6M7UJcu4xAIM7WA";
@@ -385,6 +406,7 @@ let CATALOG = [];
 let INVENTORY = [];
 let SALES = [];
 let LAST_STORE = null;
+let camStream = null;
 
 /* ---- Helpers ---- */
 const fmtUSD = n => "$" + (Number(n||0)).toFixed(2);
@@ -625,7 +647,7 @@ $('#svAddToInv').onclick = async ()=>{
   const unit = Number($('#svUnitUSD').value||0);
   const qty = Number($('#svQty').value||0);
   let store = $('#svStore').value;
-  store = requireStore(store);  // <<<<< TIENDA OBLIGATORIA
+  store = requireStore(store);
   if(!name || unit<=0 || qty<=0){ alert('Completa los campos'); return; }
 
   const estCOP = Number($('#svEstSellCOP').value||0);
@@ -842,14 +864,62 @@ $('#btnSync').onclick = syncAll;
 $('#inpBT').onchange=()=>{ BT = Number($('#inpBT').value||7000); renderKPIs(); renderInventory(); renderReports(); };
 $('#inpGB').onchange=()=>{ GB = Number($('#inpGB').value||30); };
 
-/* ---- Init ---- */
-(async function(){
-  BT = Number($('#inpBT').value||7000);
-  GB = Number($('#inpGB').value||30);
-  TRM = Number($('#inpTRM').value||4200) || 4200;
-  renderKPIs();
-  await syncAll();
-})();
-</script>
-</body>
-</html>
+/* ---- Cámara + OCR ---- */
+const videoEl = document.getElementById('camVideo');
+const canvasEl = document.getElementById('camCanvas');
+const btnStart = document.getElementById('camStart');
+const btnShot  = document.getElementById('camShot');
+const btnStop  = document.getElementById('camStop');
+
+async function startCamera(){
+  try{
+    camStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' }, audio:false });
+    videoEl.srcObject = camStream;
+    await videoEl.play();
+    btnStart.disabled = true; btnShot.disabled = false; btnStop.disabled = false;
+  }catch(e){
+    alert('No se pudo abrir la cámara. Asegúrate de usar HTTPS o localhost y dar permisos.');
+  }
+}
+function stopCamera(){
+  if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
+  videoEl.pause(); videoEl.srcObject=null;
+  btnStart.disabled=false; btnShot.disabled=true; btnStop.disabled=true;
+}
+async function shotAndOCR(){
+  if(!videoEl.videoWidth){ alert('La cámara no está lista aún.'); return; }
+  canvasEl.width = videoEl.videoWidth;
+  canvasEl.height = videoEl.videoHeight;
+  const ctx = canvasEl.getContext('2d');
+  ctx.drawImage(videoEl,0,0,canvasEl.width,canvasEl.height);
+  const dataURL = canvasEl.toDataURL('image/png');
+
+  // OCR
+  const res = await Tesseract.recognize(dataURL,'eng+spa',{ logger:m=>console.log(m) });
+  const text = (res && res.data && res.data.text) ? res.data.text : '';
+  if(!text.trim()){ alert('No se leyó texto. Intenta de nuevo con mejor iluminación.'); return; }
+
+  // Extraer precio (usa primer $XX.XX o XX.XX plausible)
+  const priceMatch = text.match(/\$?\s?(\d{1,4}(?:[.,]\d{2})?)/);
+  if(priceMatch){
+    let val = priceMatch[1].replace(',','.');
+    const num = Number(val);
+    if(num>0 && num<10000){ $('#svUnitUSD').value = String(num); }
+  }
+
+  // Extraer descripción (marca/modelo heurístico)
+  const lines = text.split('\n').map(s=>s.trim()).filter(Boolean);
+  const brands = ['NIKE','ADIDAS','PUMA','CONVERSE','LEVI','TOMMY','COACH','MICHAEL KORS','SAMSUNG','APPLE','SONY','BOSE','HP','DELL'];
+  let brand = lines.find(l=>brands.some(b=>l.toUpperCase().includes(b)));
+  let model = lines.find(l=> l.length>3 && !/\$|\bprice\b|\bstyle\b|\bsize\b/i.test(l));
+  const desc = (brand?brand+' ':'') + (model?model:'');
+  if(desc.trim().length>=4){ $('#svName').value = desc.trim(); }
+
+  // Si ya hay descripción, intenta buscar VR
+  if($('#svName').value.trim().length>=4){
+    $('#svEval').click();
+  }
+}
+
+btnStart.onclick = startCamera;
+btn
