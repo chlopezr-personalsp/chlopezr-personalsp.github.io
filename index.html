@@ -1,722 +1,752 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Personal Shopper USA</title>
+
+<!-- Favicon minimal (base64) -->
+<link rel="icon" type="image/svg+xml"
+href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Crect width='256' height='256' rx='56' fill='%231a2a3a'/%3E%3Cpath d='M74 84h62c22 0 40 18 40 40s-18 40-40 40H106v24H74V84Zm32 56h30c7 0 12-5 12-12s-5-12-12-12h-30v24Z' fill='%2360a5fa'/%3E%3C/svg%3E" />
+
 <style>
-  :root{
-    --bg:#0b1220; --panel:#111827; --muted:#94a3b8; --text:#e5e7eb;
-    --brand:#60a5fa; --ok:#10b981; --warn:#f59e0b; --bad:#ef4444; --line:#334155;
-  }
-  html,body{height:100%}
-  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu;
-       background:linear-gradient(120deg,#0a0f1a,#101726,#0d1422);color:var(--text)}
-  .wrap{max-width:1200px;margin:0 auto;padding:14px}
-  .header{display:flex;justify-content:space-between;align-items:center;gap:8px;
-          background:rgba(255,255,255,.04);border:1px solid #1f2937;border-radius:12px;padding:10px 12px}
-  .logo{display:flex;gap:8px;align-items:center}
-  .badge{width:28px;height:28px;border-radius:8px;background:linear-gradient(145deg,#60a5fa,#22d3ee);
-         display:inline-flex;align-items:center;justify-content:center;color:#0b1220;font-weight:900}
-  .toolbar{display:flex;gap:6px;flex-wrap:wrap}
-  .btn{padding:4px 8px;border:1px solid #334155;border-radius:8px;background:#0f172a;color:#e5e7eb;
-       font-size:12px;cursor:pointer}
-  .btn:hover{background:#111827}
-  #btnSync,#btnTRM,#btnTRMman{padding:2px 6px;font-size:11px;border-radius:7px}
-  select,input{background:#0b1220;color:var(--text);border:1px solid #334155;border-radius:8px;padding:8px;font-size:14px;width:100%}
-  label{font-size:12px;color:var(--muted);display:block;margin:6px 0 4px}
-  .grid{display:grid;gap:12px}
-  .cards{grid-template-columns:repeat(4,1fr)}
-  @media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}}
-  @media(max-width:580px){.cards{grid-template-columns:1fr}}
-  .card{background:rgba(255,255,255,.04);border:1px solid #1f2937;border-radius:12px;padding:12px}
-  .k{color:var(--muted);font-size:12px}
-  .v{font-size:20px;font-weight:800}
-  .tabs{display:flex;gap:6px;margin:10px 0 6px}
-  .tab{padding:6px 10px;border:1px solid #334155;border-radius:10px;background:#0f172a;cursor:pointer;font-size:13px}
-  .tab.active{background:#1f2937;border-color:#475569}
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  th,td{border-bottom:1px solid #1f2937;padding:8px 6px;text-align:left}
-  .right{text-align:right}
-  .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border:1px solid #334155;background:#0f172a;border-radius:999px;font-size:12px}
-  .progress{height:10px;background:#0b1220;border:1px solid #334155;border-radius:999px;overflow:hidden}
-  .progress>div{height:100%;background:linear-gradient(90deg,#22d3ee,#60a5fa);width:0%}
-  .chip{display:inline-flex;align-items:center;gap:6px;border:1px solid #334155;background:#0f172a;border-radius:999px;padding:2px 8px;font-size:12px}
-  .ok{background:rgba(16,185,129,.12);border-color:#065f46}
-  .warn{background:rgba(245,158,11,.12);border-color:#78350f}
-  .bad{background:rgba(239,68,68,.12);border-color:#7f1d1d}
-  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  @media(max-width:900px){.row2{grid-template-columns:1fr}}
+:root{
+  --bg:#0b1220; --panel:#111827; --muted:#94a3b8; --text:#e5e7eb;
+  --brand:#60a5fa; --ok:#10b981; --warn:#f59e0b; --bad:#ef4444; --line:#334155;
+}
+html,body{height:100%}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu;
+  background:linear-gradient(120deg,#0a0f1a,#101726,#0d1422); color:var(--text)}
+.wrap{max-width:1200px;margin:0 auto;padding:14px}
+.header{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:10px}
+.logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(145deg,#60a5fa,#22d3ee);
+  display:inline-flex;align-items:center;justify-content:center;color:#0b1220;font-weight:900}
+.card{background:rgba(255,255,255,.04);border:1px solid #1f2937;border-radius:14px;padding:12px}
+.k{color:var(--muted);font-size:12px}
+.v{font-size:20px;font-weight:700}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:900px){.row{grid-template-columns:1fr}}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:900px){.grid4{grid-template-columns:1fr 1fr}}
+@media(max-width:580px){.grid4{grid-template-columns:1fr}}
+.btn{display:inline-flex;align-items:center;gap:6px;background:#0f172a;color:var(--text);
+  border:1px solid #334155;border-radius:8px;padding:4px 8px;font-size:12px;cursor:pointer}
+.btn:hover{background:#111827} .btn:disabled{opacity:.55;cursor:not-allowed}
+.btn.primary{background:#1d4ed8;border-color:#1d4ed8}
+.toolbar{display:flex;gap:6px;flex-wrap:wrap}
+.input, select{width:100%;background:#0b1220;color:var(--text);border:1px solid #334155;
+  border-radius:10px;padding:8px;font-size:14px}
+label{font-size:12px;color:var(--muted);display:block;margin:8px 0 6px}
+.tabs{display:flex;gap:6px;margin:10px 0}
+.tab{padding:6px 10px;border:1px solid #334155;border-radius:10px;background:#0f172a;cursor:pointer;font-size:13px}
+.tab.active{background:#1f2937;border-color:#475569}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border-bottom:1px solid #1f2937;padding:8px 6px;text-align:left}
+thead th{position:sticky;top:0;background:#0b1220;z-index:1}
+.right{text-align:right}
+.muted{color:var(--muted)}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid #334155;border-radius:999px;padding:2px 8px}
+.chip.ok{background:rgba(16,185,129,.12);border-color:#065f46}
+.chip.warn{background:rgba(245,158,11,.12);border-color:#78350f}
+.chip.bad{background:rgba(239,68,68,.12);border-color:#7f1d1d}
+.progress{height:10px;background:#0b1220;border:1px solid #334155;border-radius:999px;overflow:hidden}
+.progress>div{height:100%;background:linear-gradient(90deg,#22d3ee,#60a5fa);width:0%}
+.small{font-size:11px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="header">
-    <div class="logo">
-      <div class="badge">PS</div>
+  <div class="header card">
+    <div class="brand">
+      <div class="logo">PS</div>
       <div>
-        <div style="font-weight:900">Personal Shopper USA</div>
-        <div style="font-size:12px;color:#9ca3af">Viajes, costos, inventario y márgenes</div>
+        <div style="font-weight:800;font-size:18px">Personal Shopper USA</div>
+        <div class="muted small">Viajes, costos, inventario, márgenes</div>
       </div>
     </div>
     <div class="toolbar">
-      <select id="tripSelect" style="min-width:220px"></select>
-      <button id="btnNewTrip" class="btn">＋ Nuevo viaje</button>
-      <button id="btnDupTrip" class="btn">⎘ Duplicar</button>
+      <select id="tripSel" class="input" style="max-width:280px"></select>
+      <button id="newTrip" class="btn">＋ Nuevo viaje</button>
+      <button id="dupTrip" class="btn">⎘ Duplicar</button>
       <button id="btnSync" class="btn">⟳ Sync</button>
       <button id="btnTRM" class="btn">⇅ TRM</button>
-      <button id="btnTRMman" class="btn">✍ TRM</button>
-      <button id="btnExportAll" class="btn">⬇ Descargar reportes (Excel)</button>
+      <button id="btnTRMmanual" class="btn">✍ TRM</button>
     </div>
   </div>
 
   <!-- KPIs -->
-  <div class="grid cards" style="margin-top:12px">
-    <div class="card"><div class="k">BT (presupuesto estimado)</div><div id="kBT" class="v">—</div></div>
-    <div class="card"><div class="k">Overheads (USD fijos)</div><div id="kV" class="v">—</div></div>
-    <div class="card"><div class="k">rO = V / BT</div><div id="kRO" class="v">—</div></div>
-    <div class="card"><div class="k">TRM UI (por defecto)</div><div id="kTRM" class="v">—</div></div>
+  <div class="grid4" style="margin-top:10px">
+    <div class="card"><div class="k">BT (presupuesto estimado)</div><div class="v" id="kBT">$—</div></div>
+    <div class="card"><div class="k">Overheads (USD fijos)</div><div class="v" id="kV">$—</div></div>
+    <div class="card"><div class="k">rO = V / BT</div><div class="v" id="kRO">—</div></div>
+    <div class="card"><div class="k">TRM UI (por defecto)</div><div class="v" id="kTRM">—</div></div>
   </div>
 
-  <!-- Tabs -->
+  <!-- Navegación -->
   <div class="tabs">
-    <div class="tab active" data-tab="cfg">⚙️ Configuración</div>
-    <div class="tab" data-tab="cat">📚 Catálogo</div>
-    <div class="tab" data-tab="sem">🚦 Semáforo</div>
-    <div class="tab" data-tab="inv">📦 Inventario</div>
-    <div class="tab" data-tab="sale">💵 Ventas</div>
-    <div class="tab" data-tab="rep">📊 Reportes</div>
+    <div class="tab active" data-tab="config">⚙️ Configuración</div>
+    <div class="tab" data-tab="catalog">📚 Catálogo</div>
+    <div class="tab" data-tab="semaforo">🚦 Semáforo</div>
+    <div class="tab" data-tab="invent">📦 Inventario</div>
+    <div class="tab" data-tab="ventas">💵 Ventas</div>
+    <div class="tab" data-tab="report">📊 Reportes</div>
   </div>
 
-  <!-- Config -->
-  <div id="p-cfg" class="card">
-    <div class="row2">
+  <!-- CONFIG -->
+  <div id="panel-config" class="card">
+    <div class="row">
       <div>
-        <label>BT (USD) – presupuesto estimado</label>
-        <input id="iBT" type="number" step="0.01">
+        <label>BT (USD) – presupuesto</label>
+        <input id="inpBT" class="input" type="number" step="0.01" value="7000">
       </div>
       <div>
         <label>Margen objetivo (GB%)</label>
-        <input id="iGB" type="number" step="1" min="0" max="90">
+        <input id="inpGB" class="input" type="number" step="1" value="30">
       </div>
       <div>
-        <label>TRM por defecto (UI y para falta de TRM diaria)</label>
-        <input id="iTRM" type="number" step="1">
+        <label>TRM por defecto (se usa si no hay TRM diaria)</label>
+        <input id="inpTRM" class="input" type="number" step="1" value="4000">
       </div>
       <div style="display:flex;align-items:flex-end;gap:6px">
-        <button id="btnSaveCfg" class="btn">💾 Guardar settings</button>
-        <button id="btnTemplateCat" class="btn">⬇ Plantilla Excel (Catálogo)</button>
-        <button id="btnTemplateOH" class="btn">⬇ Plantilla Excel (Overheads)</button>
-        <div id="cfgUpd" class="pill">—</div>
+        <button id="saveSettings" class="btn primary">💾 Guardar settings</button>
+        <span class="small muted" id="settingsStamp">—</span>
       </div>
     </div>
 
-    <hr style="border-color:#1f2937;margin:12px 0">
+    <hr style="border-color:#1f2937;margin:14px 0">
 
-    <div class="row2">
+    <div class="row">
       <div>
-        <div class="k">Agregar costo del viaje</div>
-        <label>Descripción</label><input id="ovDesc">
+        <div class="k" style="margin-bottom:6px">Agregar costo del viaje</div>
+        <label>Descripción</label>
+        <input id="ohDesc" class="input" placeholder="Tiquetes, hospedaje, envíos…">
         <label>Categoría</label>
-        <select id="ovCat"></select>
-        <label>Moneda</label><select id="ovCur"><option>USD</option><option>COP</option></select>
-        <label>Monto</label><input id="ovAmt" type="number" step="0.01">
-        <label>Fecha</label><input id="ovDate" type="date">
-        <button id="ovAdd" class="btn" style="margin-top:8px">＋ Agregar costo</button>
+        <select id="ohCat" class="input"></select>
+        <label>Moneda</label>
+        <select id="ohCur" class="input">
+          <option value="USD">USD</option>
+          <option value="COP">COP</option>
+        </select>
+        <label>Monto</label>
+        <input id="ohAmt" class="input" type="number" step="0.01">
+        <label>Fecha</label>
+        <input id="ohDate" class="input" type="date">
+        <button id="ohAdd" class="btn" style="margin-top:8px">＋ Agregar costo</button>
       </div>
       <div>
         <div class="k">Vista de costos</div>
-        <div style="display:flex;gap:8px;align-items:center;margin:6px 0">
-          <span>Mostrar en:</span>
-          <button class="btn" id="viewUSD">USD</button>
-          <button class="btn" id="viewCOP">COP</button>
+        <div style="margin:6px 0">
+          <button id="viewUSD" class="btn">USD</button>
+          <button id="viewCOP" class="btn">COP</button>
+          <button id="dlOH" class="btn">⬇ Exportar (CSV)</button>
         </div>
         <div style="max-height:280px;overflow:auto">
           <table>
-            <thead><tr><th>Fecha</th><th>Descripción</th><th>Cat</th><th>Moneda</th><th class="right">Monto</th><th class="right">TRM</th><th></th></tr></thead>
-            <tbody id="ovBody"></tbody>
+            <thead><tr><th>Fecha</th><th>Descripción</th><th>Cat</th><th>Moneda</th><th class="right">Monto</th><th>TRM</th><th></th></tr></thead>
+            <tbody id="ohT"></tbody>
           </table>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Catálogo -->
-  <div id="p-cat" class="card" style="display:none">
-    <div class="row2">
+  <!-- CATALOGO -->
+  <div id="panel-catalog" class="card" style="display:none">
+    <div class="row">
       <div>
         <div class="k">Nueva referencia (VR en COP)</div>
-        <label>Producto</label><input id="cName" placeholder="Nike Air ...">
-        <label>Marca</label><input id="cBrand" placeholder="Nike">
-        <label>Categoría</label><select id="cCat"></select>
-        <label>Precio ref. COP</label><input id="cCOP" type="number" step="100">
-        <button id="cAdd" class="btn" style="margin-top:8px">＋ Agregar</button>
+        <label>Producto</label><input id="catName" class="input" placeholder="Ej: Nike Air Max 90">
+        <label>Marca</label><input id="catBrand" class="input" placeholder="Nike, Apple…">
+        <label>Categoría</label><select id="catCat" class="input"></select>
+        <label>Precio ref. COP</label><input id="catCOP" class="input" type="number" step="100">
+        <button id="catAdd" class="btn" style="margin-top:8px">＋ Agregar</button>
       </div>
       <div>
-        <div class="k">Carga masiva (Excel/CSV)</div>
-        <input id="cFile" type="file" accept=".xlsx,.xls,.csv">
-        <button id="cImport" class="btn" style="margin-top:8px">⬆ Importar</button>
-        <div id="cImpMsg" class="pill" style="margin-top:8px">—</div>
-        <div style="max-height:280px;overflow:auto;margin-top:8px">
+        <div class="k">Carga masiva</div>
+        <input id="fileRef" type="file" accept=".xlsx,.xls,.csv" class="input">
+        <div style="margin-top:6px">
+          <button id="impRef" class="btn">⬆ Importar</button>
+          <button id="tplRef" class="btn">⬇ Descargar plantilla</button>
+          <button id="dlRef" class="btn">⬇ Exportar (CSV)</button>
+        </div>
+        <div style="max-height:300px;overflow:auto;margin-top:8px">
           <table>
             <thead><tr><th>Fecha</th><th>Producto</th><th>Marca/Cat</th><th class="right">COP</th><th></th></tr></thead>
-            <tbody id="cBody"></tbody>
+            <tbody id="catT"></tbody>
           </table>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Semáforo -->
-  <div id="p-sem" class="card" style="display:none">
-    <div class="row2">
+  <!-- SEMAFORO -->
+  <div id="panel-semaforo" class="card" style="display:none">
+    <div class="row">
       <div>
-        <label>Descripción</label><input id="sName">
-        <label>Categoría</label><select id="sCat"></select>
-        <label>Costo unidad (USD)</label><input id="sUSD" type="number" step="0.01">
-        <label>Cantidad</label><input id="sQty" type="number" step="1" value="1">
-        <label>Tienda</label><input id="sStore" placeholder="Nike Outlet ...">
-        <label>Precio venta estimado (COP)</label><input id="sSellCOP" type="number" step="100">
-        <button id="sEval" class="btn" style="margin-top:8px">Calcular semáforo</button>
-        <button id="sAddInv" class="btn" style="margin-top:8px">＋ Agregar a inventario</button>
-        <div id="sInfo" class="pill" style="margin-top:6px">—</div>
+        <label>Descripción</label><input id="svName" class="input">
+        <label>Categoría</label><select id="svCat" class="input"></select>
+        <label>Costo unidad (USD)</label><input id="svUSD" class="input" type="number" step="0.01">
+        <label>Cantidad</label><input id="svQty" class="input" type="number" step="1" value="1">
+        <label>Tienda</label><input id="svStore" class="input" placeholder="Nike Outlet…">
+        <label>Precio venta estimado (COP)</label><input id="svSell" class="input" type="number" step="100">
+        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+          <button id="svCalc" class="btn primary">Calcular semáforo</button>
+          <button id="svAdd" class="btn">＋ Agregar a inventario</button>
+        </div>
       </div>
       <div>
-        <div class="k">Foto (OCR) y MercadoLibre</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
-          <button id="camStart" class="btn">📷 Abrir cámara</button>
-          <button id="camShot" class="btn" disabled>📸 Capturar</button>
-          <button id="camStop" class="btn" disabled>✖ Cerrar</button>
+        <div class="k">Resultado</div>
+        <div style="margin-top:6px">
+          <div>VSV USD: <b id="rVsvUSD">—</b> | COP: <b id="rVsvCOP">—</b></div>
+          <div>VR COP: <b id="rVrCOP">—</b> <span class="small muted" id="rSrc"></span></div>
+          <div style="margin-top:6px">VSV/VR: <span id="rRatio" class="chip">—</span> <span id="rExplain" class="small muted"></span></div>
         </div>
-        <video id="camVideo" playsinline muted style="width:100%;max-height:260px;border-radius:10px;background:#000"></video>
-        <canvas id="camCanvas" style="display:none"></canvas>
-        <div id="sVR" class="pill" style="margin-top:6px">VR: —</div>
       </div>
     </div>
   </div>
 
-  <!-- Inventario -->
-  <div id="p-inv" class="card" style="display:none">
+  <!-- INVENTARIO -->
+  <div id="panel-invent" class="card" style="display:none">
     <div class="k">Inventario del viaje</div>
     <div class="progress" style="margin-top:6px"><div id="invProg"></div></div>
-    <div id="invProgTxt" style="color:#9ca3af;margin:6px 0">—</div>
-    <div style="max-height:340px;overflow:auto">
+    <div class="small muted" id="invProgText" style="margin-top:6px">—</div>
+    <div style="margin-top:8px">
       <table>
-        <thead><tr><th>Fecha</th><th>Producto</th><th>Cat/Tienda</th><th class="right">Costo USD × Qty</th><th class="right">PVP est. COP</th><th class="right">Aporte USD</th><th class="right">Margen USD</th><th></th></tr></thead>
-        <tbody id="invBody"></tbody>
+        <thead><tr>
+          <th>Fecha</th><th>Producto</th><th>Tienda</th><th>Cat</th>
+          <th class="right">Costo USD × Qty</th><th class="right">PVP est. COP</th><th class="right">Aporte USD</th><th class="right">Margen USD</th><th></th>
+        </tr></thead>
+        <tbody id="invT"></tbody>
       </table>
     </div>
   </div>
 
-  <!-- Ventas -->
-  <div id="p-sale" class="card" style="display:none">
-    <div class="row2">
+  <!-- VENTAS -->
+  <div id="panel-ventas" class="card" style="display:none">
+    <div class="row">
       <div>
-        <label>Producto del inventario</label><select id="vProd"></select>
+        <label>Producto (del inventario)</label><select id="saleSel" class="input"></select>
+        <label>Cantidad</label><input id="saleQty" class="input" type="number" step="1" value="1">
+        <label>Precio venta (COP)</label><input id="saleCOP" class="input" type="number" step="100">
+        <button id="saleAdd" class="btn" style="margin-top:8px">💾 Guardar venta</button>
       </div>
       <div>
-        <label>Cantidad</label><input id="vQty" type="number" step="1" value="1">
+        <div class="k">Ventas</div>
+        <div style="max-height:300px;overflow:auto">
+          <table>
+            <thead><tr><th>Fecha</th><th>Producto</th><th>Tienda</th><th class="right">Qty</th><th class="right">PVP COP</th><th class="right">Aporte USD</th><th class="right">Utilidad USD</th><th></th></tr></thead>
+            <tbody id="saleT"></tbody>
+          </table>
+        </div>
       </div>
-      <div>
-        <label>Precio de venta (COP)</label><input id="vCOP" type="number" step="100">
-      </div>
-      <div style="display:flex;align-items:flex-end;gap:6px">
-        <button id="vSave" class="btn">💾 Guardar venta</button>
-      </div>
-    </div>
-    <div style="max-height:300px;overflow:auto;margin-top:8px">
-      <table>
-        <thead><tr><th>Fecha</th><th>Producto</th><th>Tienda</th><th class="right">Cant.</th><th class="right">PVP COP</th><th class="right">Aporte USD</th><th class="right">Utilidad USD</th><th></th></tr></thead>
-        <tbody id="vBody"></tbody>
-      </table>
     </div>
   </div>
 
-  <!-- Reportes -->
-  <div id="p-rep" class="card" style="display:none">
-    <div class="grid" style="grid-template-columns:1fr 1fr;gap:12px">
-      <div class="card"><div class="k">Estimado (inventario)</div><div id="repEst">—</div></div>
-      <div class="card"><div class="k">Real (ventas)</div><div id="repReal">—</div></div>
+  <!-- REPORTES -->
+  <div id="panel-report" class="card" style="display:none">
+    <div class="row">
+      <div class="card">
+        <div class="k">Estimado (inventario)</div>
+        <div id="repEst">—</div>
+      </div>
+      <div class="card">
+        <div class="k">Real (ventas)</div>
+        <div id="repReal">—</div>
+      </div>
+    </div>
+    <div style="margin-top:8px">
+      <button id="dlEst" class="btn">⬇ Descargar estimado (CSV)</button>
+      <button id="dlReal" class="btn">⬇ Descargar real (CSV)</button>
     </div>
   </div>
 </div>
 
-<!-- UMD libs -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<!-- LIBRERÍAS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script>
-/* =========================
-   Supabase config
-========================= */
-const SUPABASE_URL  = "https://ucrkhrehdedmubykzfzs.supabase.co";
+/* ===================== CONFIG BÁSICA ===================== */
+const SUPABASE_URL = "https://ucrkhrehdedmubykzfzs.supabase.co";
 const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcmtocmVoZGVkbXVieWt6ZnpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1OTc5MzgsImV4cCI6MjA3NzE3MzkzOH0.7CXUuyAPQlm_9RIKbaO9y8Kwjh9c6M7UJcu4xAIM7WA";
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-/* =========================
-   Catálogos fijos UI
-========================= */
-const CATS = ["Calzado","Accesorios","Electrónica","Ropa","Hogar","Belleza","Deportes","Juguetes","Otros"];
-function fillCategorySelects(){
-  const selIds = ["ovCat","cCat","sCat"];
-  selIds.forEach(id=>{
-    const el = document.getElementById(id);
-    el.innerHTML = "";
-    CATS.forEach(c=>{ const o=document.createElement("option"); o.value=c; o.textContent=c; el.appendChild(o); });
+// categorías estándar
+const CATS = ["Calzado","Accesorios","Electrónica","Ropa","Hogar","Belleza","Deportes","Juguetería","Otros"];
+/* ========================================================= */
+
+let trips = [];     // [{id,title,bt,gb,trm_default}]
+let tripId = null;
+let settings = {bt:7000, gb:30, trm_default:4000};
+let overheads = []; // {id,desc,cat,currency,amount_usd,amount_cop,trm_at,date}
+let catalog = [];   // {id,name,brand,cat,ref_cop}
+let inventory = []; // products
+let sales = [];     // sales
+
+// helpers
+const $ = s => document.querySelector(s);
+const fmtUSD = n => "$"+(Number(n||0)).toFixed(2);
+const fmtCOP = n => "$"+(Math.round(Number(n||0))).toLocaleString("es-CO");
+
+// dropdown categorías
+function fillCatSelects(){
+  for(const id of ["ohCat","catCat","svCat"]){
+    const el = $("#"+id); el.innerHTML = "";
+    CATS.forEach(c => { const o=document.createElement('option'); o.textContent=c; o.value=c; el.appendChild(o); });
+  }
+}
+
+/* ===================== TABS ===================== */
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick=()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    const tab=t.dataset.tab;
+    ["config","catalog","semaforo","invent","ventas","report"].forEach(id=>{
+      $("#panel-"+id).style.display = (id===tab?"block":"none");
+    });
+    if(tab==="ventas") fillSalesSel();
+    if(tab==="invent") renderInventory();
+    if(tab==="report") renderReports();
+  };
+});
+
+/* ===================== TRIPS ===================== */
+async function loadTrips(){
+  // si no existe tabla trips, el select fallará silenciosamente y crearemos una por defecto
+  const { data } = await supa.from('trips').select('*').order('created_at',{ascending:false});
+  trips = data || [];
+
+  if(!trips.length){
+    const def = { title: "Orlando – Nov 7 2025", bt:7000, gb:30, trm_default:3950 };
+    const { data:ins } = await supa.from('trips').insert(def).select();
+    trips = ins || [];
+  }
+  const sel = $("#tripSel"); sel.innerHTML="";
+  trips.forEach(t=>{
+    const o=document.createElement('option');
+    o.value=t.id; o.textContent=t.title;
+    sel.appendChild(o);
   });
+  tripId = trips[0].id;
+  sel.value = tripId;
+  sel.onchange = ()=>{ tripId = sel.value; syncAll(); }
 }
-
-/* =========================
-   Estado
-========================= */
-let trips=[], trip_id=null;               // ¡conservar siempre!
-let settings={bt_usd:7000, gb_pct:30, default_trm:4200};
-let overheads=[], catalog=[], products=[], sales=[];
-let costView='USD';
-
-/* Helpers */
-const $ = s=>document.querySelector(s);
-const fmtUSD = n=>"$"+(Number(n||0)).toFixed(2);
-const fmtCOP = n=>"$"+(Math.round(Number(n||0))).toLocaleString("es-CO");
-const todayStr = ()=> (new Date()).toISOString().slice(0,10);
-function rO(){ const V = overheads.reduce((s,o)=>s+Number(o.amount_usd_fixed||0),0); return Number(settings.bt_usd)>0 ? V/Number(settings.bt_usd):0; }
-function refreshKPIs(){
-  $("#kBT").textContent = fmtUSD(settings.bt_usd);
-  $("#kTRM").textContent = fmtCOP(settings.default_trm)+" COP/USD";
-  const V = overheads.reduce((s,o)=>s+Number(o.amount_usd_fixed||0),0);
-  $("#kV").textContent = fmtUSD(V);
-  $("#kRO").textContent = (rO()).toFixed(3);
-}
-
-/* =========================
-   Viajes (robusto: NO perder trip_id)
-========================= */
-async function loadTrips(initial=false){
-  const {data} = await sb.from('trips').select('*').order('id',{ascending:true});
-  trips = data||[];
-  const sel=$("#tripSelect"); const current = sel.value || trip_id;
-  sel.innerHTML="";
-  trips.forEach(t=>{ const opt=document.createElement('option'); opt.value=t.id; opt.textContent=t.name; sel.appendChild(opt); });
-  // conservar selección si existe; si no, tomar primero
-  if(current && trips.some(t=>String(t.id)===String(current))){ trip_id=current; }
-  else if(trips[0]){ trip_id = trips[0].id; }
-  sel.value = trip_id || "";
-  if(!trips.length && initial){
-    const {data:ins} = await sb.from('trips').insert({name:'Viaje demo'}).select().single();
-    await sb.from('trip_settings').insert({trip_id:ins.id, bt_usd:7000, gb_pct:30, default_trm:4200});
-    trip_id=ins.id; await loadTrips();
-  }
-}
-$("#tripSelect").onchange = async ()=>{ trip_id = Number($("#tripSelect").value); await fullReload(); };
-$("#btnNewTrip").onclick = async ()=>{
-  const name = prompt("Nombre del viaje/proyecto:","Orlando Nov 7 2025");
-  if(!name) return;
-  const {data:newTrip} = await sb.from('trips').insert({name}).select().single();
-  await sb.from('trip_settings').insert({trip_id:newTrip.id, bt_usd:7000, gb_pct:30, default_trm:4200});
-  trip_id = newTrip.id; await fullReload();
+$("#newTrip").onclick = async ()=>{
+  const title = prompt("Nombre del viaje:", "Orlando – Nov 7 2025");
+  if(!title) return;
+  const { data } = await supa.from('trips').insert({title, bt:7000, gb:30, trm_default:3950}).select();
+  if(data && data.length){ trips.unshift(data[0]); tripId = data[0].id; }
+  await loadTrips(); await syncAll();
 };
-$("#btnDupTrip").onclick = async ()=>{
-  if(!trip_id) return;
-  const base = trips.find(t=>t.id==trip_id);
-  const name = prompt("Nuevo nombre para duplicado:", base? base.name+" (copia)":"Nuevo viaje");
-  if(!name) return;
-  const {data:newTrip} = await sb.from('trips').insert({name}).select().single();
-  const {data:set} = await sb.from('trip_settings').select('*').eq('trip_id',trip_id).maybeSingle();
-  await sb.from('trip_settings').insert({trip_id:newTrip.id, bt_usd:set?.bt_usd||7000, gb_pct:set?.gb_pct||30, default_trm:set?.default_trm||4200});
-  trip_id = newTrip.id; await fullReload();
+$("#dupTrip").onclick = async ()=>{
+  const t = trips.find(x=>String(x.id)===String(tripId));
+  if(!t) return;
+  const { data } = await supa.from('trips').insert({title:t.title+" (copy)", bt:t.bt, gb:t.gb, trm_default:t.trm_default}).select();
+  if(data && data.length){ trips.unshift(data[0]); tripId = data[0].id; }
+  await loadTrips(); await syncAll();
 };
 
-/* =========================
-   Settings
-========================= */
+/* ===================== SETTINGS (BT/GB/TRM) ===================== */
 async function loadSettings(){
-  const {data} = await sb.from('trip_settings').select('*').eq('trip_id',trip_id).maybeSingle();
-  if(!data){
-    await sb.from('trip_settings').insert({trip_id, bt_usd:7000, gb_pct:30, default_trm:4200});
-    return loadSettings();
-  }
-  settings = data;
-  $("#iBT").value = settings.bt_usd;
-  $("#iGB").value = settings.gb_pct;
-  $("#iTRM").value = settings.default_trm;
-  $("#cfgUpd").textContent = "Actualizado: "+new Date(settings.updated_at).toLocaleString("es-CO");
-  refreshKPIs();
+  // usamos los campos de trips como settings
+  const { data } = await supa.from('trips').select('*').eq('id', tripId).single();
+  const t = data || {};
+  settings.bt = Number(t.bt||7000);
+  settings.gb = Number(t.gb||30);
+  settings.trm_default = Number(t.trm_default||4000);
+
+  $("#inpBT").value = settings.bt;
+  $("#inpGB").value = settings.gb;
+  $("#inpTRM").value = settings.trm_default;
+  $("#settingsStamp").textContent = "Cargado " + new Date().toLocaleString('es-CO');
+  renderKPIs();
 }
-$("#btnSaveCfg").onclick = async ()=>{
-  const bt = Number($("#iBT").value||0);
-  const gb = Number($("#iGB").value||0);
-  const trm= Number($("#iTRM").value||0);
-  // update sin tocar trips; luego FULL RELOAD datasets para que no “desaparezcan”
-  await sb.from('trip_settings').update({bt_usd:bt, gb_pct:gb, default_trm:trm, updated_at:new Date().toISOString()}).eq('trip_id',trip_id);
-  await fullReload(); // <— importante: recarga todo manteniendo trip_id
-  alert("Settings guardados y datos recargados");
+$("#saveSettings").onclick = async ()=>{
+  const bt = Number($("#inpBT").value||0);
+  const gb = Number($("#inpGB").value||0);
+  const trm = Number($("#inpTRM").value||0);
+  await supa.from('trips').update({bt,gb,trm_default:trm}).eq('id', tripId);
+  await loadSettings(); // vuelve a pintar y NO borra nada
 };
 
-/* =========================
-   TRM diaria
-========================= */
-async function ensureTRM(d){
-  const day = d || todayStr();
-  let {data} = await sb.from('trm_daily').select('*').eq('d',day).maybeSingle();
-  if(!data){
-    let trm = Number(settings.default_trm||4200);
-    try{
-      const r = await fetch('https://open.er-api.com/v6/latest/USD'); const j=await r.json();
-      if(j?.rates?.COP) trm = Number(j.rates.COP);
-    }catch(e){}
-    const ins = await sb.from('trm_daily').insert({d:day,trm}).select().single();
-    data = ins.data;
-  }
-  return data.trm;
-}
-$("#btnTRM").onclick = async ()=>{ const t=await ensureTRM(todayStr()); settings.default_trm=t; $("#iTRM").value=t; refreshKPIs(); alert("TRM del día: "+t); };
-$("#btnTRMman").onclick = async ()=>{
-  const v = prompt("TRM manual (COP/USD):", String(settings.default_trm||4200));
-  if(!v) return;
-  const trm = Number(v);
-  await sb.from('trm_daily').upsert({d: todayStr(), trm});
-  $("#iTRM").value = trm; settings.default_trm=trm; refreshKPIs();
-};
-
-/* =========================
-   Overheads
-========================= */
+/* ===================== OVERHEADS ===================== */
 async function loadOverheads(){
-  const {data}=await sb.from('overheads').select('*').eq('trip_id',trip_id).order('created_at',{ascending:false});
-  overheads=data||[]; renderOverheads(); refreshKPIs();
+  const { data } = await supa.from('overheads').select('*').eq('trip_id', tripId).order('created_at',{ascending:false});
+  overheads = data || [];
+  renderOverheads();
+  renderKPIs();
 }
 function renderOverheads(){
-  const tb=$("#ovBody"); tb.innerHTML="";
+  const tb=$("#ohT"); tb.innerHTML="";
   overheads.forEach(o=>{
     const tr=document.createElement('tr');
-    const show = (costView==='USD') ? fmtUSD(o.amount_usd_fixed) : fmtCOP(o.amount_cop_fixed);
-    tr.innerHTML=`
-      <td>${new Date(o.created_at).toLocaleDateString("es-CO")}</td>
+    tr.innerHTML = `
+      <td>${o.date? new Date(o.date).toLocaleDateString('es-CO'):'—'}</td>
       <td>${o.description||''}</td>
       <td>${o.cat||''}</td>
-      <td>${o.currency}</td>
-      <td class="right">${show}</td>
-      <td class="right">${o.trm_used}</td>
-      <td><button class="btn" data-del="${o.id}">🗑</button></td>`;
+      <td>${o.currency||'USD'}</td>
+      <td class="right">${o.currency==='USD'? fmtUSD(o.amount_usd||0): fmtCOP(o.amount_cop||0)}</td>
+      <td>${o.trm_at? Math.round(o.trm_at).toLocaleString('es-CO'): '—'}</td>
+      <td><button class="btn" data-del="${o.id}">🗑</button></td>
+    `;
     tb.appendChild(tr);
   });
-  tb.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{await sb.from('overheads').delete().eq('id',b.dataset.del); await loadOverheads();});
+  tb.querySelectorAll('[data-del]').forEach(b=>{
+    b.onclick=async ()=>{ await supa.from('overheads').delete().eq('id', b.dataset.del); loadOverheads(); }
+  });
 }
-$("#viewUSD").onclick=()=>{costView='USD';renderOverheads();}
-$("#viewCOP").onclick=()=>{costView='COP';renderOverheads();}
-$("#ovAdd").onclick = async ()=>{
-  const desc=$("#ovDesc").value.trim();
-  const cat =$("#ovCat").value;
-  const cur =$("#ovCur").value;
-  const amt =Number($("#ovAmt").value||0);
-  const dt  =$("#ovDate").value || todayStr();
-  if(!desc || amt<=0){ alert("Completa descripción/monto"); return; }
-  const trm = await ensureTRM(dt);
-  let rec={trip_id, description:desc, cat, currency:cur, trm_used:trm, amount_usd:null, amount_cop:null, amount_usd_fixed:0, amount_cop_fixed:0};
-  if(cur==='USD'){ rec.amount_usd=amt; rec.amount_usd_fixed=amt; rec.amount_cop_fixed=amt*trm; }
-  else{ rec.amount_cop=amt; rec.amount_cop_fixed=amt; rec.amount_usd_fixed=amt/trm; }
-  await sb.from('overheads').insert(rec);
-  $("#ovDesc").value="";$("#ovAmt").value="";
+$("#ohAdd").onclick = async ()=>{
+  const desc = $("#ohDesc").value.trim();
+  const cat  = $("#ohCat").value;
+  const cur  = $("#ohCur").value;
+  const amt  = Number($("#ohAmt").value||0);
+  const date = $("#ohDate").value || new Date().toISOString().slice(0,10);
+
+  if(!desc || !amt){ alert("Completa descripción y monto"); return; }
+  let row = { trip_id:tripId, description:desc, cat, currency:cur, date };
+
+  if(cur==="USD"){ row.amount_usd = amt; row.amount_cop = Math.round(amt * settings.trm_default); row.trm_at = settings.trm_default; }
+  else{ row.amount_cop = Math.round(amt); row.amount_usd = (amt / settings.trm_default); row.trm_at = settings.trm_default; }
+
+  await supa.from('overheads').insert(row);
+  $("#ohDesc").value=""; $("#ohAmt").value=""; $("#ohDate").value="";
   await loadOverheads();
 };
+$("#viewUSD").onclick=()=>{ // solo cambia render
+  const tb=$("#ohT"); tb.querySelectorAll('tr').forEach((tr,i)=>{
+    const o=overheads[i]; if(!o) return;
+    tr.children[3].innerText="USD";
+    tr.children[4].innerText=fmtUSD(o.amount_usd||0);
+  });
+};
+$("#viewCOP").onclick=()=>{ 
+  const tb=$("#ohT"); tb.querySelectorAll('tr').forEach((tr,i)=>{
+    const o=overheads[i]; if(!o) return;
+    tr.children[3].innerText="COP";
+    tr.children[4].innerText=fmtCOP(o.amount_cop||0);
+  });
+};
+$("#dlOH").onclick=()=>downloadCSV(overheads.map(o=>({
+  fecha:o.date, descripcion:o.description, categoria:o.cat, moneda:o.currency,
+  monto_usd:o.amount_usd, monto_cop:o.amount_cop, trm:o.trm_at
+})),"overheads.csv");
 
-/* =========================
-   Catálogo + import/export
-========================= */
+/* ===================== CATALOGO ===================== */
 async function loadCatalog(){
-  const {data}=await sb.from('catalog').select('*').eq('trip_id',trip_id).order('created_at',{ascending:false});
-  catalog=data||[];
-  const tb=$("#cBody"); tb.innerHTML="";
+  const { data } = await supa.from('catalog').select('*').eq('trip_id', tripId).order('created_at',{ascending:false});
+  catalog = data || [];
+  renderCatalog();
+}
+function renderCatalog(){
+  const tb=$("#catT"); tb.innerHTML="";
   catalog.forEach(c=>{
     const tr=document.createElement('tr');
     tr.innerHTML=`
-      <td>${new Date(c.created_at).toLocaleString("es-CO")}</td>
-      <td>${c.name}</td>
-      <td>${(c.brand||'') + (c.cat? ' / '+c.cat:'')}</td>
-      <td class="right">${fmtCOP(c.ref_cop)}</td>
-      <td><button class="btn" data-del="${c.id}">🗑</button></td>`;
+      <td>${c.created_at? new Date(c.created_at).toLocaleString('es-CO'):'—'}</td>
+      <td>${c.name||''}</td>
+      <td>${(c.brand||'')}${c.cat?(' / '+c.cat):''}</td>
+      <td class="right">${fmtCOP(c.ref_cop||0)}</td>
+      <td><button class="btn" data-del="${c.id}">🗑</button></td>
+    `;
     tb.appendChild(tr);
   });
-  tb.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{await sb.from('catalog').delete().eq('id',b.dataset.del);await loadCatalog();});
-}
-$("#cAdd").onclick=async ()=>{
-  const name=$("#cName").value.trim();
-  const brand=$("#cBrand").value.trim()||null;
-  const cat  =$("#cCat").value||null;
-  const cop  =Number($("#cCOP").value||0);
-  if(!name||cop<=0){ alert("Producto y COP > 0"); return; }
-  await sb.from('catalog').insert({trip_id, name, brand, cat, ref_cop:cop, source:'manual'});
-  $("#cName").value="";$("#cBrand").value="";$("#cCOP").value="";
-  await loadCatalog();
-};
-$("#cImport").onclick=async ()=>{
-  const f = $("#cFile").files[0];
-  if(!f){ alert("Selecciona un archivo"); return; }
-  const data = await f.arrayBuffer();
-  const wb = XLSX.read(data,{type:'array'});
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  const json = XLSX.utils.sheet_to_json(ws);
-  let ok=0,fail=0;
-  for(const r of json){
-    const name=(r.name||r.Nombre||r.Producto||"").toString().trim();
-    const ref = Number(r.ref_cop||r.COP||r.precio||0);
-    const brand=r.brand||r.marca||null;
-    const cat=r.cat||r.categoria||null;
-    if(!name||!(ref>0)){ fail++; continue; }
-    await sb.from('catalog').insert({trip_id,name,brand,cat,ref_cop:ref,source:'import'});
-    ok++;
-  }
-  $("#cImpMsg").textContent=`Importadas: ${ok} · Rechazadas: ${fail}`;
-  await loadCatalog();
-};
-/* Plantilla Excel cat & overheads */
-function downloadBlob(name, blob){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1500); }
-$("#btnTemplateCat").onclick=()=>{
-  const wb=XLSX.utils.book_new();
-  const ws=XLSX.utils.aoa_to_sheet([["name","brand","cat","ref_cop"],["Ej: Nike Air Max 90","Nike","Calzado",350000]]);
-  XLSX.utils.book_append_sheet(wb,ws,"catalog_template");
-  const out=XLSX.write(wb,{bookType:"xlsx",type:"array"});
-  downloadBlob("plantilla_catalogo.xlsx", new Blob([out],{type:"application/octet-stream"}));
-};
-$("#btnTemplateOH").onclick=()=>{
-  const wb=XLSX.utils.book_new();
-  const ws=XLSX.utils.aoa_to_sheet([["description","cat","currency","amount","date"],["Tiquetes","Transporte","USD",500,"2025-11-07"]]);
-  XLSX.utils.book_append_sheet(wb,ws,"overheads_template");
-  const out=XLSX.write(wb,{bookType:"xlsx",type:"array"});
-  downloadBlob("plantilla_overheads.xlsx", new Blob([out],{type:"application/octet-stream"}));
-};
-
-/* =========================
-   Semáforo (OCR + ML)
-========================= */
-function bestCatalogVR(q){
-  const query=q.toLowerCase(); let best=null,bscore=0;
-  catalog.forEach(c=>{
-    const t=((c.name||'')+' '+(c.brand||'')+' '+(c.cat||'')).toLowerCase();
-    const words=query.split(/\s+/).filter(w=>w.length>3); let s=0; words.forEach(w=>{ if(t.includes(w)) s++; });
-    if(s>bscore){ bscore=s; best=c; }
+  tb.querySelectorAll('[data-del]').forEach(b=>{
+    b.onclick=async ()=>{ await supa.from('catalog').delete().eq('id', b.dataset.del); loadCatalog(); }
   });
-  return best? best.ref_cop : null;
 }
-async function vrFromMercadoLibre(q){
-  try{
-    const r=await fetch('https://api.mercadolibre.com/sites/MCO/search?q='+encodeURIComponent(q)+'&limit=20');
-    const j=await r.json(); if(!j?.results?.length) return null;
-    const arr=j.results.map(x=>x.price).filter(n=>n>0).sort((a,b)=>a-b);
-    const mid=Math.floor(arr.length/2); const vr=arr.length%2?arr[mid]:(arr[mid-1]+arr[mid])/2;
-    return Math.round(vr);
-  }catch(e){ return null; }
+$("#catAdd").onclick = async ()=>{
+  const name=$("#catName").value.trim();
+  const brand=$("#catBrand").value.trim();
+  const cat=$("#catCat").value;
+  const cop=Number($("#catCOP").value||0);
+  if(!name||!cop){ alert("Producto y COP obligatorios"); return; }
+  await supa.from('catalog').insert({trip_id:tripId,name,brand,cat,ref_cop:cop});
+  $("#catName").value=""; $("#catBrand").value=""; $("#catCOP").value="";
+  await loadCatalog();
+};
+// plantilla base (xlsx simple con encabezados)
+$("#tplRef").onclick=()=>{
+  const ws = XLSX.utils.aoa_to_sheet([["name","brand","cat","ref_cop"]]);
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "catalog_template");
+  XLSX.writeFile(wb,"catalog_template.xlsx");
+};
+$("#impRef").onclick=async ()=>{
+  const f = $("#fileRef").files[0];
+  if(!f){ alert("Selecciona archivo"); return; }
+  const buf = await f.arrayBuffer();
+  const wb = XLSX.read(buf, {type:"array"});
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws,{defval:""});
+  // normaliza y sube
+  const batch = rows
+    .map(r=>({
+      trip_id: tripId,
+      name: (r.name||r.product||"").toString().trim(),
+      brand:(r.brand||"").toString().trim(),
+      cat:  (r.cat||"Otros").toString().trim(),
+      ref_cop: Number(r.ref_cop||r.cop||0)
+    }))
+    .filter(r=>r.name && r.ref_cop>0);
+  if(!batch.length){ alert("No hay filas válidas"); return; }
+  await supa.from('catalog').insert(batch);
+  await loadCatalog();
+};
+$("#dlRef").onclick=()=>downloadCSV(catalog,"catalog.csv");
+
+/* ===================== SEMÁFORO ===================== */
+function aportePorDolar(){
+  const vUSD = overheads.reduce((s,o)=> s + Number(o.amount_usd||0), 0);
+  return settings.bt>0 ? (vUSD / settings.bt) : 0;
 }
-function vsvUSD(unit){ return Number(unit) * (1 + Number(settings.gb_pct||0)/100 + rO()); }
-$("#sEval").onclick = async ()=>{
-  const name=$("#sName").value.trim(); const unit=Number($("#sUSD").value||0);
-  if(!name||unit<=0){ alert("Completa nombre y costo USD"); return; }
-  const vsv_usd=vsvUSD(unit), vsv_cop=vsv_usd*Number(settings.default_trm||4200);
-  let vr = bestCatalogVR(name); if(!vr){ vr = await vrFromMercadoLibre(name); }
-  const info = (vr? `VSV ${fmtCOP(vsv_cop)} vs VR ${fmtCOP(vr)}` : `VSV ${fmtCOP(vsv_cop)} · sin VR`);
-  let cls=''; let ratio='—';
-  if(vr){ const r = vsv_cop/vr; ratio=r.toFixed(2); cls = r<0.85?'ok':(r<=0.95?'warn':'bad'); }
-  $("#sInfo").className='pill '+cls; $("#sInfo").textContent=`Relación VSV/VR: ${ratio} · ${info}`;
-  $("#sVR").textContent="VR: "+(vr?fmtCOP(vr):"—");
+function VSV_USD(unitUSD){ return Number(unitUSD) * (1 + settings.gb/100 + aportePorDolar()); }
+async function buscarVR(descr, cat){
+  // 1) catálogo local (por palabras + categoría)
+  const q = (descr||"").toLowerCase();
+  let best=null,scoreBest=0;
+  catalog.forEach(c=>{
+    const t=((c.name||"")+" "+(c.brand||"")+" "+(c.cat||"")).toLowerCase();
+    const ws=q.split(/\s+/).filter(w=>w.length>2);
+    let score=0; ws.forEach(w=>{ if(t.includes(w)) score++; });
+    if(cat && c.cat===cat) score+=1;
+    if(score>scoreBest){scoreBest=score; best=c;}
+  });
+  let vr=null, src="—";
+  if(best){ vr = Number(best.ref_cop||0); src = "Catálogo"; }
+
+  // 2) si no hay en catálogo, intenta MercadoLibre por texto (simple)
+  if(!vr){
+    try{
+      const r = await fetch("https://api.mercadolibre.com/sites/MCO/search?q="+encodeURIComponent(descr)+"&limit=5");
+      const j = await r.json();
+      if(j && j.results && j.results.length){
+        const precios = j.results.map(x=>x.price).filter(n=>n>0);
+        if(precios.length){ vr = Math.round(precios.reduce((a,b)=>a+b,0)/precios.length); src="MercadoLibre"; }
+      }
+    }catch(e){}
+  }
+  return {vr,src};
+}
+$("#svCalc").onclick = async ()=>{
+  const name=$("#svName").value.trim();
+  const cat=$("#svCat").value;
+  const unit=Number($("#svUSD").value||0);
+  if(!name||unit<=0){ alert("Completa descripción y costo"); return; }
+  const vsvUSD = VSV_USD(unit);
+  const vsvCOP = vsvUSD*settings.trm_default;
+
+  const {vr,src} = await buscarVR(name,cat);
+  $("#rVsvUSD").textContent = fmtUSD(vsvUSD);
+  $("#rVsvCOP").textContent = fmtCOP(vsvCOP);
+  $("#rVrCOP").textContent  = vr? fmtCOP(vr): "—";
+  $("#rSrc").textContent    = src==="—" ? "(sin referencia)" : `(fuente: ${src})`;
+
+  const chip=$("#rRatio"); chip.className="chip"; let explain="Sin referencia";
+  if(vr){
+    const ratio = vsvCOP/vr; chip.textContent = ratio.toFixed(2);
+    if(ratio<0.85){ chip.classList.add("ok"); explain="Verde (competitivo)"; }
+    else if(ratio<=0.95){ chip.classList.add("warn"); explain="Amarillo (ajustar)"; }
+    else{ chip.classList.add("bad"); explain="Rojo (no viable)"; }
+  }else chip.textContent="—";
+  $("#rExplain").textContent=explain;
 };
-$("#sAddInv").onclick = async ()=>{
-  const name=$("#sName").value.trim(); const unit=Number($("#sUSD").value||0);
-  const qty=Number($("#sQty").value||0); const store=$("#sStore").value.trim()||null;
-  const pvp=Number($("#sSellCOP").value||0);
-  if(!name||unit<=0||qty<=0||!pvp){ alert("Completa nombre, USD, qty y PVP estimado"); return; }
-  const apUSD = unit * rO(); const estUSD=pvp/Number(settings.default_trm||4200); const mgUSD=estUSD-unit-apUSD;
-  await sb.from('products').insert({trip_id,name,store,unit_usd:unit,qty,est_sell_cop:pvp,est_sell_usd:estUSD,est_aporte_usd:apUSD,est_margin_usd:mgUSD});
-  await loadProducts(); fillSaleSelect(); renderInventory(); renderReports();
-  alert("Inventario actualizado");
-  $("#sName").value="";$("#sUSD").value="";$("#sQty").value="1";$("#sStore").value="";$("#sSellCOP").value="";
-  $("#sInfo").textContent="—";
-};
-/* Cámara + OCR */
-let camStream=null;
-$("#camStart").onclick=async()=>{
-  try{
-    camStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
-    $("#camVideo").srcObject=camStream; await $("#camVideo").play();
-    $("#camShot").disabled=false; $("#camStop").disabled=false;
-  }catch(e){ alert("No fue posible abrir la cámara (usa HTTPS)"); }
-};
-$("#camStop").onclick=()=>{ if(camStream){camStream.getTracks().forEach(t=>t.stop()); camStream=null;} $("#camShot").disabled=true; $("#camStop").disabled=true; };
-$("#camShot").onclick=async()=>{
-  if(!$("#camVideo").videoWidth){ alert("Cámara no lista"); return; }
-  const c=$("#camCanvas"); c.width=$("#camVideo").videoWidth; c.height=$("#camVideo").videoHeight;
-  const ctx=c.getContext('2d'); ctx.drawImage($("#camVideo"),0,0,c.width,c.height);
-  const data=c.toDataURL('image/png'); const res=await Tesseract.recognize(data,'eng+spa'); const text=res?.data?.text||'';
-  if(text){ const line=text.split('\n').map(s=>s.trim()).filter(Boolean).sort((a,b)=>b.length-a.length)[0]||''; if(line.length>4 && !$("#sName").value) $("#sName").value=line; $("#sEval").click(); }
+$("#svAdd").onclick = async ()=>{
+  const name=$("#svName").value.trim();
+  const cat=$("#svCat").value;
+  const unit=Number($("#svUSD").value||0);
+  const qty =Number($("#svQty").value||0);
+  const store=$("#svStore").value.trim();
+  const estCOP=Number($("#svSell").value||0);
+  if(!name||!unit||!qty||!store||!estCOP){ alert("Completa todos los campos"); return; }
+  const apUSDunit = unit*aportePorDolar();
+  const estUSD = estCOP/settings.trm_default;
+  const mgUSD = estUSD - unit - apUSDunit;
+  await supa.from('products').insert({
+    trip_id:tripId,name,cat,store,unit_usd:unit,qty,
+    est_sell_cop:estCOP, est_sell_usd:estUSD,
+    est_aporte_usd:apUSDunit, est_margin_usd:mgUSD
+  });
+  await loadInventory(); fillSalesSel(); renderReports();
+  alert("Agregado al inventario.");
 };
 
-/* =========================
-   Inventario
-========================= */
-async function loadProducts(){
-  const {data}=await sb.from('products').select('*').eq('trip_id',trip_id).order('created_at',{ascending:false});
-  products=data||[]; renderInventory();
+/* ===================== INVENTARIO ===================== */
+async function loadInventory(){
+  const { data } = await supa.from('products').select('*').eq('trip_id', tripId).order('created_at',{ascending:false});
+  inventory = data || [];
+  renderInventory(); fillSalesSel();
 }
 function renderInventory(){
-  const tb=$("#invBody"); tb.innerHTML="";
-  products.forEach(p=>{
+  const tb=$("#invT"); tb.innerHTML="";
+  const vUSD = overheads.reduce((s,o)=> s + Number(o.amount_usd||0), 0);
+  const aporteAcum = inventory.reduce((s,p)=> s + (Number(p.unit_usd||0)*aportePorDolar()*Number(p.qty||0)), 0);
+  const pct = vUSD>0 ? Math.min(100, (aporteAcum/vUSD)*100) : 0;
+  $("#invProg").style.width = pct.toFixed(1)+"%";
+  $("#invProgText").textContent = `Cobertura de costos: ${pct.toFixed(1)}% (${fmtUSD(aporteAcum)} de ${fmtUSD(vUSD)})`;
+
+  inventory.forEach(p=>{
     const tr=document.createElement('tr');
     tr.innerHTML=`
-      <td>${new Date(p.created_at).toLocaleString("es-CO")}</td>
-      <td>${p.name}</td>
-      <td>${(p.cat? p.cat+" / ":"")+(p.store||'—')}</td>
-      <td class="right">${fmtUSD(p.unit_usd)} × ${p.qty}</td>
-      <td class="right">${p.est_sell_cop?fmtCOP(p.est_sell_cop):'—'}</td>
-      <td class="right">${fmtUSD(p.est_aporte_usd|| (p.unit_usd*rO()))}</td>
-      <td class="right">${p.est_margin_usd!=null?fmtUSD(p.est_margin_usd):'—'}</td>
-      <td><button class="btn" data-del="${p.id}">🗑</button></td>`;
+      <td>${p.created_at? new Date(p.created_at).toLocaleString('es-CO'):'—'}</td>
+      <td>${p.name||''}</td>
+      <td>${p.store||'—'}</td>
+      <td>${p.cat||'—'}</td>
+      <td class="right">${fmtUSD(p.unit_usd||0)} × ${p.qty||0}</td>
+      <td class="right">${p.est_sell_cop? fmtCOP(p.est_sell_cop):'—'}</td>
+      <td class="right">${fmtUSD(p.est_aporte_usd|| (Number(p.unit_usd||0)*aportePorDolar()))}</td>
+      <td class="right">${p.est_margin_usd!=null? fmtUSD(p.est_margin_usd):'—'}</td>
+      <td><button class="btn" data-del="${p.id}">🗑</button></td>
+    `;
     tb.appendChild(tr);
   });
-  tb.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{await sb.from('products').delete().eq('id',b.dataset.del); await loadProducts(); renderReports();});
-  const V = overheads.reduce((s,o)=>s+Number(o.amount_usd_fixed||0),0);
-  const aporteInv = products.reduce((s,p)=> s + (Number(p.unit_usd||0)*rO()*Number(p.qty||0)), 0);
-  const pct = V>0? Math.min(100,(aporteInv/V)*100):0;
-  $("#invProg").style.width = pct.toFixed(1)+"%";
-  $("#invProgTxt").textContent = `Cobertura de costos: ${pct.toFixed(1)}% (${fmtUSD(aporteInv)} de ${fmtUSD(V)})`;
+  tb.querySelectorAll('[data-del]').forEach(b=>{
+    b.onclick=async ()=>{ await supa.from('products').delete().eq('id', b.dataset.del); loadInventory(); fillSalesSel(); renderReports(); };
+  });
 }
 
-/* =========================
-   Ventas
-========================= */
+/* ===================== VENTAS ===================== */
 async function loadSales(){
-  const {data}=await sb.from('sales').select('*').eq('trip_id',trip_id).order('created_at',{ascending:false});
-  sales=data||[]; renderSales();
+  const { data } = await supa.from('sales').select('*').eq('trip_id', tripId).order('created_at',{ascending:false});
+  sales = data || [];
+  renderSales();
 }
-function fillSaleSelect(){
-  const sel=$("#vProd"); sel.innerHTML="";
-  products.forEach(p=>{
+function fillSalesSel(){
+  const sel=$("#saleSel"); sel.innerHTML="";
+  inventory.forEach(p=>{
     const o=document.createElement('option');
-    o.value=p.id; o.textContent=`${p.name} — ${fmtUSD(p.unit_usd)} × ${p.qty} ${p.store?'@ '+p.store:''}`;
+    o.value=p.id; o.textContent=`${p.name} — ${fmtUSD(p.unit_usd)} × ${p.qty}${p.store?(' @ '+p.store):''}`;
     sel.appendChild(o);
   });
 }
 function renderSales(){
-  const tb=$("#vBody"); tb.innerHTML="";
+  const tb=$("#saleT"); tb.innerHTML="";
   sales.forEach(s=>{
     const tr=document.createElement('tr');
     tr.innerHTML=`
-      <td>${new Date(s.created_at).toLocaleString("es-CO")}</td>
-      <td>${s.product_name}</td>
+      <td>${s.created_at? new Date(s.created_at).toLocaleString('es-CO'):'—'}</td>
+      <td>${s.product_name||'—'}</td>
       <td>${s.store||'—'}</td>
-      <td class="right">${s.qty}</td>
-      <td class="right">${fmtCOP(s.sale_cop)}</td>
-      <td class="right">${fmtUSD(s.aporte_usd)}</td>
-      <td class="right">${fmtUSD(s.profit_usd)}</td>
-      <td><button class="btn" data-del="${s.id}">🗑</button></td>`;
+      <td class="right">${s.qty||0}</td>
+      <td class="right">${fmtCOP(s.sale_cop||0)}</td>
+      <td class="right">${fmtUSD(s.aporte_usd||0)}</td>
+      <td class="right">${fmtUSD(s.profit_usd||0)}</td>
+      <td><button class="btn" data-del="${s.id}">🗑</button></td>
+    `;
     tb.appendChild(tr);
   });
-  tb.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{await sb.from('sales').delete().eq('id',b.dataset.del); await loadSales(); renderReports();});
+  tb.querySelectorAll('[data-del]').forEach(b=>{
+    b.onclick=async ()=>{ await supa.from('sales').delete().eq('id', b.dataset.del); loadSales(); renderReports(); };
+  });
 }
-$("#vSave").onclick=async ()=>{
-  const pid = Number($("#vProd").value);
-  const p = products.find(x=>x.id==pid);
-  if(!p){ alert("Selecciona producto"); return; }
-  const qty = Number($("#vQty").value||0);
-  const cop = Number($("#vCOP").value||0);
-  if(qty<=0 || cop<=0){ alert("Cantidad y PVP>0"); return; }
-  const trm = await ensureTRM(todayStr());
-  const apUSD = Number(p.unit_usd||0)*rO()*qty;
-  const saleUSD = cop/trm*qty;
-  const profitUSD = saleUSD - (Number(p.unit_usd||0)*qty) - apUSD;
-  await sb.from('sales').insert({trip_id, product_id:p.id, product_name:p.name, store:p.store||null, qty, unit_usd:p.unit_usd, trm_used:trm, sale_cop:cop, aporte_usd:apUSD, profit_usd:profitUSD});
+$("#saleAdd").onclick = async ()=>{
+  const pid=$("#saleSel").value; const qty=Number($("#saleQty").value||0); const saleCOP=Number($("#saleCOP").value||0);
+  const p = inventory.find(x=>String(x.id)===String(pid));
+  if(!p||qty<=0||saleCOP<=0){ alert("Completa venta"); return; }
+  const apUSDunit = Number(p.unit_usd||0)*aportePorDolar();
+  const saleUSDunit = saleCOP/settings.trm_default;
+  const profitUSDunit = saleUSDunit - Number(p.unit_usd||0) - apUSDunit;
+  await supa.from('sales').insert({
+    trip_id:tripId, product_id:p.id, product_name:p.name, store:p.store||null,
+    qty, unit_usd:p.unit_usd, trm_used:settings.trm_default,
+    sale_cop:saleCOP, aporte_usd: apUSDunit*qty, profit_usd: profitUSDunit*qty
+  });
   await loadSales(); renderReports();
-  alert("Venta registrada");
+  alert("Venta registrada.");
 };
 
-/* =========================
-   Reportes + export Excel
-========================= */
+/* ===================== REPORTES ===================== */
 function renderReports(){
-  let estCostUSD=0, estAporteUSD=0, estMarginUSD=0, estVentaCOP=0;
-  products.forEach(p=>{
-    const qty=Number(p.qty||0);
-    const ap = (p.est_aporte_usd!=null)? Number(p.est_aporte_usd): (Number(p.unit_usd||0)*rO());
-    const estUSD = (p.est_sell_usd!=null)? Number(p.est_sell_usd): (p.est_sell_cop? Number(p.est_sell_cop)/Number(settings.default_trm||4200):0);
-    const mg = (p.est_margin_usd!=null)? Number(p.est_margin_usd): (estUSD-Number(p.unit_usd||0)-ap);
-    estCostUSD += Number(p.unit_usd||0)*qty;
-    estAporteUSD += ap*qty;
-    estMarginUSD += mg*qty;
-    if(p.est_sell_cop) estVentaCOP += Number(p.est_sell_cop)*qty;
+  // Estimado
+  let estCOP=0, estCOGS=0, estAp=0, estMg=0;
+  inventory.forEach(p=>{
+    const q=Number(p.qty||0);
+    const apUnit = p.est_aporte_usd!=null? Number(p.est_aporte_usd): (Number(p.unit_usd||0)*aportePorDolar());
+    const estUSD = p.est_sell_usd!=null? Number(p.est_sell_usd): (p.est_sell_cop? p.est_sell_cop/settings.trm_default:0);
+    const mgUnit = estUSD - Number(p.unit_usd||0) - apUnit;
+
+    estCOGS += Number(p.unit_usd||0)*q;
+    estAp   += apUnit*q;
+    estMg   += mgUnit*q;
+    if(p.est_sell_cop) estCOP += Number(p.est_sell_cop)*q;
   });
   $("#repEst").innerHTML = `
-    <div>Ventas estimadas: <b>${fmtCOP(estVentaCOP)}</b></div>
-    <div>COGS (USD): <b>${fmtUSD(estCostUSD)}</b></div>
-    <div>Aporte (USD): <b>${fmtUSD(estAporteUSD)}</b></div>
-    <div>Margen (USD): <b>${fmtUSD(estMarginUSD)}</b></div>`;
-  let realCOP=0, realAporteUSD=0, realProfitUSD=0;
-  sales.forEach(s=>{ realCOP += Number(s.sale_cop||0); realAporteUSD += Number(s.aporte_usd||0); realProfitUSD += Number(s.profit_usd||0); });
+    <div>Ventas estimadas: <b>${fmtCOP(estCOP)}</b></div>
+    <div>COGS (USD): <b>${fmtUSD(estCOGS)}</b></div>
+    <div>Aporte estimado (USD): <b>${fmtUSD(estAp)}</b></div>
+    <div>Margen estimado (USD): <b>${fmtUSD(estMg)}</b></div>
+  `;
+
+  // Real
+  let rCOP=0, rAp=0, rPf=0;
+  sales.forEach(s=>{ rCOP+=Number(s.sale_cop||0); rAp+=Number(s.aporte_usd||0); rPf+=Number(s.profit_usd||0); });
   $("#repReal").innerHTML = `
-    <div>Ventas realizadas: <b>${fmtCOP(realCOP)}</b> (${fmtUSD(realCOP/Number(settings.default_trm||4200))})</div>
-    <div>Aporte (USD): <b>${fmtUSD(realAporteUSD)}</b></div>
-    <div>Utilidad (USD): <b>${fmtUSD(realProfitUSD)}</b></div>`;
+    <div>Ventas realizadas: <b>${fmtCOP(rCOP)}</b> (${fmtUSD(rCOP/settings.trm_default)})</div>
+    <div>Aporte a costos (USD): <b>${fmtUSD(rAp)}</b></div>
+    <div>Utilidad (USD): <b>${fmtUSD(rPf)}</b></div>
+  `;
 }
-function sheetFromArray(arr){ const header=Object.keys(arr[0]||{}); const data=[header,...arr.map(o=>header.map(h=>o[h]))]; return XLSX.utils.aoa_to_sheet(data); }
-function exportAll(){
-  const wb=XLSX.utils.book_new();
-  // Resumen
-  const V = overheads.reduce((s,o)=>s+Number(o.amount_usd_fixed||0),0);
-  const resumen = [{
-    viaje: (trips.find(t=>t.id==trip_id)||{}).name,
-    bt_usd: settings.bt_usd,
-    gb_pct: settings.gb_pct,
-    trm_ui: settings.default_trm,
-    over_usd: V,
-    rO: rO()
-  }];
-  XLSX.utils.book_append_sheet(wb, sheetFromArray(resumen), "Resumen");
-  // Tablas
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(overheads), "Overheads");
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(catalog),   "Catalogo");
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(products),  "Inventario");
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sales),     "Ventas");
-  // Descargar
-  const out=XLSX.write(wb,{bookType:"xlsx",type:"array"});
-  const blob=new Blob([out],{type:"application/octet-stream"});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download="reportes_viaje.xlsx"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+$("#dlEst").onclick=()=>{
+  const rows=[];
+  inventory.forEach(p=>{
+    const q=Number(p.qty||0);
+    const apUnit = p.est_aporte_usd!=null? Number(p.est_aporte_usd): (Number(p.unit_usd||0)*aportePorDolar());
+    const estUSD = p.est_sell_usd!=null? Number(p.est_sell_usd): (p.est_sell_cop? p.est_sell_cop/settings.trm_default:0);
+    const mgUnit = estUSD - Number(p.unit_usd||0) - apUnit;
+    rows.push({
+      fecha:p.created_at, producto:p.name, tienda:p.store, cat:p.cat,
+      qty:q, unit_usd:p.unit_usd, est_aporte_usd:apUnit, est_margin_usd:mgUnit, est_sell_cop:p.est_sell_cop
+    });
+  });
+  downloadCSV(rows,"reporte_estimado.csv");
+};
+$("#dlReal").onclick=()=>downloadCSV(sales,"reporte_real.csv");
+
+/* ===================== KPIs, TRM y utilidades ===================== */
+function renderKPIs(){
+  const vUSD = overheads.reduce((s,o)=> s + Number(o.amount_usd||0), 0);
+  $("#kBT").textContent = fmtUSD(settings.bt);
+  $("#kV").textContent  = fmtUSD(vUSD);
+  $("#kRO").textContent = (settings.bt>0? (vUSD/settings.bt):0).toFixed(3);
+  $("#kTRM").textContent = fmtCOP(settings.trm_default) + " COP/USD";
 }
-document.getElementById("btnExportAll").onclick=exportAll;
+$("#btnTRM").onclick = async ()=>{
+  try{
+    const r = await fetch("https://open.er-api.com/v6/latest/USD");
+    const j = await r.json();
+    if(j && j.rates && j.rates.COP){
+      settings.trm_default = Number(j.rates.COP);
+      $("#inpTRM").value = settings.trm_default;
+      renderKPIs(); renderInventory(); renderReports();
+      alert("TRM UI actualizada.");
+    }else throw new Error();
+  }catch(e){ alert("No se pudo traer TRM; usa manual."); }
+};
+$("#btnTRMmanual").onclick=()=>{
+  const v = prompt("TRM (COP/USD):", String(settings.trm_default));
+  if(v){ settings.trm_default = Number(v); $("#inpTRM").value = settings.trm_default; renderKPIs(); renderInventory(); renderReports(); }
+};
+$("#btnSync").onclick = ()=> syncAll();
 
-/* =========================
-   Navegación
-========================= */
-document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
-  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
-  t.classList.add('active');
-  const id=t.dataset.tab;
-  ["cfg","cat","sem","inv","sale","rep"].forEach(k=> $("#p-"+k).style.display=(k===id)?"block":"none");
-  if(id==="inv"){ renderInventory(); }
-  if(id==="sale"){ fillSaleSelect(); }
-  if(id==="rep"){ renderReports(); }
-});
-
-/* =========================
-   Sync robusto
-========================= */
-async function fullReload(){
-  // Mantener trip_id; NO lo resetees accidentalmente
-  const keepId = trip_id;
-  await loadTrips(trips.length===0);           // recarga lista pero respeta keepId
-  trip_id = keepId || trip_id;
-  $("#tripSelect").value = trip_id || "";
-  await loadSettings();
-  await Promise.all([loadOverheads(), loadCatalog(), loadProducts(), loadSales()]);
-  fillSaleSelect(); renderReports(); refreshKPIs();
+function downloadCSV(arr, name){
+  if(!arr || !arr.length){ alert("Sin datos"); return; }
+  const keys = Object.keys(arr[0]);
+  const csv = [keys.join(",")].concat(arr.map(o=>keys.map(k=>String(o[k]??"").replaceAll(","," ")).join(","))).join("\n");
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; a.click();
 }
-$("#btnSync").onclick = fullReload;
 
-/* =========================
-   Init
-========================= */
+/* ===================== SYNC (carga inicial) ===================== */
+async function syncAll(){
+  fillCatSelects();
+  await Promise.all([loadSettings(), loadOverheads(), loadCatalog(), loadInventory(), loadSales()]);
+  renderKPIs(); renderInventory(); renderReports(); fillSalesSel();
+}
+
 (async function init(){
-  fillCategorySelects();
-  await loadTrips(true);
-  await fullReload();
-  $("#ovDate").value = todayStr();
+  fillCatSelects();
+  await loadTrips();
+  await syncAll();
 })();
 </script>
 </body>
