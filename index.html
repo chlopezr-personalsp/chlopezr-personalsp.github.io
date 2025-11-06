@@ -23,7 +23,7 @@
        font-size:12px;cursor:pointer}
   .btn:hover{background:#111827}
   #btnSync,#btnTRM,#btnTRMman{padding:2px 6px;font-size:11px;border-radius:7px}
-  select, input {background:#0b1220;color:var(--text);border:1px solid #334155;border-radius:8px;padding:8px;font-size:14px;width:100%}
+  select,input{background:#0b1220;color:var(--text);border:1px solid #334155;border-radius:8px;padding:8px;font-size:14px;width:100%}
   label{font-size:12px;color:var(--muted);display:block;margin:6px 0 4px}
   .grid{display:grid;gap:12px}
   .cards{grid-template-columns:repeat(4,1fr)}
@@ -66,6 +66,7 @@
       <button id="btnSync" class="btn">⟳ Sync</button>
       <button id="btnTRM" class="btn">⇅ TRM</button>
       <button id="btnTRMman" class="btn">✍ TRM</button>
+      <button id="btnExportAll" class="btn">⬇ Descargar reportes (Excel)</button>
     </div>
   </div>
 
@@ -99,11 +100,13 @@
         <input id="iGB" type="number" step="1" min="0" max="90">
       </div>
       <div>
-        <label>TRM por defecto (para UI y TRM diaria si falta)</label>
+        <label>TRM por defecto (UI y para falta de TRM diaria)</label>
         <input id="iTRM" type="number" step="1">
       </div>
       <div style="display:flex;align-items:flex-end;gap:6px">
         <button id="btnSaveCfg" class="btn">💾 Guardar settings</button>
+        <button id="btnTemplateCat" class="btn">⬇ Plantilla Excel (Catálogo)</button>
+        <button id="btnTemplateOH" class="btn">⬇ Plantilla Excel (Overheads)</button>
         <div id="cfgUpd" class="pill">—</div>
       </div>
     </div>
@@ -114,8 +117,8 @@
       <div>
         <div class="k">Agregar costo del viaje</div>
         <label>Descripción</label><input id="ovDesc">
-        <label>Categoría</label><input id="ovCat" list="catList">
-        <datalist id="catList"><option>Transporte</option><option>Hospedaje</option><option>Envío</option><option>Comidas</option><option>Comunicaciones</option><option>Seguro</option><option>Otros</option></datalist>
+        <label>Categoría</label>
+        <select id="ovCat"></select>
         <label>Moneda</label><select id="ovCur"><option>USD</option><option>COP</option></select>
         <label>Monto</label><input id="ovAmt" type="number" step="0.01">
         <label>Fecha</label><input id="ovDate" type="date">
@@ -145,7 +148,7 @@
         <div class="k">Nueva referencia (VR en COP)</div>
         <label>Producto</label><input id="cName" placeholder="Nike Air ...">
         <label>Marca</label><input id="cBrand" placeholder="Nike">
-        <label>Categoría</label><input id="cCat" placeholder="Calzado">
+        <label>Categoría</label><select id="cCat"></select>
         <label>Precio ref. COP</label><input id="cCOP" type="number" step="100">
         <button id="cAdd" class="btn" style="margin-top:8px">＋ Agregar</button>
       </div>
@@ -169,6 +172,7 @@
     <div class="row2">
       <div>
         <label>Descripción</label><input id="sName">
+        <label>Categoría</label><select id="sCat"></select>
         <label>Costo unidad (USD)</label><input id="sUSD" type="number" step="0.01">
         <label>Cantidad</label><input id="sQty" type="number" step="1" value="1">
         <label>Tienda</label><input id="sStore" placeholder="Nike Outlet ...">
@@ -198,7 +202,7 @@
     <div id="invProgTxt" style="color:#9ca3af;margin:6px 0">—</div>
     <div style="max-height:340px;overflow:auto">
       <table>
-        <thead><tr><th>Fecha</th><th>Producto</th><th>Tienda</th><th class="right">Costo USD × Qty</th><th class="right">PVP est. COP</th><th class="right">Aporte USD</th><th class="right">Margen USD</th><th></th></tr></thead>
+        <thead><tr><th>Fecha</th><th>Producto</th><th>Cat/Tienda</th><th class="right">Costo USD × Qty</th><th class="right">PVP est. COP</th><th class="right">Aporte USD</th><th class="right">Margen USD</th><th></th></tr></thead>
         <tbody id="invBody"></tbody>
       </table>
     </div>
@@ -251,26 +255,32 @@ const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
 /* =========================
-   Estado
+   Catálogos fijos UI
 ========================= */
-let trips=[], trip_id=null;
-let settings={bt_usd:7000, gb_pct:30, default_trm:4200};
-let overheads=[], catalog=[], products=[], sales=[];
-let costView='USD'; // tabla de costos: USD/COP
+const CATS = ["Calzado","Accesorios","Electrónica","Ropa","Hogar","Belleza","Deportes","Juguetes","Otros"];
+function fillCategorySelects(){
+  const selIds = ["ovCat","cCat","sCat"];
+  selIds.forEach(id=>{
+    const el = document.getElementById(id);
+    el.innerHTML = "";
+    CATS.forEach(c=>{ const o=document.createElement("option"); o.value=c; o.textContent=c; el.appendChild(o); });
+  });
+}
 
 /* =========================
-   Helpers
+   Estado
 ========================= */
+let trips=[], trip_id=null;               // ¡conservar siempre!
+let settings={bt_usd:7000, gb_pct:30, default_trm:4200};
+let overheads=[], catalog=[], products=[], sales=[];
+let costView='USD';
+
+/* Helpers */
 const $ = s=>document.querySelector(s);
 const fmtUSD = n=>"$"+(Number(n||0)).toFixed(2);
 const fmtCOP = n=>"$"+(Math.round(Number(n||0))).toLocaleString("es-CO");
 const todayStr = ()=> (new Date()).toISOString().slice(0,10);
-
-function rO(){ // V/BT
-  const V = overheads.reduce((s,o)=>s+Number(o.amount_usd_fixed||0),0);
-  return Number(settings.bt_usd)>0 ? V/Number(settings.bt_usd) : 0;
-}
-
+function rO(){ const V = overheads.reduce((s,o)=>s+Number(o.amount_usd_fixed||0),0); return Number(settings.bt_usd)>0 ? V/Number(settings.bt_usd):0; }
 function refreshKPIs(){
   $("#kBT").textContent = fmtUSD(settings.bt_usd);
   $("#kTRM").textContent = fmtCOP(settings.default_trm)+" COP/USD";
@@ -280,32 +290,31 @@ function refreshKPIs(){
 }
 
 /* =========================
-   Viajes
+   Viajes (robusto: NO perder trip_id)
 ========================= */
-async function loadTrips(){
+async function loadTrips(initial=false){
   const {data} = await sb.from('trips').select('*').order('id',{ascending:true});
   trips = data||[];
-  const sel=$("#tripSelect"); sel.innerHTML="";
-  trips.forEach(t=>{
-    const opt=document.createElement('option');
-    opt.value=t.id; opt.textContent=t.name;
-    sel.appendChild(opt);
-  });
-  if(!trips.length){
+  const sel=$("#tripSelect"); const current = sel.value || trip_id;
+  sel.innerHTML="";
+  trips.forEach(t=>{ const opt=document.createElement('option'); opt.value=t.id; opt.textContent=t.name; sel.appendChild(opt); });
+  // conservar selección si existe; si no, tomar primero
+  if(current && trips.some(t=>String(t.id)===String(current))){ trip_id=current; }
+  else if(trips[0]){ trip_id = trips[0].id; }
+  sel.value = trip_id || "";
+  if(!trips.length && initial){
     const {data:ins} = await sb.from('trips').insert({name:'Viaje demo'}).select().single();
-    trips=[ins]; 
+    await sb.from('trip_settings').insert({trip_id:ins.id, bt_usd:7000, gb_pct:30, default_trm:4200});
+    trip_id=ins.id; await loadTrips();
   }
-  trip_id = trip_id || (trips[0] && trips[0].id);
-  sel.value = trip_id;
 }
-$("#tripSelect").onchange = async ()=>{ trip_id = Number($("#tripSelect").value); await syncAll(); };
+$("#tripSelect").onchange = async ()=>{ trip_id = Number($("#tripSelect").value); await fullReload(); };
 $("#btnNewTrip").onclick = async ()=>{
   const name = prompt("Nombre del viaje/proyecto:","Orlando Nov 7 2025");
   if(!name) return;
-  const {data} = await sb.from('trips').insert({name}).select().single();
-  await sb.from('trip_settings').insert({trip_id:data.id, bt_usd:7000, gb_pct:30, default_trm:4200}).select().single();
-  trip_id = data.id;
-  await syncAll();
+  const {data:newTrip} = await sb.from('trips').insert({name}).select().single();
+  await sb.from('trip_settings').insert({trip_id:newTrip.id, bt_usd:7000, gb_pct:30, default_trm:4200});
+  trip_id = newTrip.id; await fullReload();
 };
 $("#btnDupTrip").onclick = async ()=>{
   if(!trip_id) return;
@@ -314,16 +323,12 @@ $("#btnDupTrip").onclick = async ()=>{
   if(!name) return;
   const {data:newTrip} = await sb.from('trips').insert({name}).select().single();
   const {data:set} = await sb.from('trip_settings').select('*').eq('trip_id',trip_id).maybeSingle();
-  await sb.from('trip_settings').insert({
-    trip_id:newTrip.id,
-    bt_usd:set?.bt_usd||7000, gb_pct:set?.gb_pct||30, default_trm:set?.default_trm||4200
-  });
-  trip_id = newTrip.id;
-  await syncAll();
+  await sb.from('trip_settings').insert({trip_id:newTrip.id, bt_usd:set?.bt_usd||7000, gb_pct:set?.gb_pct||30, default_trm:set?.default_trm||4200});
+  trip_id = newTrip.id; await fullReload();
 };
 
 /* =========================
-   Settings (fuente de verdad)
+   Settings
 ========================= */
 async function loadSettings(){
   const {data} = await sb.from('trip_settings').select('*').eq('trip_id',trip_id).maybeSingle();
@@ -342,10 +347,10 @@ $("#btnSaveCfg").onclick = async ()=>{
   const bt = Number($("#iBT").value||0);
   const gb = Number($("#iGB").value||0);
   const trm= Number($("#iTRM").value||0);
-  const {data} = await sb.from('trip_settings').update({bt_usd:bt, gb_pct:gb, default_trm:trm, updated_at:new Date().toISOString()}).eq('trip_id',trip_id).select().single();
-  settings=data;
-  refreshKPIs(); renderInventory(); renderReports();
-  alert("Settings guardados");
+  // update sin tocar trips; luego FULL RELOAD datasets para que no “desaparezcan”
+  await sb.from('trip_settings').update({bt_usd:bt, gb_pct:gb, default_trm:trm, updated_at:new Date().toISOString()}).eq('trip_id',trip_id);
+  await fullReload(); // <— importante: recarga todo manteniendo trip_id
+  alert("Settings guardados y datos recargados");
 };
 
 /* =========================
@@ -355,41 +360,31 @@ async function ensureTRM(d){
   const day = d || todayStr();
   let {data} = await sb.from('trm_daily').select('*').eq('d',day).maybeSingle();
   if(!data){
-    // intenta traer de API; si falla usa default_trm
     let trm = Number(settings.default_trm||4200);
     try{
-      const r = await fetch('https://open.er-api.com/v6/latest/USD');
-      const j = await r.json();
-      if(j && j.rates && j.rates.COP) trm = Number(j.rates.COP);
+      const r = await fetch('https://open.er-api.com/v6/latest/USD'); const j=await r.json();
+      if(j?.rates?.COP) trm = Number(j.rates.COP);
     }catch(e){}
     const ins = await sb.from('trm_daily').insert({d:day,trm}).select().single();
     data = ins.data;
   }
   return data.trm;
 }
-$("#btnTRM").onclick = async ()=>{
-  const t = await ensureTRM(todayStr());
-  settings.default_trm = t;
-  $("#iTRM").value = t;
-  refreshKPIs();
-  alert("TRM del día: "+t);
-};
+$("#btnTRM").onclick = async ()=>{ const t=await ensureTRM(todayStr()); settings.default_trm=t; $("#iTRM").value=t; refreshKPIs(); alert("TRM del día: "+t); };
 $("#btnTRMman").onclick = async ()=>{
   const v = prompt("TRM manual (COP/USD):", String(settings.default_trm||4200));
   if(!v) return;
   const trm = Number(v);
   await sb.from('trm_daily').upsert({d: todayStr(), trm});
-  $("#iTRM").value = trm; settings.default_trm = trm; refreshKPIs();
+  $("#iTRM").value = trm; settings.default_trm=trm; refreshKPIs();
 };
 
 /* =========================
-   Overheads (USD/COP con TRM fijada)
+   Overheads
 ========================= */
 async function loadOverheads(){
   const {data}=await sb.from('overheads').select('*').eq('trip_id',trip_id).order('created_at',{ascending:false});
-  overheads=data||[];
-  renderOverheads();
-  refreshKPIs();
+  overheads=data||[]; renderOverheads(); refreshKPIs();
 }
 function renderOverheads(){
   const tb=$("#ovBody"); tb.innerHTML="";
@@ -412,7 +407,7 @@ $("#viewUSD").onclick=()=>{costView='USD';renderOverheads();}
 $("#viewCOP").onclick=()=>{costView='COP';renderOverheads();}
 $("#ovAdd").onclick = async ()=>{
   const desc=$("#ovDesc").value.trim();
-  const cat =$("#ovCat").value.trim();
+  const cat =$("#ovCat").value;
   const cur =$("#ovCur").value;
   const amt =Number($("#ovAmt").value||0);
   const dt  =$("#ovDate").value || todayStr();
@@ -422,12 +417,12 @@ $("#ovAdd").onclick = async ()=>{
   if(cur==='USD'){ rec.amount_usd=amt; rec.amount_usd_fixed=amt; rec.amount_cop_fixed=amt*trm; }
   else{ rec.amount_cop=amt; rec.amount_cop_fixed=amt; rec.amount_usd_fixed=amt/trm; }
   await sb.from('overheads').insert(rec);
-  $("#ovDesc").value="";$("#ovCat").value="";$("#ovAmt").value="";
+  $("#ovDesc").value="";$("#ovAmt").value="";
   await loadOverheads();
 };
 
 /* =========================
-   Catálogo + carga masiva
+   Catálogo + import/export
 ========================= */
 async function loadCatalog(){
   const {data}=await sb.from('catalog').select('*').eq('trip_id',trip_id).order('created_at',{ascending:false});
@@ -448,11 +443,11 @@ async function loadCatalog(){
 $("#cAdd").onclick=async ()=>{
   const name=$("#cName").value.trim();
   const brand=$("#cBrand").value.trim()||null;
-  const cat  =$("#cCat").value.trim()||null;
+  const cat  =$("#cCat").value||null;
   const cop  =Number($("#cCOP").value||0);
   if(!name||cop<=0){ alert("Producto y COP > 0"); return; }
   await sb.from('catalog').insert({trip_id, name, brand, cat, ref_cop:cop, source:'manual'});
-  $("#cName").value="";$("#cBrand").value="";$("#cCat").value="";$("#cCOP").value="";
+  $("#cName").value="";$("#cBrand").value="";$("#cCOP").value="";
   await loadCatalog();
 };
 $("#cImport").onclick=async ()=>{
@@ -462,31 +457,44 @@ $("#cImport").onclick=async ()=>{
   const wb = XLSX.read(data,{type:'array'});
   const ws = wb.Sheets[wb.SheetNames[0]];
   const json = XLSX.utils.sheet_to_json(ws);
-  // columnas esperadas: name, ref_cop (opcional brand, cat)
-  let ok=0, fail=0;
+  let ok=0,fail=0;
   for(const r of json){
     const name=(r.name||r.Nombre||r.Producto||"").toString().trim();
     const ref = Number(r.ref_cop||r.COP||r.precio||0);
-    if(!name || !(ref>0)){ fail++; continue; }
     const brand=r.brand||r.marca||null;
     const cat=r.cat||r.categoria||null;
-    await sb.from('catalog').insert({trip_id, name, brand, cat, ref_cop:ref, source:'manual'});
+    if(!name||!(ref>0)){ fail++; continue; }
+    await sb.from('catalog').insert({trip_id,name,brand,cat,ref_cop:ref,source:'import'});
     ok++;
   }
-  $("#cImpMsg").textContent = `Importadas: ${ok} · Rechazadas: ${fail}`;
+  $("#cImpMsg").textContent=`Importadas: ${ok} · Rechazadas: ${fail}`;
   await loadCatalog();
+};
+/* Plantilla Excel cat & overheads */
+function downloadBlob(name, blob){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1500); }
+$("#btnTemplateCat").onclick=()=>{
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet([["name","brand","cat","ref_cop"],["Ej: Nike Air Max 90","Nike","Calzado",350000]]);
+  XLSX.utils.book_append_sheet(wb,ws,"catalog_template");
+  const out=XLSX.write(wb,{bookType:"xlsx",type:"array"});
+  downloadBlob("plantilla_catalogo.xlsx", new Blob([out],{type:"application/octet-stream"}));
+};
+$("#btnTemplateOH").onclick=()=>{
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet([["description","cat","currency","amount","date"],["Tiquetes","Transporte","USD",500,"2025-11-07"]]);
+  XLSX.utils.book_append_sheet(wb,ws,"overheads_template");
+  const out=XLSX.write(wb,{bookType:"xlsx",type:"array"});
+  downloadBlob("plantilla_overheads.xlsx", new Blob([out],{type:"application/octet-stream"}));
 };
 
 /* =========================
    Semáforo (OCR + ML)
 ========================= */
 function bestCatalogVR(q){
-  const query = q.toLowerCase();
-  let best=null,bscore=0;
+  const query=q.toLowerCase(); let best=null,bscore=0;
   catalog.forEach(c=>{
-    const t = ((c.name||'')+' '+(c.brand||'')+' '+(c.cat||'')).toLowerCase();
-    const words = query.split(/\s+/).filter(w=>w.length>3);
-    let s=0; words.forEach(w=>{ if(t.includes(w)) s++; });
+    const t=((c.name||'')+' '+(c.brand||'')+' '+(c.cat||'')).toLowerCase();
+    const words=query.split(/\s+/).filter(w=>w.length>3); let s=0; words.forEach(w=>{ if(t.includes(w)) s++; });
     if(s>bscore){ bscore=s; best=c; }
   });
   return best? best.ref_cop : null;
@@ -494,46 +502,31 @@ function bestCatalogVR(q){
 async function vrFromMercadoLibre(q){
   try{
     const r=await fetch('https://api.mercadolibre.com/sites/MCO/search?q='+encodeURIComponent(q)+'&limit=20');
-    const j=await r.json();
-    if(!j?.results?.length) return null;
-    const arr = j.results.map(x=>x.price).filter(n=>n>0);
-    arr.sort((a,b)=>a-b);
-    // mediana
-    const mid = Math.floor(arr.length/2);
-    const vr = arr.length%2 ? arr[mid] : (arr[mid-1]+arr[mid])/2;
+    const j=await r.json(); if(!j?.results?.length) return null;
+    const arr=j.results.map(x=>x.price).filter(n=>n>0).sort((a,b)=>a-b);
+    const mid=Math.floor(arr.length/2); const vr=arr.length%2?arr[mid]:(arr[mid-1]+arr[mid])/2;
     return Math.round(vr);
   }catch(e){ return null; }
 }
 function vsvUSD(unit){ return Number(unit) * (1 + Number(settings.gb_pct||0)/100 + rO()); }
 $("#sEval").onclick = async ()=>{
-  const name=$("#sName").value.trim();
-  const unit=Number($("#sUSD").value||0);
+  const name=$("#sName").value.trim(); const unit=Number($("#sUSD").value||0);
   if(!name||unit<=0){ alert("Completa nombre y costo USD"); return; }
-  const vsv_usd = vsvUSD(unit);
-  const vsv_cop = vsv_usd * Number(settings.default_trm||4200);
-  let vr = bestCatalogVR(name);
-  if(!vr){ vr = await vrFromMercadoLibre(name); }
+  const vsv_usd=vsvUSD(unit), vsv_cop=vsv_usd*Number(settings.default_trm||4200);
+  let vr = bestCatalogVR(name); if(!vr){ vr = await vrFromMercadoLibre(name); }
   const info = (vr? `VSV ${fmtCOP(vsv_cop)} vs VR ${fmtCOP(vr)}` : `VSV ${fmtCOP(vsv_cop)} · sin VR`);
   let cls=''; let ratio='—';
   if(vr){ const r = vsv_cop/vr; ratio=r.toFixed(2); cls = r<0.85?'ok':(r<=0.95?'warn':'bad'); }
-  $("#sInfo").className='pill '+cls;
-  $("#sInfo").textContent = `Relación VSV/VR: ${ratio} · ${info}`;
-  $("#sVR").textContent = "VR: "+(vr?fmtCOP(vr):"—");
+  $("#sInfo").className='pill '+cls; $("#sInfo").textContent=`Relación VSV/VR: ${ratio} · ${info}`;
+  $("#sVR").textContent="VR: "+(vr?fmtCOP(vr):"—");
 };
 $("#sAddInv").onclick = async ()=>{
-  const name=$("#sName").value.trim();
-  const unit=Number($("#sUSD").value||0);
-  const qty =Number($("#sQty").value||0);
-  const store=$("#sStore").value.trim()||null;
-  const pvp =Number($("#sSellCOP").value||0);
+  const name=$("#sName").value.trim(); const unit=Number($("#sUSD").value||0);
+  const qty=Number($("#sQty").value||0); const store=$("#sStore").value.trim()||null;
+  const pvp=Number($("#sSellCOP").value||0);
   if(!name||unit<=0||qty<=0||!pvp){ alert("Completa nombre, USD, qty y PVP estimado"); return; }
-  const apUSD = unit * rO();
-  const estUSD= pvp / Number(settings.default_trm||4200);
-  const mgUSD = estUSD - unit - apUSD;
-  await sb.from('products').insert({
-    trip_id, name, store, unit_usd:unit, qty,
-    est_sell_cop:pvp, est_sell_usd:estUSD, est_aporte_usd:apUSD, est_margin_usd:mgUSD
-  });
+  const apUSD = unit * rO(); const estUSD=pvp/Number(settings.default_trm||4200); const mgUSD=estUSD-unit-apUSD;
+  await sb.from('products').insert({trip_id,name,store,unit_usd:unit,qty,est_sell_cop:pvp,est_sell_usd:estUSD,est_aporte_usd:apUSD,est_margin_usd:mgUSD});
   await loadProducts(); fillSaleSelect(); renderInventory(); renderReports();
   alert("Inventario actualizado");
   $("#sName").value="";$("#sUSD").value="";$("#sQty").value="1";$("#sStore").value="";$("#sSellCOP").value="";
@@ -553,15 +546,8 @@ $("#camShot").onclick=async()=>{
   if(!$("#camVideo").videoWidth){ alert("Cámara no lista"); return; }
   const c=$("#camCanvas"); c.width=$("#camVideo").videoWidth; c.height=$("#camVideo").videoHeight;
   const ctx=c.getContext('2d'); ctx.drawImage($("#camVideo"),0,0,c.width,c.height);
-  const data = c.toDataURL('image/png');
-  const res = await Tesseract.recognize(data, 'eng+spa');
-  const text = res?.data?.text||'';
-  if(text){
-    // heurística: primera línea larga
-    const line = text.split('\n').map(s=>s.trim()).filter(Boolean).sort((a,b)=>b.length-a.length)[0]||'';
-    if(line.length>4 && !$("#sName").value) $("#sName").value=line;
-    $("#sEval").click();
-  }
+  const data=c.toDataURL('image/png'); const res=await Tesseract.recognize(data,'eng+spa'); const text=res?.data?.text||'';
+  if(text){ const line=text.split('\n').map(s=>s.trim()).filter(Boolean).sort((a,b)=>b.length-a.length)[0]||''; if(line.length>4 && !$("#sName").value) $("#sName").value=line; $("#sEval").click(); }
 };
 
 /* =========================
@@ -569,8 +555,7 @@ $("#camShot").onclick=async()=>{
 ========================= */
 async function loadProducts(){
   const {data}=await sb.from('products').select('*').eq('trip_id',trip_id).order('created_at',{ascending:false});
-  products=data||[];
-  renderInventory();
+  products=data||[]; renderInventory();
 }
 function renderInventory(){
   const tb=$("#invBody"); tb.innerHTML="";
@@ -579,7 +564,7 @@ function renderInventory(){
     tr.innerHTML=`
       <td>${new Date(p.created_at).toLocaleString("es-CO")}</td>
       <td>${p.name}</td>
-      <td>${p.store||'—'}</td>
+      <td>${(p.cat? p.cat+" / ":"")+(p.store||'—')}</td>
       <td class="right">${fmtUSD(p.unit_usd)} × ${p.qty}</td>
       <td class="right">${p.est_sell_cop?fmtCOP(p.est_sell_cop):'—'}</td>
       <td class="right">${fmtUSD(p.est_aporte_usd|| (p.unit_usd*rO()))}</td>
@@ -588,7 +573,6 @@ function renderInventory(){
     tb.appendChild(tr);
   });
   tb.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{await sb.from('products').delete().eq('id',b.dataset.del); await loadProducts(); renderReports();});
-  // progreso cobertura V
   const V = overheads.reduce((s,o)=>s+Number(o.amount_usd_fixed||0),0);
   const aporteInv = products.reduce((s,p)=> s + (Number(p.unit_usd||0)*rO()*Number(p.qty||0)), 0);
   const pct = V>0? Math.min(100,(aporteInv/V)*100):0;
@@ -601,8 +585,7 @@ function renderInventory(){
 ========================= */
 async function loadSales(){
   const {data}=await sb.from('sales').select('*').eq('trip_id',trip_id).order('created_at',{ascending:false});
-  sales=data||[];
-  renderSales();
+  sales=data||[]; renderSales();
 }
 function fillSaleSelect(){
   const sel=$("#vProd"); sel.innerHTML="";
@@ -640,19 +623,15 @@ $("#vSave").onclick=async ()=>{
   const apUSD = Number(p.unit_usd||0)*rO()*qty;
   const saleUSD = cop/trm*qty;
   const profitUSD = saleUSD - (Number(p.unit_usd||0)*qty) - apUSD;
-  await sb.from('sales').insert({
-    trip_id, product_id:p.id, product_name:p.name, store:p.store||null,
-    qty, unit_usd:p.unit_usd, trm_used:trm, sale_cop:cop, aporte_usd:apUSD, profit_usd:profitUSD
-  });
+  await sb.from('sales').insert({trip_id, product_id:p.id, product_name:p.name, store:p.store||null, qty, unit_usd:p.unit_usd, trm_used:trm, sale_cop:cop, aporte_usd:apUSD, profit_usd:profitUSD});
   await loadSales(); renderReports();
   alert("Venta registrada");
 };
 
 /* =========================
-   Reportes
+   Reportes + export Excel
 ========================= */
 function renderReports(){
-  // Estimado
   let estCostUSD=0, estAporteUSD=0, estMarginUSD=0, estVentaCOP=0;
   products.forEach(p=>{
     const qty=Number(p.qty||0);
@@ -669,8 +648,6 @@ function renderReports(){
     <div>COGS (USD): <b>${fmtUSD(estCostUSD)}</b></div>
     <div>Aporte (USD): <b>${fmtUSD(estAporteUSD)}</b></div>
     <div>Margen (USD): <b>${fmtUSD(estMarginUSD)}</b></div>`;
-
-  // Real
   let realCOP=0, realAporteUSD=0, realProfitUSD=0;
   sales.forEach(s=>{ realCOP += Number(s.sale_cop||0); realAporteUSD += Number(s.aporte_usd||0); realProfitUSD += Number(s.profit_usd||0); });
   $("#repReal").innerHTML = `
@@ -678,6 +655,31 @@ function renderReports(){
     <div>Aporte (USD): <b>${fmtUSD(realAporteUSD)}</b></div>
     <div>Utilidad (USD): <b>${fmtUSD(realProfitUSD)}</b></div>`;
 }
+function sheetFromArray(arr){ const header=Object.keys(arr[0]||{}); const data=[header,...arr.map(o=>header.map(h=>o[h]))]; return XLSX.utils.aoa_to_sheet(data); }
+function exportAll(){
+  const wb=XLSX.utils.book_new();
+  // Resumen
+  const V = overheads.reduce((s,o)=>s+Number(o.amount_usd_fixed||0),0);
+  const resumen = [{
+    viaje: (trips.find(t=>t.id==trip_id)||{}).name,
+    bt_usd: settings.bt_usd,
+    gb_pct: settings.gb_pct,
+    trm_ui: settings.default_trm,
+    over_usd: V,
+    rO: rO()
+  }];
+  XLSX.utils.book_append_sheet(wb, sheetFromArray(resumen), "Resumen");
+  // Tablas
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(overheads), "Overheads");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(catalog),   "Catalogo");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(products),  "Inventario");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sales),     "Ventas");
+  // Descargar
+  const out=XLSX.write(wb,{bookType:"xlsx",type:"array"});
+  const blob=new Blob([out],{type:"application/octet-stream"});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download="reportes_viaje.xlsx"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+}
+document.getElementById("btnExportAll").onclick=exportAll;
 
 /* =========================
    Navegación
@@ -693,21 +695,27 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
 });
 
 /* =========================
-   Sync general
+   Sync robusto
 ========================= */
-async function syncAll(){
-  await loadTrips(); await loadSettings();
+async function fullReload(){
+  // Mantener trip_id; NO lo resetees accidentalmente
+  const keepId = trip_id;
+  await loadTrips(trips.length===0);           // recarga lista pero respeta keepId
+  trip_id = keepId || trip_id;
+  $("#tripSelect").value = trip_id || "";
+  await loadSettings();
   await Promise.all([loadOverheads(), loadCatalog(), loadProducts(), loadSales()]);
   fillSaleSelect(); renderReports(); refreshKPIs();
 }
-$("#btnSync").onclick = syncAll;
+$("#btnSync").onclick = fullReload;
 
 /* =========================
    Init
 ========================= */
 (async function init(){
-  await syncAll();
-  // valores por defecto UI
+  fillCategorySelects();
+  await loadTrips(true);
+  await fullReload();
   $("#ovDate").value = todayStr();
 })();
 </script>
