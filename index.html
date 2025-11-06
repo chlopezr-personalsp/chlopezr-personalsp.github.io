@@ -1,922 +1,742 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Personal Shopper USA</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>PS · Viajes/Arbitraje</title>
+<meta name="theme-color" content="#0b0f14"/>
 <style>
-  :root{
-    --bg:#0b1220; --panel:#111827; --muted:#94a3b8; --text:#e5e7eb;
-    --brand:#60a5fa; --ok:#10b981; --warn:#f59e0b; --bad:#ef4444; --chip:#1f2937;
-    --card:#0f172a; --accent:#1e293b; --line:#334155;
-  }
-  html,body{height:100%;}
-  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu;
-       background:linear-gradient(120deg,#0a0f1a,#101726,#0d1422); color:var(--text);}
-  .wrap{max-width:1200px;margin:0 auto;padding:16px;}
-  .brand-row{display:flex;align-items:center;gap:10px;justify-content:space-between}
-  .app-title{display:flex;align-items:center;gap:10px}
-  .logo{
-    width:28px;height:28px;border-radius:8px;background:linear-gradient(145deg,#60a5fa,#22d3ee);
-    display:inline-flex;align-items:center;justify-content:center;color:#0b1220;font-weight:900
-  }
-  .header-card{background:rgba(255,255,255,0.04);border:1px solid #1f2937;border-radius:14px;padding:12px 14px}
-
-  .toolbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-  .btn{
-    display:inline-flex;align-items:center;gap:6px;
-    background:#0f172a;color:var(--text);border:1px solid #334155;border-radius:8px;
-    padding:4px 8px;font-size:12px;line-height:1.1;cursor:pointer;white-space:nowrap
-  }
-  .btn:hover{background:#111827}
-  .btn.primary{background:#1d4ed8;border-color:#1d4ed8}
-  .btn.success{background:#059669;border-color:#059669}
-  .btn.warn{background:#b45309;border-color:#b45309}
-  .btn:disabled{opacity:.55;cursor:not-allowed}
-  /* Botones compactos */
-  #btnSync,#btnFetchTRM,#btnManualTRM{padding:2px 6px!important;font-size:11px!important;line-height:1.05!important;border-radius:7px!important}
-
-  .grid{display:grid;gap:12px}
-  .cards{grid-template-columns:repeat(4,1fr)}
-  @media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}}
-  @media(max-width:580px){.cards{grid-template-columns:1fr}}
-
-  .card{background:rgba(255,255,255,0.04);border:1px solid #1f2937;border-radius:14px;padding:14px}
-  .k{color:var(--muted);font-size:12px}
-  .v{font-size:20px;font-weight:700}
-  .sub{color:var(--muted);font-size:11px}
-
-  .tabs{display:flex;gap:6px;margin:10px 0 6px}
-  .tab{padding:6px 10px;border:1px solid #334155;border-radius:10px;background:#0f172a;cursor:pointer;font-size:13px}
-  .tab.active{background:#1f2937;color:#e5e7eb;border-color:#475569}
-
-  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  @media(max-width:900px){.row{grid-template-columns:1fr}}
-
-  .input, select{
-    width:100%;background:#0b1220;color:var(--text);border:1px solid #334155;border-radius:10px;padding:10px;
-    font-size:14px
-  }
-  label{font-size:12px;color:var(--muted);display:block;margin:8px 0 6px}
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  th,td{border-bottom:1px solid #1f2937;padding:8px 6px;text-align:left}
-  thead th{position:sticky;top:0;background:#0b1220;z-index:1}
-
-  .chip{display:inline-flex;align-items:center;gap:6px;background:#0f172a;border:1px solid #334155;color:#cbd5e1;
-        border-radius:999px;padding:2px 8px;font-size:12px}
-  .chip.ok{background:rgba(16,185,129,0.12);border-color:#065f46;color:#a7f3d0}
-  .chip.warn{background:rgba(245,158,11,0.12);border-color:#78350f;color:#fde68a}
-  .chip.bad{background:rgba(239,68,68,0.12);border-color:#7f1d1d;color:#fecaca}
-
-  .progress{height:10px;background:#0b1220;border:1px solid #334155;border-radius:999px;overflow:hidden}
-  .progress>div{height:100%;background:linear-gradient(90deg,#22d3ee,#60a5fa);width:0%}
-
+  :root { color-scheme: dark; --bg:#0b0f14; --panel:#121821; --txt:#e6edf3; --muted:#94a3b8; --brand:#60a5fa; --ok:#22c55e; --warn:#f59e0b; --err:#ef4444; --line:#1f2937; }
+  *{box-sizing:border-box} body{margin:0;font:14px/1.4 ui-sans-serif,system-ui,Segoe UI,Roboto,Inter;background:var(--bg);color:var(--txt)}
+  header{display:flex;gap:12px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(11,15,20,.8);backdrop-filter:saturate(160%) blur(8px)}
+  .logo{font-weight:700;letter-spacing:.3px}
+  select, input, button, textarea{background:#0f1620;border:1px solid #223043;color:var(--txt);padding:8px 10px;border-radius:10px}
+  button{cursor:pointer}
+  button.small{padding:6px 8px;font-size:12px}
+  .primary{background:linear-gradient(180deg,#1e293b,#0f172a);border-color:#293445}
+  .grid{display:grid;gap:10px}
+  .cols-2{grid-template-columns:1fr 1fr}
+  .cols-3{grid-template-columns:repeat(3,1fr)}
+  .cols-4{grid-template-columns:repeat(4,1fr)}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px}
+  .kpi{display:flex;flex-direction:column;gap:6px}
+  .kpi b{font-size:18px}
+  nav.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 12px}
+  nav.tabs button{border-radius:12px}
+  .tab{display:none;margin:12px}
+  .tab.active{display:block}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:8px;border-bottom:1px solid #1f2937;text-align:left;vertical-align:top}
+  th{color:#cbd5e1;font-weight:600}
   .muted{color:var(--muted)}
-  .right{text-align:right}
-  .hint{font-size:11px;color:#9ca3af;margin-top:4px}
-  .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;border:1px solid #334155;background:#0f172a;font-size:12px;cursor:pointer}
-  .pill:hover{background:#111827}
-
-  .camera-box{border:1px dashed #334155;border-radius:12px;padding:10px}
-  video{width:100%;max-height:320px;border-radius:10px;background:#000}
+  .row{display:flex;gap:8px;flex-wrap:wrap}
+  .grow{flex:1}
+  .right{margin-left:auto}
+  .danger{color:var(--err)}
+  .ok{color:var(--ok)}
+  .warn{color:var(--warn)}
+  .pill{padding:3px 8px;border:1px solid #2a3a51;border-radius:999px;color:#cbd5e1;font-size:12px}
+  .toggle{display:inline-flex;gap:6px;align-items:center}
+  .code{font-family:ui-monospace, SFMono-Regular, Menlo, monospace; background:#0f1620;border-radius:8px;padding:2px 6px}
+  .hidden{display:none!important}
+  .hr{height:1px;background:#1f2937;margin:8px 0}
+  .img-preview{max-width:200px;max-height:160px;border:1px dashed #334155;border-radius:10px;object-fit:contain}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <!-- Header -->
-  <div class="header-card">
-    <div class="brand-row">
-      <div class="app-title">
-        <div class="logo">PS</div>
-        <div>
-          <div style="font-weight:800;font-size:18px">Personal Shopper USA</div>
-          <div class="muted" style="font-size:12px">Control de costos, inventario y viabilidad en tiempo real</div>
-        </div>
-      </div>
-      <div class="toolbar">
-        <button id="btnSync" class="btn" title="Sincronizar con Supabase">⟳ Sync</button>
-        <button id="btnFetchTRM" class="btn" title="Actualizar TRM automáticamente">⇅ TRM</button>
-        <button id="btnManualTRM" class="btn" title="Ingresar TRM manual">✍ TRM</button>
-      </div>
-    </div>
+
+<header>
+  <div class="logo">🅿️🆂 <span class="muted">Arbitraje</span></div>
+  <select id="tripSelect"></select>
+  <button id="btnNewTrip" class="small primary">+ Nuevo viaje</button>
+  <button id="btnDupTrip" class="small">⎘ Duplicar…</button>
+  <span class="right"></span>
+  <span class="muted small">Moneda vista:</span>
+  <div class="toggle">
+    <button id="viewUSD" class="small pill">USD</button>
+    <button id="viewCOP" class="small pill">COP</button>
   </div>
+  <button id="btnSync" class="small">⟳ Sync</button>
+  <button id="btnTRM" class="small">⇅ TRM (hoy)</button>
+</header>
 
-  <!-- KPIs -->
-  <div class="grid cards" style="margin-top:12px">
-    <div class="card">
-      <div class="k">Presupuesto Estimado (BT) USD</div>
-      <div class="v" id="kpiBT">$7,000.00</div>
-      <div class="sub" id="kpiBTcop">—</div>
-    </div>
-    <div class="card">
-      <div class="k">Costos del viaje (Overheads) USD</div>
-      <div class="v" id="kpiV">—</div>
-      <div class="sub" id="kpiVcop">—</div>
-    </div>
-    <div class="card">
-      <div class="k">Aporte por dólar (V/BT)</div>
-      <div class="v" id="kpiRO">—</div>
-      <div class="sub muted">Se usa para VSV</div>
-    </div>
-    <div class="card">
-      <div class="k">TRM vigente</div>
-      <div class="v" id="kpiTRM">—</div>
-      <div class="sub">Histórico por día</div>
-    </div>
-  </div>
-
-  <!-- KPIs Presupuesto Real -->
-  <div class="grid cards" style="margin-top:12px">
-    <div class="card">
-      <div class="k">Compras acumuladas (Costo USD)</div>
-      <div class="v" id="kpiComprasUSD">—</div>
-      <div class="sub" id="kpiComprasCOP">—</div>
-    </div>
-    <div class="card">
-      <div class="k">Presupuesto Real Acumulado = Overheads + Compras</div>
-      <div class="v" id="kpiRealUSD">—</div>
-      <div class="sub" id="kpiRealCOP">—</div>
-    </div>
-    <div class="card" style="grid-column: span 2">
-      <div class="k">Uso del presupuesto estimado (BT)</div>
-      <div class="progress" style="margin-top:6px"><div id="progBT" style="width:0%"></div></div>
-      <div class="sub" id="progBTText" style="margin-top:6px">—</div>
-    </div>
-  </div>
-
-  <!-- Tabs -->
-  <div class="tabs">
-    <div class="tab active" data-tab="config">⚙️ Configuración</div>
-    <div class="tab" data-tab="catalog">📚 Catálogo referencia</div>
-    <div class="tab" data-tab="semaforo">🚦 Semáforo (con cámara)</div>
-    <div class="tab" data-tab="inventario">📦 Inventario</div>
-    <div class="tab" data-tab="ventas">💵 Ventas</div>
-    <div class="tab" data-tab="reportes">📊 Reportes</div>
-  </div>
-
-  <!-- Panel Config -->
-  <div id="panel-config" class="card">
-    <div class="row">
-      <div>
-        <label>Presupuesto total (BT) USD</label>
-        <input id="inpBT" class="input" type="number" step="0.01" value="7000">
-      </div>
-      <div>
-        <label>Margen objetivo GB% (sobre venta)</label>
-        <input id="inpGB" class="input" type="number" step="1" value="30">
-        <div class="hint">Al cambiar, se recalculan KPIs, semáforo, inventario estimado y reportes</div>
-      </div>
-      <div>
-        <label>TRM (COP/USD) – día de hoy</label>
-        <input id="inpTRM" class="input" type="number" step="1" placeholder="Ej: 4200">
-      </div>
-      <div>
-        <label>Notas</label>
-        <input id="inpNotes" class="input" placeholder="Opcional">
-      </div>
-    </div>
-
-    <div style="margin-top:16px">
-      <div class="k">Costos del viaje (overheads)</div>
-      <div class="row">
-        <div>
-          <label>Descripción</label>
-          <input id="ohDesc" class="input" placeholder="Tiquetes / Hospedaje / Envío...">
-        </div>
-        <div>
-          <label>Categoría</label>
-          <select id="ohCat" class="input">
-            <option value="">— elegir —</option>
-            <option>Transporte</option>
-            <option>Hospedaje</option>
-            <option>Alimentación</option>
-            <option>Envío</option>
-            <option>Seguro</option>
-            <option>Comunicaciones</option>
-            <option>Otros</option>
-          </select>
-        </div>
-        <div>
-          <label>Valor USD</label>
-          <input id="ohUsd" class="input" type="number" step="0.01">
-        </div>
-        <div style="display:flex;align-items:flex-end">
-          <button id="ohAdd" class="btn success">＋ Agregar costo</button>
-        </div>
-      </div>
-
-      <div style="margin-top:8px;max-height:280px;overflow:auto">
-        <table>
-          <thead><tr>
-            <th>Fecha</th><th>Descripción</th><th>Categoría</th><th class="right">USD</th><th class="right">COP</th><th class="center">Acciones</th>
-          </tr></thead>
-          <tbody id="ohTbody"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- Panel Catálogo -->
-  <div id="panel-catalog" class="card" style="display:none">
-    <div class="k">Base de referencia (VR) en COP. Se usa para comparar en el semáforo.</div>
-    <div class="row">
-      <div>
-        <label>Descripción / SKU</label>
-        <input id="catName" class="input" placeholder="Ej: Nike Air Max 90">
-      </div>
-      <div>
-        <label>Marca / Categoría (opcional)</label>
-        <input id="catMeta" class="input" placeholder="Nike / Calzado">
-      </div>
-      <div>
-        <label>Precio referencia (COP)</label>
-        <input id="catCOP" class="input" type="number" step="100">
-      </div>
-      <div style="display:flex;align-items:flex-end;gap:8px">
-        <button id="catAdd" class="btn success">＋ Agregar</button>
-        <button id="catSync" class="btn">⟳ Refrescar</button>
-      </div>
-    </div>
-
-    <div style="margin-top:8px;max-height:300px;overflow:auto">
-      <table>
-        <thead><tr><th>Fecha</th><th>Descripción</th><th>Marca/Cat</th><th class="right">COP</th><th class="center">Acciones</th></tr></thead>
-        <tbody id="catTbody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Panel Semáforo -->
-  <div id="panel-semaforo" class="card" style="display:none">
-    <div class="row">
-      <div>
-        <label>Producto a evaluar (descripción)</label>
-        <input id="svName" class="input" placeholder="Ej: Nike Air Max 90">
-      </div>
-      <div>
-        <label>Costo compra (USD)</label>
-        <input id="svUnitUSD" class="input" type="number" step="0.01">
-      </div>
-      <div>
-        <label>Cantidad</label>
-        <input id="svQty" class="input" type="number" step="1" value="1">
-      </div>
-      <div>
-        <label>Tienda (requerida al agregar)</label>
-        <input id="svStore" class="input" list="storeList" placeholder="Ej: Nike Factory Orlando">
-        <datalist id="storeList"></datalist>
-        <div class="hint">Sugerencias de tiendas usadas antes</div>
-        <div style="margin-top:8px"><span id="useLastStore" class="pill" style="display:none">Usar última tienda: <b id="lastStoreName"></b></span></div>
-      </div>
-    </div>
-
-    <div class="camera-box" style="margin-top:12px">
-      <div class="k">Escanear etiqueta (OCR)</div>
-      <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-        <button id="camStart" class="btn" title="Abrir cámara">📷 Abrir cámara</button>
-        <button id="camShot" class="btn" disabled title="Capturar y leer">📸 Capturar</button>
-        <button id="camStop" class="btn" disabled title="Cerrar cámara">✖ Cerrar</button>
-        <span id="camHint" class="hint">Si no funciona, abre la app en <b>HTTPS</b> o <b>localhost</b> y concede permisos de cámara.</span>
-      </div>
-      <div style="margin-top:8px">
-        <video id="camVideo" playsinline muted></video>
-        <canvas id="camCanvas" style="display:none"></canvas>
-      </div>
-    </div>
-
-    <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
-      <button id="svEval" class="btn primary">Calcular semáforo</button>
-    </div>
-
-    <div id="svResult" style="margin-top:12px;display:none">
-      <div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:12px">
-        <div class="card">
-          <div class="k">Parámetros</div>
-          <div style="margin-top:8px">Margen objetivo: <b id="svGB">—</b></div>
-          <div>Aporte por dólar (V/BT): <b id="svRO">—</b></div>
-          <div>TRM: <b id="svTRM">—</b></div>
-        </div>
-        <div class="card">
-          <div class="k">VSV (PVP sugerido por app)</div>
-          <div>VSV USD (unidad): <b id="svVsvUsd">—</b></div>
-          <div>VSV COP (unidad): <b id="svVsvCop">—</b></div>
-          <div class="muted">= costo*(1 + GB% + V/BT)</div>
-        </div>
-        <div class="card">
-          <div class="k">VR (referencia de mercado)</div>
-          <div>VR COP (unidad): <b id="svVrCop">—</b></div>
-          <div>Fuente: <b id="svSource">—</b></div>
-          <div class="muted" id="svSourceDetail">—</div>
-        </div>
-      </div>
-      <div style="margin-top:12px">
-        <span class="k">Relación VSV/VR:</span>
-        <span id="svRatio" class="chip">—</span>
-        <span id="svExplain" class="muted" style="margin-left:8px"></span>
-      </div>
-
-      <div style="margin-top:16px">
-        <label>¿Agregar a inventario? (PVP estimado requerido)</label>
-        <div class="row">
-          <div>
-            <label>Precio estimado de venta (COP, por unidad)</label>
-            <input id="svEstSellCOP" class="input" type="number" step="100" placeholder="Ej: 280000">
-            <div class="hint">La TIENDA es obligatoria al guardar en inventario.</div>
-          </div>
-          <div style="display:flex;align-items:flex-end;gap:8px">
-            <button id="svAddToInv" class="btn success">＋ Incluir en inventario</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Panel Inventario -->
-  <div id="panel-inventario" class="card" style="display:none">
-    <div class="k">Inventario actual</div>
-    <div class="progress" style="margin-top:8px"><div id="invProgress"></div></div>
-    <div class="muted" id="invProgressText" style="margin-top:6px">—</div>
-
-    <div style="margin-top:12px;max-height:340px;overflow:auto">
-      <table>
-        <thead><tr>
-          <th>Fecha</th><th>Producto</th><th>Cat/Tienda</th>
-          <th class="right">Costo USD</th><th class="right">Est. Venta COP</th>
-          <th class="right">Est. Aporte USD</th><th class="right">Est. Margen USD</th>
-          <th class="center">Acciones</th>
-        </tr></thead>
-        <tbody id="invTbody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Panel Ventas -->
-  <div id="panel-ventas" class="card" style="display:none">
-    <div class="k">Registrar venta</div>
-    <div class="row">
-      <div>
-        <label>Producto (del inventario)</label>
-        <select id="saleProduct" class="input"></select>
-      </div>
-      <div>
-        <label>Cantidad</label>
-        <input id="saleQty" class="input" type="number" step="1" value="1">
-      </div>
-      <div>
-        <label>Precio de venta (COP, por unidad)</label>
-        <input id="saleCOP" class="input" type="number" step="100">
-      </div>
-      <div style="display:flex;align-items:flex-end;gap:8px">
-        <button id="saleSave" class="btn success">💾 Guardar venta</button>
-      </div>
-    </div>
-
-    <div style="margin-top:12px;max-height:340px;overflow:auto">
-      <table>
-        <thead><tr>
-          <th>Fecha</th><th>Producto</th><th>Cat/Tienda</th><th class="right">Cant.</th>
-          <th class="right">PVP (COP)</th><th class="right">Aporte USD</th><th class="right">Utilidad USD</th>
-          <th class="center">Acciones</th>
-        </tr></thead>
-        <tbody id="salesTbody"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- Panel Reportes -->
-  <div id="panel-reportes" class="card" style="display:none">
-    <div class="grid" style="grid-template-columns:1fr 1fr;gap:12px">
-      <div class="card">
-        <div class="k">Reporte estimado (inventario)</div>
-        <div id="repEst">—</div>
-      </div>
-      <div class="card">
-        <div class="k">Reporte realizado (ventas)</div>
-        <div id="repReal">—</div>
-      </div>
-    </div>
-  </div>
+<div class="grid cols-4" style="padding:12px">
+  <div class="panel kpi"><span class="muted">BT (USD)</span><b id="kpiBT">—</b><span class="muted" id="kpiUpdated">Actualizado: —</span></div>
+  <div class="panel kpi"><span class="muted">Overheads</span><b id="kpiOV">—</b><span class="muted">rO = Overheads / BT</span><b id="kpiRO">—</b></div>
+  <div class="panel kpi"><span class="muted">Compras acumuladas</span><b id="kpiCompras">—</b><span class="muted">Vista: <span id="lblVista"></span></span></div>
+  <div class="panel kpi"><span class="muted">TRM del día</span><b id="kpiTRM">—</b><span class="muted">Fijada por registro</span></div>
 </div>
 
-<!-- LIBRERÍAS: UMD para GitHub Pages -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
+<nav class="tabs">
+  <button data-tab="cfg" class="small primary">Configuración</button>
+  <button data-tab="cat" class="small">Catálogo</button>
+  <button data-tab="sem" class="small">Semáforo (OCR/ML)</button>
+  <button data-tab="inv" class="small">Inventario</button>
+  <button data-tab="ven" class="small">Ventas</button>
+  <button data-tab="rep" class="small">Reportes</button>
+</nav>
+
+<!-- CONFIGURACIÓN -->
+<section id="tab-cfg" class="tab active">
+  <div class="panel">
+    <div class="row">
+      <div class="grow">
+        <label>Margen objetivo GB%</label>
+        <input id="inpGB" type="number" step="0.1" min="0" max="95" placeholder="30"/>
+      </div>
+      <div class="grow">
+        <label>BT (USD)</label>
+        <input id="inpBT" type="number" step="0.01" min="0" placeholder="7000"/>
+      </div>
+      <div class="grow">
+        <label>TRM por defecto (UI)</label>
+        <input id="inpTRMDef" type="number" step="0.01" min="0" placeholder="4200"/>
+      </div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button id="btnSaveCfg" class="primary">Guardar configuración</button>
+      <span class="muted">Se persiste por viaje en <span class="code">trip_settings</span></span>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:10px">
+    <div class="row">
+      <div class="grow">
+        <label>Overhead: descripción</label>
+        <input id="ovDesc" placeholder="Tiquetes, hotel, envío, etc."/>
+      </div>
+      <div class="grow">
+        <label>Categoría</label>
+        <input id="ovCat" placeholder="logística, transporte, aduana…"/>
+      </div>
+      <div>
+        <label>Moneda</label>
+        <select id="ovCur"><option>USD</option><option>COP</option></select>
+      </div>
+      <div>
+        <label>Monto</label>
+        <input id="ovAmt" type="number" step="0.01" min="0"/>
+      </div>
+      <div>
+        <label>Fecha</label>
+        <input id="ovDate" type="date"/>
+      </div>
+      <div>
+        <label>TRM manual (opcional)</label>
+        <input id="ovTRM" type="number" step="0.01" min="0" placeholder="auto"/>
+      </div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button id="btnAddOv" class="primary">+ Agregar overhead</button>
+      <span class="muted">Fija <span class="code">trm_used</span> y guarda USD/COP determinístico</span>
+    </div>
+
+    <div class="hr"></div>
+    <div class="row">
+      <div class="muted">Vista tabla Overheads (toggle arriba). Sin recalcular TRM.</div>
+    </div>
+    <table id="tblOv"><thead><tr>
+      <th>Fecha</th><th>Desc</th><th>Cat</th><th>Moneda</th><th>Monto</th><th>TRM usada</th><th>USD fijo</th><th>COP fijo</th>
+    </tr></thead><tbody></tbody></table>
+  </div>
+</section>
+
+<!-- CATÁLOGO -->
+<section id="tab-cat" class="tab">
+  <div class="panel">
+    <div class="row">
+      <input id="catName" class="grow" placeholder="Nombre / modelo"/>
+      <input id="catBrand" placeholder="Marca"/>
+      <input id="catCat" placeholder="Categoría"/>
+      <input id="catRef" type="number" step="1" min="0" placeholder="VR COP"/>
+      <button id="btnAddCat" class="primary">+ Agregar</button>
+    </div>
+    <div class="hr"></div>
+    <div class="row">
+      <input type="file" id="fileCatalog" accept=".xlsx,.xls,.csv"/>
+      <button id="btnPreview" class="small">Vista previa</button>
+      <button id="btnImport" class="small primary">Importar (≥100 en lote)</button>
+      <span class="muted">Mapeo: name, ref_cop | opcionales: brand, cat</span>
+    </div>
+    <div id="previewBox" class="muted" style="margin-top:8px"></div>
+    <div class="hr"></div>
+    <table id="tblCat"><thead><tr>
+      <th>Nombre</th><th>Marca</th><th>Cat</th><th>VR (COP)</th><th>Fuente</th><th>Creado</th>
+    </tr></thead><tbody></tbody></table>
+  </div>
+</section>
+
+<!-- SEMÁFORO OCR/ML -->
+<section id="tab-sem" class="tab">
+  <div class="panel">
+    <div class="row">
+      <input id="semText" class="grow" placeholder="Pega texto/sku si ya lo tienes…"/>
+      <button id="btnCam" class="small">📷 Cámara</button>
+      <input id="semFile" type="file" accept="image/*"/>
+      <button id="btnOCR" class="primary">Extraer & Buscar ML</button>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <video id="video" autoplay playsinline class="hidden" style="max-height:160px"></video>
+      <canvas id="canvas" class="hidden"></canvas>
+      <img id="imgPrev" class="img-preview hidden"/>
+      <div id="ocrOut" class="muted"></div>
+    </div>
+    <div class="hr"></div>
+    <div id="mlOut" class="panel" style="background:#0f1620"></div>
+  </div>
+</section>
+
+<!-- INVENTARIO -->
+<section id="tab-inv" class="tab">
+  <div class="panel">
+    <div class="row">
+      <input id="invName" class="grow" placeholder="Producto"/>
+      <input id="invStore" placeholder="Tienda"/>
+      <input id="invUnitUSD" type="number" step="0.01" min="0" placeholder="Costo USD"/>
+      <input id="invQty" type="number" step="1" min="1" value="1" placeholder="Qty"/>
+      <button id="btnAddInv" class="primary">+ Agregar</button>
+    </div>
+    <div class="hr"></div>
+    <table id="tblInv"><thead><tr>
+      <th>Producto</th><th>Tienda</th><th>Qty</th><th>Costo USD</th><th>VSV USD</th><th>Aporte USD</th><th>Margen USD</th>
+    </tr></thead><tbody></tbody></table>
+  </div>
+</section>
+
+<!-- VENTAS -->
+<section id="tab-ven" class="tab">
+  <div class="panel">
+    <div class="row">
+      <input id="venName" class="grow" placeholder="Producto vendido"/>
+      <input id="venStore" placeholder="Tienda"/>
+      <input id="venQty" type="number" step="1" min="1" value="1" placeholder="Qty"/>
+      <input id="venUnitUSD" type="number" step="0.01" min="0" placeholder="Costo USD"/>
+      <input id="venDate" type="date"/>
+      <input id="venTRM" type="number" step="0.01" min="0" placeholder="TRM (auto)"/>
+      <input id="venSaleCOP" type="number" step="1" min="0" placeholder="PVP COP"/>
+      <button id="btnAddSale" class="primary">+ Registrar venta</button>
+    </div>
+    <div class="hr"></div>
+    <table id="tblVen"><thead><tr>
+      <th>Fecha</th><th>Prod</th><th>Qty</th><th>Costo USD</th><th>TRM usada</th><th>Venta COP</th><th>Aporte USD</th><th>Profit USD</th>
+    </tr></thead><tbody></tbody></table>
+  </div>
+</section>
+
+<!-- REPORTES -->
+<section id="tab-rep" class="tab">
+  <div class="panel grid cols-2">
+    <div>
+      <div class="muted">Uso de BT (estimado)</div>
+      <b id="repUso">—</b>
+      <div class="muted">= (overheads USD + costo inventario USD) / BT</div>
+    </div>
+    <div>
+      <div class="muted">Ejecución real</div>
+      <b id="repReal">—</b>
+      <div class="muted">= (overheads USD + costo ventas ejecutadas USD) / BT</div>
+    </div>
+  </div>
+</section>
+
+<!-- LIBS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
 <script>
-/* ======= CONFIG SUPABASE (USA UMD) ======= */
-const SUPABASE_URL = "https://ucrkhrehdedmubykzfzs.supabase.co";
-const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcmtocmVoZGVkbXVieWt6ZnpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1OTc5MzgsImV4cCI6MjA3NzE3MzkzOH0.7CXUuyAPQlm_9RIKbaO9y8Kwjh9c6M7UJcu4xAIM7WA";
-const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+/*** ===========================
+ *  CONFIG SUPABASE
+ * ============================*/
+// TODO: Reemplaza por tus credenciales (proyecto público)
+const SUPABASE_URL = 'https://YOUR-PROJECT.ref.supabase.co';
+const SUPABASE_ANON_KEY = 'YOUR-ANON-KEY';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } });
 
-/* ======= ESTADO ======= */
-let BT = 7000;
-let GB = 30;
-let TRM = 4200;
-let OVERHEADS = [];
-let CATALOG = [];
-let INVENTORY = [];
-let SALES = [];
-let LAST_STORE = null;
-let camStream = null;
-
-/* ======= HELPERS ======= */
-const fmtUSD = n => "$" + (Number(n||0)).toFixed(2);
-const fmtCOP = n => "$" + (Math.round(Number(n||0))).toLocaleString("es-CO");
-const aportePorDolar = () => {
-  const V = OVERHEADS.reduce((s,o)=>s+Number(o.usd||0),0);
-  return BT>0? (V/BT) : 0;
+/*** ===========================
+ *  ESTADO APP
+ * ============================*/
+let state = {
+  tripId: null,
+  viewCurr: 'USD', // vista de tablas y KPIs
+  settings: null,  // trip_settings
+  trmToday: null,  // cache de TRM hoy para UI
+  cacheCatalog: [], cacheOv: [], cacheInv: [], cacheVen: []
 };
-const vsvUSD = (unitUSD) => Number(unitUSD) * (1 + GB/100 + aportePorDolar());
-const toCOP = (usd) => Number(usd)*Number(TRM);
-const $ = s => document.querySelector(s);
-const $$ = s => Array.from(document.querySelectorAll(s));
+const $ = sel => document.querySelector(sel);
 
-/* ======= TABS ======= */
-$$('.tab').forEach(t=>{
-  t.onclick=()=>{
-    $$('.tab').forEach(x=>x.classList.remove('active'));
-    t.classList.add('active');
-    const tab = t.dataset.tab;
-    ['config','catalog','semaforo','inventario','ventas','reportes'].forEach(id=>{
-      $('#panel-'+id).style.display = (id===tab?'block':'none');
-    });
-    if(tab==='ventas') fillSaleProducts();
-    if(tab==='inventario'){ renderInventory(); renderBudgetProgress(); }
-    if(tab==='reportes'){ renderReports(); }
-    if(tab==='semaforo'){ fillStoreDatalist(); showLastStoreChip(); }
-  };
+/*** ===========================
+ *  UTILIDADES
+ * ============================*/
+const fmtUSD = v => (v==null?'—':`$${Number(v).toFixed(2)} USD`);
+const fmtCOP = v => (v==null?'—':`$${Number(v).toLocaleString('es-CO')} COP`);
+const fmtPct = v => (v==null?'—':`${(100*Number(v)).toFixed(1)}%`);
+const todayISO = () => new Date().toISOString().slice(0,10);
+
+async function fetchTRMFromAPI(){
+  // open.er-api.com latest USD base; COP rate in data.rates.COP
+  try{
+    const r = await fetch('https://open.er-api.com/v6/latest/USD',{cache:'no-store'});
+    const j = await r.json();
+    if(j && j.result === 'success' && j.rates && j.rates.COP){
+      return Number(j.rates.COP);
+    }
+  }catch(e){ console.warn('TRM API error', e); }
+  return null;
+}
+
+// IQR outlier trimming
+function medianIQR(values){
+  const arr = values.filter(v=>Number.isFinite(v)).sort((a,b)=>a-b);
+  if(arr.length===0) return null;
+  const q1 = arr[Math.floor((arr.length/4))];
+  const q3 = arr[Math.floor((arr.length*3)/4)];
+  const iqr = q3 - q1;
+  const lo = q1 - 1.5*iqr, hi = q3 + 1.5*iqr;
+  const trimmed = arr.filter(v=>v>=lo && v<=hi);
+  const mid = Math.floor(trimmed.length/2);
+  if(trimmed.length===0) return null;
+  return (trimmed.length%2!==0) ? trimmed[mid] : (trimmed[mid-1]+trimmed[mid])/2;
+}
+
+/*** ===========================
+ *  TABS / UI
+ * ============================*/
+document.querySelectorAll('nav.tabs button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    const id = 'tab-'+btn.dataset.tab;
+    $('#'+id).classList.add('active');
+  });
+});
+$('#viewUSD').addEventListener('click',()=>{state.viewCurr='USD'; renderAll();});
+$('#viewCOP').addEventListener('click',()=>{state.viewCurr='COP'; renderAll();});
+$('#btnSync').addEventListener('click',()=>loadAll());
+$('#btnTRM').addEventListener('click',async ()=>{
+  const t = await fetchTRMFromAPI();
+  state.trmToday = t;
+  $('#kpiTRM').textContent = t? fmtCOP(t):'—';
 });
 
-/* ======= KPIs ======= */
-function renderKPIs(){
-  const V = OVERHEADS.reduce((s,o)=>s+Number(o.usd||0),0);
-  const comprasUSD = INVENTORY.reduce((s,p)=>s+(Number(p.unit_usd||0)*Number(p.qty||0)),0);
-  const realUSD = V + comprasUSD;
-
-  $('#kpiBT').textContent = fmtUSD(BT);
-  $('#kpiBTcop').textContent = fmtCOP(BT*TRM);
-  $('#kpiV').textContent = fmtUSD(V);
-  $('#kpiVcop').textContent = fmtCOP(V*TRM);
-  $('#kpiRO').textContent = (aportePorDolar()).toFixed(3);
-  $('#kpiTRM').textContent = fmtCOP(TRM) + " COP/USD";
-
-  $('#kpiComprasUSD').textContent = fmtUSD(comprasUSD);
-  $('#kpiComprasCOP').textContent = fmtCOP(comprasUSD*TRM);
-  $('#kpiRealUSD').textContent = fmtUSD(realUSD);
-  $('#kpiRealCOP').textContent = fmtCOP(realUSD*TRM);
-
-  renderBudgetProgress();
-}
-function renderBudgetProgress(){
-  const V = OVERHEADS.reduce((s,o)=>s+Number(o.usd||0),0);
-  const comprasUSD = INVENTORY.reduce((s,p)=>s+(Number(p.unit_usd||0)*Number(p.qty||0)),0);
-  const realUSD = V + comprasUSD;
-  const pct = Math.max(0, Math.min(100, BT>0 ? (realUSD/BT)*100 : 0));
-  $('#progBT').style.width = pct.toFixed(1)+"%";
-  $('#progBTText').textContent = `Uso de BT: ${pct.toFixed(1)}% — Real: ${fmtUSD(realUSD)} de ${fmtUSD(BT)}`;
-}
-
-/* ======= OVERHEADS ======= */
-async function loadOverheads(){
-  const {data,error} = await supa.from('overheads').select('*').order('created_at',{ascending:false});
-  if(!error && data){ OVERHEADS = data; renderOverheads(); renderKPIs(); }
-}
-function renderOverheads(){
-  const tb = $('#ohTbody'); tb.innerHTML="";
-  OVERHEADS.forEach(o=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${new Date(o.created_at).toLocaleString('es-CO')}</td>
-      <td>${o.description||''}</td>
-      <td>${o.cat||''}</td>
-      <td class="right">${fmtUSD(o.usd)}</td>
-      <td class="right">${fmtCOP(o.usd*TRM)}</td>
-      <td class="center"><button class="btn" data-del="${o.id}">🗑 Eliminar</button></td>
-    `;
-    tb.appendChild(tr);
-  });
-  tb.querySelectorAll('[data-del]').forEach(btn=>{
-    btn.onclick = async ()=>{
-      await supa.from('overheads').delete().eq('id', btn.dataset.del);
-      await loadOverheads();
-    };
-  });
-}
-$('#ohAdd').onclick = async ()=>{
-  const desc = $('#ohDesc').value.trim();
-  const cat = $('#ohCat').value.trim();
-  const usd = Number($('#ohUsd').value||0);
-  if(!desc || !usd){ alert('Ingresa descripción y valor USD'); return; }
-  await supa.from('overheads').insert({description:desc,cat,usd});
-  $('#ohDesc').value=''; $('#ohCat').value=''; $('#ohUsd').value='';
-  await loadOverheads();
-};
-
-/* ======= CATÁLOGO ======= */
-async function loadCatalog(){
-  const {data,error} = await supa.from('catalog').select('*').order('created_at',{ascending:false});
-  if(!error && data){ CATALOG = data; renderCatalog(); }
-}
-function renderCatalog(){
-  const tb = $('#catTbody'); tb.innerHTML="";
-  CATALOG.forEach(c=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`
-      <td>${new Date(c.created_at).toLocaleString('es-CO')}</td>
-      <td>${c.name||''}</td>
-      <td>${(c.brand||'')}${c.cat?(' / '+c.cat):''}</td>
-      <td class="right">${fmtCOP(c.ref_cop||0)}</td>
-      <td class="center"><button class="btn" data-del="${c.id}">🗑</button></td>
-    `;
-    tb.appendChild(tr);
-  });
-  tb.querySelectorAll('[data-del]').forEach(btn=>{
-    btn.onclick=async ()=>{
-      await supa.from('catalog').delete().eq('id', btn.dataset.del);
-      await loadCatalog();
-    };
-  });
-}
-$('#catAdd').onclick=async ()=>{
-  const name=$('#catName').value.trim();
-  const meta=$('#catMeta').value.trim();
-  const cop=Number($('#catCOP').value||0);
-  if(!name||!cop){ alert('Ingresa descripción y COP'); return; }
-  let brand=null, cat=null;
-  if(meta){ const p=meta.split('/').map(s=>s.trim()); brand=p[0]||null; cat=p[1]||null; }
-  await supa.from('catalog').insert({name,brand,cat,ref_cop:cop});
-  $('#catName').value=''; $('#catMeta').value=''; $('#catCOP').value='';
-  await loadCatalog();
-};
-$('#catSync').onclick = loadCatalog;
-
-/* ======= TIENDAS (sugerencias) ======= */
-function uniqueStores(){
-  const set = new Set();
-  INVENTORY.forEach(p=>{ if(p.store) set.add(p.store); });
-  SALES.forEach(s=>{ if(s.store) set.add(s.store); });
-  return Array.from(set);
-}
-function fillStoreDatalist(){
-  const dl = $('#storeList'); if(!dl) return; dl.innerHTML = "";
-  uniqueStores().forEach(st=>{ const opt=document.createElement('option'); opt.value=st; dl.appendChild(opt); });
-}
-function showLastStoreChip(){
-  const stores = uniqueStores();
-  LAST_STORE = stores.length? stores[0] : null;
-  const chip = $('#useLastStore'), name = $('#lastStoreName');
-  if(LAST_STORE){ chip.style.display='inline-flex'; name.textContent = LAST_STORE; }
-  else chip.style.display='none';
-}
-$('#useLastStore').onclick = ()=>{ if(LAST_STORE){ $('#svStore').value = LAST_STORE; } };
-
-/* ======= VR (Catálogo + MercadoLibre) ======= */
-async function buscarVR(descr){
-  const q = descr.toLowerCase();
-  let bestCat = null, bestScore=0;
-  CATALOG.forEach(c=>{
-    const t=((c.name||'')+' '+(c.brand||'')+' '+(c.cat||'')).toLowerCase();
-    const words = q.split(/\s+/).filter(w=>w.length>3);
-    let score=0; words.forEach(w=>{ if(t.includes(w)) score+=1; });
-    if(score>bestScore){ bestScore=score; bestCat=c; }
-  });
-
-  let mlCOP = null, mlDetail='';
-  try{
-    const r = await fetch('https://api.mercadolibre.com/sites/MCO/search?q='+encodeURIComponent(descr)+'&limit=5');
-    const j = await r.json();
-    if(j && j.results && j.results.length){
-      const precios = j.results.map(x=>x.price).filter(n=>n>0);
-      if(precios.length){ mlCOP = Math.round(precios.reduce((a,b)=>a+b,0)/precios.length);
-        mlDetail = j.results.map(x=>x.title).slice(0,3).join(' | '); }
-    }
-  }catch(e){}
-
-  const cCOP = bestCat? Number(bestCat.ref_cop||0) : null;
-  let src='—', vrCOP=null, srcDetail='';
-  if(cCOP && mlCOP){ vrCOP=Math.min(cCOP,mlCOP); src=(vrCOP===cCOP?'Catálogo':'MercadoLibre'); }
-  else if(cCOP){ vrCOP=cCOP; src='Catálogo'; }
-  else if(mlCOP){ vrCOP=mlCOP; src='MercadoLibre'; }
-  if(src==='Catálogo' && bestCat){ srcDetail=`${bestCat.name} ${(bestCat.brand?('('+bestCat.brand+')'):'')}`; }
-  if(src==='MercadoLibre' && mlDetail){ srcDetail = mlDetail; }
-  return { vrCOP, src, srcDetail };
-}
-
-/* ======= SEMÁFORO ======= */
-$('#svEval').onclick = async ()=>{
-  const name = $('#svName').value.trim();
-  const unit = Number($('#svUnitUSD').value||0);
-  const qty  = Number($('#svQty').value||0);
-  if(!name || unit<=0 || qty<=0){ alert('Completa nombre, costo y cantidad'); return; }
-
-  const vsvUsd = vsvUSD(unit);
-  const vsvCop = toCOP(vsvUsd);
-  const {vrCOP, src, srcDetail} = await buscarVR(name);
-
-  $('#svGB').textContent = GB.toFixed(0)+'%';
-  $('#svRO').textContent = aportePorDolar().toFixed(3);
-  $('#svTRM').textContent = fmtCOP(TRM);
-  $('#svVsvUsd').textContent = fmtUSD(vsvUsd);
-  $('#svVsvCop').textContent = fmtCOP(vsvCop);
-  $('#svVrCop').textContent = vrCOP? fmtCOP(vrCOP) : '—';
-  $('#svSource').textContent = src;
-  $('#svSourceDetail').textContent = srcDetail || '—';
-
-  const ratioEl = $('#svRatio'); ratioEl.className='chip';
-  let ratioTxt='—', explain='Sin referencia: ingresa precio manual.';
-  if(vrCOP){
-    const ratio=vsvCop/vrCOP; ratioTxt=ratio.toFixed(2);
-    if(ratio<0.85){ ratioEl.classList.add('ok'); explain='Verde: competitivo.'; }
-    else if(ratio<=0.95){ ratioEl.classList.add('warn'); explain='Amarillo: ajustar/rotación.'; }
-    else { ratioEl.classList.add('bad'); explain='Rojo: no viable.'; }
-  }
-  $('#svRatio').textContent=ratioTxt;
-  $('#svExplain').textContent=explain;
-  $('#svResult').style.display='block';
-};
-function requireStore(valueNow){
-  let store=(valueNow||'').trim();
-  if(!store){
-    const stores=uniqueStores();
-    const suggestion=stores.length?` (sugerencia: ${stores[0]})`:''; 
-    store = prompt('Ingresa la TIENDA para registrar en inventario'+suggestion, stores[0]||'')||''; 
-    store = store.trim();
-  }
-  return store || null;
-}
-$('#svAddToInv').onclick = async ()=>{
-  const name = $('#svName').value.trim();
-  const unit = Number($('#svUnitUSD').value||0);
-  const qty  = Number($('#svQty').value||0);
-  let store  = $('#svStore').value;
-  store = requireStore(store);
-  if(!name || unit<=0 || qty<=0){ alert('Completa los campos'); return; }
-  const estCOP = Number($('#svEstSellCOP').value||0);
-  if(estCOP<=0){ alert('Ingresa el PVP estimado (COP)'); return; }
-
-  const estUsdUnit = estCOP / TRM;
-  const apUSDunit  = unit*aportePorDolar();
-  const mgUSDunit  = estUsdUnit - unit - apUSDunit;
-
-  let {error} = await supa.from('products').insert({
-    name, store, unit_usd:unit, qty,
-    est_sell_cop:estCOP, est_sell_usd:estUsdUnit,
-    est_aporte_usd:apUSDunit, est_margin_usd:mgUSDunit
-  });
-  if(error && error.message && error.message.includes('est_')){
-    await supa.from('products').insert({name,store,unit_usd:unit,qty});
-  }
-  await loadInventory(); fillSaleProducts(); fillStoreDatalist(); showLastStoreChip(); renderKPIs();
-  alert('Artículo agregado al inventario.');
-  $('#svName').value=''; $('#svUnitUSD').value=''; $('#svQty').value='1'; $('#svEstSellCOP').value=''; $('#svStore').value='';
-  $('#svResult').style.display='none';
-};
-
-/* ======= INVENTARIO ======= */
-async function loadInventory(){
-  const {data,error} = await supa.from('products').select('*').order('created_at',{ascending:false});
-  if(!error && data){ INVENTORY = data; renderInventory(); fillStoreDatalist(); showLastStoreChip(); renderKPIs(); }
-}
-function renderInventory(){
-  const tb = $('#invTbody'); tb.innerHTML="";
-  const V = OVERHEADS.reduce((s,o)=>s+Number(o.usd||0),0);
-  const aporteAcumUSD = INVENTORY.reduce((s,p)=> s + (Number(p.unit_usd||0)*aportePorDolar()*Number(p.qty||0)), 0);
-  const prog = Math.min(100, (V>0 ? (aporteAcumUSD/V)*100 : 0));
-  $('#invProgress').style.width = prog.toFixed(1)+'%';
-  $('#invProgressText').textContent = `Cobertura de costos del viaje: ${prog.toFixed(1)}% (${fmtUSD(aporteAcumUSD)} de ${fmtUSD(V)})`;
-
-  INVENTORY.forEach(p=>{
-    const estCOP = (p.est_sell_cop!=null)? Number(p.est_sell_cop) : null;
-    const estUSD = (p.est_sell_usd!=null)? Number(p.est_sell_usd) : (estCOP? estCOP/TRM : null);
-    const apUSDunit = (p.est_aporte_usd!=null)? Number(p.est_aporte_usd) : (Number(p.unit_usd||0)*aportePorDolar());
-    const mgUSDunit = (p.est_margin_usd!=null)? Number(p.est_margin_usd) : (estUSD!=null? (estUSD-Number(p.unit_usd||0)-apUSDunit) : null);
-
-    const tr=document.createElement('tr');
-    tr.innerHTML=`
-      <td>${new Date(p.created_at).toLocaleString('es-CO')}</td>
-      <td>${p.name||''}</td>
-      <td>${p.store? p.store : '—'}</td>
-      <td class="right">${fmtUSD(p.unit_usd||0)} × ${Number(p.qty||0)}</td>
-      <td class="right">${estCOP!=null? fmtCOP(estCOP): '—'}</td>
-      <td class="right">${fmtUSD(apUSDunit)}</td>
-      <td class="right">${mgUSDunit!=null? fmtUSD(mgUSDunit): '—'}</td>
-      <td class="center"><button class="btn" data-del="${p.id}">🗑</button></td>
-    `;
-    tb.appendChild(tr);
-  });
-  tb.querySelectorAll('[data-del]').forEach(btn=>{
-    btn.onclick=async ()=>{
-      await supa.from('products').delete().eq('id', btn.dataset.del);
-      await loadInventory(); fillSaleProducts(); renderKPIs();
-    };
-  });
-}
-
-/* ======= VENTAS ======= */
-async function loadSales(){
-  const {data,error} = await supa.from('sales').select('*').order('created_at',{ascending:false});
-  if(!error && data){ SALES = data; renderSales(); fillStoreDatalist(); renderReports(); }
-}
-function fillSaleProducts(){
-  const sel = $('#saleProduct'); sel.innerHTML="";
-  INVENTORY.forEach(p=>{
-    const opt=document.createElement('option');
-    opt.value = p.id;
-    opt.textContent = `${p.name} — ${fmtUSD(p.unit_usd)} × ${p.qty}${p.store?(' @ '+p.store):''}`;
+/*** ===========================
+ *  VIAJES
+ * ============================*/
+async function loadTrips(){
+  const { data, error } = await sb.from('trips').select('*').order('created_at',{ascending:false});
+  if(error) { alert('Error cargando viajes: '+error.message); return; }
+  const sel = $('#tripSelect');
+  sel.innerHTML = '';
+  data.forEach(r=>{
+    const opt = document.createElement('option');
+    opt.value = r.id; opt.textContent = `${r.name} (#${r.id})`;
     sel.appendChild(opt);
   });
+  if(data.length && !state.tripId){ state.tripId = data[0].id; }
+  if(state.tripId){ sel.value = state.tripId; }
+  sel.onchange = ()=>{ state.tripId = Number(sel.value); loadAll(); };
 }
-function renderSales(){
-  const tb = $('#salesTbody'); tb.innerHTML="";
-  SALES.forEach(s=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`
-      <td>${new Date(s.created_at).toLocaleString('es-CO')}</td>
-      <td>${s.product_name||'—'}</td>
-      <td>${s.store||'—'}</td>
-      <td class="right">${s.qty||0}</td>
-      <td class="right">${fmtCOP(s.sale_cop||0)}</td>
-      <td class="right">${fmtUSD(s.aporte_usd||0)}</td>
-      <td class="right">${fmtUSD(s.profit_usd||0)}</td>
-      <td class="center"><button class="btn" data-del="${s.id}">🗑</button></td>
+
+async function createTrip(name){
+  if(!name) return;
+  const { data, error } = await sb.from('trips').insert({name}).select().single();
+  if(error){ alert(error.message); return; }
+  // crea settings por defecto
+  await sb.rpc('upsert_trip_settings', { p_trip_id: data.id, p_bt_usd: 7000, p_gb_pct: 30, p_default_trm: 4200 });
+  state.tripId = data.id;
+  await loadTrips(); await loadAll();
+}
+async function duplicateTrip(fromId, name){
+  if(!fromId || !name) return;
+  const { data: trip, error } = await sb.from('trips').insert({name, notes: `Duplicado de ${fromId}`}).select().single();
+  if(error){ alert(error.message); return; }
+  const newId = trip.id;
+  // dup settings
+  const { data: set } = await sb.from('trip_settings').select('*').eq('trip_id', fromId).maybeSingle();
+  await sb.rpc('upsert_trip_settings', { p_trip_id: newId, p_bt_usd: set?.bt_usd ?? 7000, p_gb_pct: set?.gb_pct ?? 30, p_default_trm: set?.default_trm ?? 4200 });
+
+  // dup catálogo (VR)
+  await sb.rpc('upsert_catalog_batch', { p_rows: JSON.stringify(
+    (await sb.from('catalog').select('*').eq('trip_id', fromId)).data?.map(r=>({
+      trip_id: newId, name: r.name, brand: r.brand, cat: r.cat, ref_cop: r.ref_cop, source: r.source
+    })) ?? []
+  )});
+  state.tripId = newId; await loadTrips(); await loadAll();
+}
+
+// UI botones viajes
+$('#btnNewTrip').addEventListener('click',()=> {
+  const n = prompt('Nombre del viaje (ej: Orlando Nov 7 2025)');
+  createTrip(n);
+});
+$('#btnDupTrip').addEventListener('click',async ()=>{
+  const from = state.tripId || Number(prompt('ID de viaje origen'));
+  const name = prompt('Nombre del nuevo viaje duplicado');
+  if(from && name) await duplicateTrip(from, name);
+});
+
+/*** ===========================
+ *  SETTINGS (BT, GB, TRM por defecto)
+ * ============================*/
+async function loadTripSettings(tripId){
+  const { data, error } = await sb.from('trip_settings').select('*').eq('trip_id', tripId).maybeSingle();
+  if(error){ alert('Error settings: '+error.message); return; }
+  state.settings = data || { trip_id: tripId, bt_usd:7000, gb_pct:30, default_trm:4200, updated_at:null };
+  $('#inpBT').value = state.settings.bt_usd ?? 7000;
+  $('#inpGB').value = state.settings.gb_pct ?? 30;
+  $('#inpTRMDef').value = state.settings.default_trm ?? 4200;
+  $('#kpiBT').textContent = fmtUSD(state.settings.bt_usd ?? 0);
+  $('#kpiUpdated').textContent = 'Actualizado: ' + (state.settings.updated_at ? new Date(state.settings.updated_at).toLocaleString() : '—');
+}
+$('#btnSaveCfg').addEventListener('click', async ()=>{
+  if(!state.tripId) return;
+  const bt = Number($('#inpBT').value), gb = Number($('#inpGB').value), dtrm = Number($('#inpTRMDef').value);
+  await sb.rpc('upsert_trip_settings', { p_trip_id: state.tripId, p_bt_usd: bt, p_gb_pct: gb, p_default_trm: dtrm });
+  await loadTripSettings(state.tripId);
+  await renderAll();
+});
+
+/*** ===========================
+ *  TRM: ensure en DB (vía RPC)
+ * ============================*/
+async function ensureTRM(dateISO){
+  const d = dateISO || todayISO();
+  // intenta TRM de API si no hay override en UI
+  let trm = await fetchTRMFromAPI();
+  if(!trm) trm = Number($('#inpTRMDef').value || state.settings?.default_trm || 4200);
+  const { data, error } = await sb.rpc('ensure_trm', { p_date: d, p_trm: trm });
+  if(error){ console.warn('ensure_trm', error); }
+  return data ?? trm;
+}
+
+/*** ===========================
+ *  OVERHEADS
+ * ============================*/
+async function addOverhead(payload){
+  const { trip_id, description, cat, currency, amount, date, trmManual } = payload;
+  const trm = trmManual>0 ? trmManual : await ensureTRM(date);
+  const { data, error } = await sb.rpc('add_overhead', {
+    p_trip_id: trip_id, p_description: description, p_cat: cat,
+    p_currency: currency, p_amount: amount, p_date: date, p_trm: trm
+  });
+  if(error){ alert('Error overhead: '+error.message); return; }
+}
+$('#btnAddOv').addEventListener('click', async ()=>{
+  if(!state.tripId) return;
+  const desc=$('#ovDesc').value.trim(), cat=$('#ovCat').value.trim(), cur=$('#ovCur').value;
+  const amt=Number($('#ovAmt').value), date=$('#ovDate').value || todayISO();
+  const trmManual = Number($('#ovTRM').value);
+  if(!amt || amt<=0){ alert('Monto inválido'); return; }
+  await addOverhead({trip_id: state.tripId, description:desc, cat, currency:cur, amount:amt, date, trmManual});
+  $('#ovDesc').value=''; $('#ovCat').value=''; $('#ovAmt').value=''; $('#ovTRM').value='';
+  await loadOverheads(); await renderKPIs(); await renderReportes();
+});
+
+async function loadOverheads(){
+  const { data, error } = await sb.from('overheads')
+    .select('*').eq('trip_id', state.tripId).order('created_at',{ascending:false});
+  if(error){ console.warn(error); return; }
+  state.cacheOv = data||[];
+  renderOverheads();
+}
+function renderOverheads(){
+  const tb = $('#tblOv tbody'); tb.innerHTML='';
+  const viewUSD = state.viewCurr==='USD';
+  $('#lblVista').textContent = state.viewCurr;
+  state.cacheOv.forEach(r=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${new Date(r.created_at).toLocaleDateString()}</td>
+      <td>${r.description||''}</td>
+      <td>${r.cat||''}</td>
+      <td>${r.currency}</td>
+      <td>${ viewUSD ? fmtUSD(r.currency==='USD'?r.amount_usd:r.amount_usd_fixed)
+                     : fmtCOP(r.currency==='COP'?r.amount_cop:r.amount_cop_fixed) }</td>
+      <td>${fmtCOP(r.trm_used)}</td>
+      <td>${fmtUSD(r.amount_usd_fixed)}</td>
+      <td>${fmtCOP(r.amount_cop_fixed)}</td>
     `;
     tb.appendChild(tr);
   });
-  tb.querySelectorAll('[data-del]').forEach(btn=>{
-    btn.onclick=async ()=>{
-      await supa.from('sales').delete().eq('id', btn.dataset.del);
-      await loadSales();
-    };
+}
+
+/*** ===========================
+ *  CATÁLOGO
+ * ============================*/
+async function loadCatalog(){
+  const { data, error } = await sb.from('catalog').select('*').eq('trip_id', state.tripId).order('created_at',{ascending:false});
+  if(error){ console.warn(error); return; }
+  state.cacheCatalog = data||[];
+  renderCatalog();
+}
+function renderCatalog(){
+  const tb = $('#tblCat tbody'); tb.innerHTML='';
+  state.cacheCatalog.forEach(r=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.name}</td><td>${r.brand||''}</td><td>${r.cat||''}</td>
+      <td>${fmtCOP(r.ref_cop)}</td><td>${r.source||''}</td>
+      <td>${new Date(r.created_at).toLocaleString()}</td>`;
+    tb.appendChild(tr);
   });
 }
-$('#saleSave').onclick = async ()=>{
-  const pid = $('#saleProduct').value;
-  const p = INVENTORY.find(x=>String(x.id)===String(pid));
-  if(!p){ alert('Selecciona un producto'); return; }
-  const qty = Number($('#saleQty').value||0);
-  const saleCOP = Number($('#saleCOP').value||0);
-  if(qty<=0 || saleCOP<=0){ alert('Cantidad y PVP COP > 0'); return; }
+$('#btnAddCat').addEventListener('click', async ()=>{
+  const name=$('#catName').value.trim(); if(!name){ alert('Nombre requerido'); return; }
+  const ref=Number($('#catRef').value); if(!(ref>0)){ alert('VR COP inválido'); return; }
+  const brand=$('#catBrand').value.trim()||''; const cat=$('#catCat').value.trim()||'';
+  const row = { trip_id: state.tripId, name, brand, cat, ref_cop: ref, source: 'manual' };
+  await sb.rpc('upsert_catalog_batch', { p_rows: JSON.stringify([row]) });
+  $('#catName').value=''; $('#catBrand').value=''; $('#catCat').value=''; $('#catRef').value='';
+  await loadCatalog();
+});
 
-  const apUSDunit = Number(p.unit_usd||0)*aportePorDolar();
-  const saleUSDunit = saleCOP/TRM;
-  const profitUSDunit = saleUSDunit - Number(p.unit_usd||0) - apUSDunit;
+/*** Import Excel/CSV ***/
+let parsedCatalog = [];
+$('#btnPreview').addEventListener('click', async ()=>{
+  const f = $('#fileCatalog').files?.[0];
+  if(!f){ alert('Selecciona un archivo'); return; }
+  const data = await f.arrayBuffer();
+  const wb = XLSX.read(data, { type:'array' });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const json = XLSX.utils.sheet_to_json(ws, { defval:'', raw:true });
+  parsedCatalog = json.map(r=>({
+    trip_id: state.tripId,
+    name: String(r.name || r.Nombre || r.NOMBRE || '').trim(),
+    brand: String(r.brand || r.Marca || '').trim(),
+    cat: String(r.cat || r.Categoria || r.category || '').trim(),
+    ref_cop: Number(r.ref_cop || r.VR || r.VR_COP || 0),
+    source: 'manual'
+  }));
+  // validación
+  const errs = [];
+  const ok = parsedCatalog.filter((r,i)=>{
+    const valid = r.name && r.ref_cop>0;
+    if(!valid) errs.push(`Fila ${i+2}: name/ref_cop inválidos`);
+    return valid;
+  });
+  const prev = ok.slice(0,50).map(r=>`${r.name} | ${r.brand} | ${r.cat} | ${r.ref_cop}`).join('<br>');
+  $('#previewBox').innerHTML = `<b>Preview (50):</b><br>${prev || '—'}<div class="warn">${errs.length?errs.length+' errores':''}</div>`;
+});
+$('#btnImport').addEventListener('click', async ()=>{
+  if(parsedCatalog.length<1){ alert('Primero vista previa'); return; }
+  await sb.rpc('upsert_catalog_batch', { p_rows: JSON.stringify(parsedCatalog) });
+  parsedCatalog = [];
+  $('#previewBox').innerHTML = '<span class="ok">Importado.</span>';
+  await loadCatalog();
+});
 
-  let ins = {
-    product_id: p.id,
-    product_name: p.name,
-    store: p.store||null,
-    qty,
-    unit_usd: p.unit_usd,
-    trm_used: TRM,
-    sale_cop: saleCOP,
-    aporte_usd: apUSDunit*qty,
-    profit_usd: profitUSDunit*qty
+/*** ===========================
+ *  SEMÁFORO: OCR + MercadoLibre
+ * ============================*/
+let stream;
+$('#btnCam').addEventListener('click', async ()=>{
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({video:true});
+    const v = $('#video'); v.srcObject = stream; v.classList.remove('hidden');
+  }catch(e){ alert('Cámara no disponible'); }
+});
+$('#btnOCR').addEventListener('click', async ()=>{
+  const file = $('#semFile').files?.[0];
+  let text = ($('#semText').value||'').trim();
+  if(!text && (stream || file)){
+    // captura de frame o file
+    if(stream){
+      const v=$('#video'), c=$('#canvas'); c.width=v.videoWidth; c.height=v.videoHeight;
+      const ctx = c.getContext('2d'); ctx.drawImage(v,0,0); const blob = await new Promise(res=>c.toBlob(res,'image/png'));
+      text = await ocrBlob(blob);
+    } else if(file){
+      $('#imgPrev').classList.remove('hidden'); $('#imgPrev').src = URL.createObjectURL(file);
+      text = await ocrBlob(file);
+    }
+  }
+  if(!text){ alert('Sin texto/imagen.'); return; }
+  $('#ocrOut').innerHTML = `<b>OCR/Texto:</b> <span class="muted">${text.slice(0,220)}…</span>`;
+  const vr = await fetchMLandCompute(text);
+  renderMLResult(vr);
+});
+async function ocrBlob(blob){
+  try{
+    const worker = await Tesseract.createWorker('spa','eng'); // eng+spa
+    const { data } = await worker.recognize(blob);
+    await worker.terminate();
+    return (data?.text || '').replace(/\s+/g,' ').trim();
+  }catch(e){ console.warn(e); return ''; }
+}
+async function fetchMLandCompute(query){
+  // Heurística simple: limpia y reduce
+  const q = encodeURIComponent(query.slice(0,120));
+  const url = `https://api.mercadolibre.com/sites/MCO/search?q=${q}`;
+  const r = await fetch(url); const j = await r.json();
+  const prices = (j.results||[]).map(x=>Number(x.price)).filter(x=>x>0);
+  const med = medianIQR(prices);
+  return { query, count: prices.length, median: med, sample: prices.slice(0,10) };
+}
+function renderMLResult(v){
+  if(!v){ $('#mlOut').innerHTML = '<span class="danger">Sin resultados.</span>'; return; }
+  const html = `
+    <div class="row"><div class="grow">
+      <div class="muted">Resultados ML: <b>${v.count}</b></div>
+      <div>VR propuesto (p50/IQR): <b>${v.median?fmtCOP(v.median):'—'}</b></div>
+      <div class="muted">Muestra: ${v.sample.map(x=>fmtCOP(x)).join(' · ')}</div>
+    </div>
+    <div>
+      <input id="mlName" placeholder="Nombre catálogo"/>
+      <input id="mlBrand" placeholder="Marca (opcional)"/>
+      <input id="mlCat" placeholder="Cat (opcional)"/>
+      <button id="btnSaveVR" class="primary">Guardar en catálogo</button>
+    </div></div>`;
+  $('#mlOut').innerHTML = html;
+  $('#btnSaveVR').onclick = async ()=>{
+    const name = $('#mlName').value.trim(); if(!name){ alert('Nombre requerido'); return; }
+    const brand = $('#mlBrand').value.trim(); const cat = $('#mlCat').value.trim();
+    const row = { trip_id: state.tripId, name, brand, cat, ref_cop: v.median||0, source:'ML' };
+    await sb.rpc('upsert_catalog_batch', { p_rows: JSON.stringify([row]) });
+    await loadCatalog();
+    alert('Guardado en catálogo.');
   };
-  await supa.from('sales').insert(ins);
-  await loadSales();
-  alert('Venta registrada');
-  $('#saleQty').value='1'; $('#saleCOP').value='';
-};
+}
 
-/* ======= REPORTES ======= */
-function renderReports(){
-  // Estimado (inventario)
-  let estCostUSD=0, estAporteUSD=0, estMarginUSD=0, estVentaCOP=0;
-  INVENTORY.forEach(p=>{
-    const qty=Number(p.qty||0);
-    const apUSDunit = (p.est_aporte_usd!=null)? Number(p.est_aporte_usd) : (Number(p.unit_usd||0)*aportePorDolar());
-    const estCOP = (p.est_sell_cop!=null)? Number(p.est_sell_cop) : null;
-    const estUSD = (p.est_sell_usd!=null)? Number(p.est_sell_usd) : (estCOP? estCOP/TRM : null);
-    const mgUSDunit = (p.est_margin_usd!=null)? Number(p.est_margin_usd) : (estUSD!=null? (estUSD-Number(p.unit_usd||0)-apUSDunit) : 0);
-
-    estCostUSD   += Number(p.unit_usd||0)*qty;
-    estAporteUSD += apUSDunit*qty;
-    estMarginUSD += (mgUSDunit||0)*qty;
-    if(estCOP!=null) estVentaCOP += estCOP*qty;
+/*** ===========================
+ *  INVENTARIO
+ * ============================*/
+async function loadInv(){
+  const { data, error } = await sb.from('products').select('*').eq('trip_id', state.tripId).order('created_at',{ascending:false});
+  if(error){ console.warn(error); return; }
+  state.cacheInv = data||[];
+  renderInv();
+}
+function computeROSync(){
+  // rO = sum(overheads.usd_fixed)/BT
+  const bt = Number(state.settings?.bt_usd || 0) || 0;
+  const sumOv = (state.cacheOv||[]).reduce((a,r)=>a+Number(r.amount_usd_fixed||0),0);
+  return bt>0 ? (sumOv / bt) : 0;
+}
+function deriveEstimates(p){
+  const gb = Number(state.settings?.gb_pct||0)/100;
+  const rO = computeROSync();
+  const vsv = Number(p.unit_usd)*(1 + gb + rO);
+  const aporte = Number(p.unit_usd)*rO;
+  const margen = vsv - Number(p.unit_usd) - aporte;
+  return { vsv, aporte, margen };
+}
+function renderInv(){
+  const tb = $('#tblInv tbody'); tb.innerHTML='';
+  state.cacheInv.forEach(r=>{
+    const { vsv, aporte, margen } = deriveEstimates(r);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.name}</td><td>${r.store||''}</td><td>${r.qty}</td>
+      <td>${fmtUSD(r.unit_usd)}</td><td>${fmtUSD(vsv)}</td>
+      <td>${fmtUSD(aporte)}</td><td>${fmtUSD(margen)}</td>`;
+    tb.appendChild(tr);
   });
-  $('#repEst').innerHTML = `
-    <div>Ventas estimadas: <b>${fmtCOP(estVentaCOP)}</b></div>
-    <div>COGS (USD): <b>${fmtUSD(estCostUSD)}</b></div>
-    <div>Aporte estimado (USD): <b>${fmtUSD(estAporteUSD)}</b></div>
-    <div>Margen estimado (USD): <b>${fmtUSD(estMarginUSD)}</b></div>
-  `;
+  // KPI compras acumuladas (USD)
+  const sumUSD = (state.cacheInv||[]).reduce((a,r)=>a + Number(r.unit_usd||0)*Number(r.qty||1), 0);
+  $('#kpiCompras').textContent = state.viewCurr==='USD' ? fmtUSD(sumUSD) : fmtCOP(sumUSD * (state.settings?.default_trm||4200));
+}
+$('#btnAddInv').addEventListener('click', async ()=>{
+  const name=$('#invName').value.trim(); if(!name) return alert('Nombre');
+  const store=$('#invStore').value.trim(); const unit=Number($('#invUnitUSD').value); if(!(unit>=0)) return alert('USD inválido');
+  const qty=Number($('#invQty').value||1);
+  const { vsv, aporte, margen } = deriveEstimates({unit_usd:unit});
+  const row = { trip_id: state.tripId, name, store, unit_usd: unit, qty,
+    est_sell_usd: vsv, est_aporte_usd: aporte, est_margin_usd: margen };
+  const { error } = await sb.from('products').insert(row);
+  if(error){ alert(error.message); return; }
+  $('#invName').value=''; $('#invStore').value=''; $('#invUnitUSD').value=''; $('#invQty').value=1;
+  await loadInv(); await renderKPIs(); await renderReportes();
+});
 
-  // Realizado (ventas)
-  let realCOP=0, realAporteUSD=0, realProfitUSD=0;
-  SALES.forEach(s=>{
-    realCOP += Number(s.sale_cop||0);
-    realAporteUSD += Number(s.aporte_usd||0);
-    realProfitUSD += Number(s.profit_usd||0);
+/*** ===========================
+ *  VENTAS
+ * ============================*/
+async function loadSales(){
+  const { data, error } = await sb.from('sales').select('*').eq('trip_id', state.tripId).order('created_at',{ascending:false});
+  if(error){ console.warn(error); return; }
+  state.cacheVen = data||[];
+  renderSales();
+}
+function renderSales(){
+  const tb = $('#tblVen tbody'); tb.innerHTML='';
+  state.cacheVen.forEach(r=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${new Date(r.created_at).toLocaleDateString()}</td>
+      <td>${r.product_name||''}</td><td>${r.qty}</td>
+      <td>${fmtUSD(r.unit_usd)}</td><td>${fmtCOP(r.trm_used)}</td>
+      <td>${fmtCOP(r.sale_cop)}</td><td>${fmtUSD(r.aporte_usd)}</td><td>${fmtUSD(r.profit_usd)}</td>`;
+    tb.appendChild(tr);
   });
-  $('#repReal').innerHTML = `
-    <div>Ventas realizadas: <b>${fmtCOP(realCOP)}</b> (${fmtUSD(realCOP/TRM)})</div>
-    <div>Aporte a costos (USD): <b>${fmtUSD(realAporteUSD)}</b></div>
-    <div>Utilidad (USD): <b>${fmtUSD(realProfitUSD)}</b></div>
-  `;
+}
+$('#btnAddSale').addEventListener('click', async ()=>{
+  const name=$('#venName').value.trim(); if(!name) return alert('Producto');
+  const store=$('#venStore').value.trim(); const qty=Number($('#venQty').value||1);
+  const unit=Number($('#venUnitUSD').value||0);
+  const date=$('#venDate').value || todayISO();
+  let trm = Number($('#venTRM').value||0); if(!(trm>0)) trm = await ensureTRM(date);
+  const saleCOP=Number($('#venSaleCOP').value||0);
+  // costo ventas ejecutadas (USD) = unit_usd * qty
+  const aporteUSD = computeROSync()*unit*qty;
+  const profitUSD = (saleCOP/trm) - (unit*qty) - aporteUSD;
+  const row = { trip_id: state.tripId, product_name:name, store, qty, unit_usd:unit,
+                trm_used: trm, sale_cop: saleCOP, aporte_usd: aporteUSD, profit_usd: profitUSD };
+  const { error } = await sb.from('sales').insert(row);
+  if(error){ alert(error.message); return; }
+  ['venName','venStore','venQty','venUnitUSD','venTRM','venSaleCOP'].forEach(id=>$('#'+id).value='');
+  await loadSales(); await renderReportes();
+});
+
+/*** ===========================
+ *  KPI & REPORTES
+ * ============================*/
+async function renderKPIs(){
+  $('#kpiBT').textContent = fmtUSD(state.settings?.bt_usd);
+  const sumOvUSD = (state.cacheOv||[]).reduce((a,r)=>a+Number(r.amount_usd_fixed||0),0);
+  $('#kpiOV').textContent = state.viewCurr==='USD' ? fmtUSD(sumOvUSD) : fmtCOP(sumOvUSD * (state.settings?.default_trm||4200));
+  const rO = computeROSync();
+  $('#kpiRO').textContent = fmtPct(rO);
+  $('#lblVista').textContent = state.viewCurr;
+}
+function sumInvUSD(){ return (state.cacheInv||[]).reduce((a,r)=>a+Number(r.unit_usd||0)*Number(r.qty||1),0); }
+function sumSalesCostUSD(){ return (state.cacheVen||[]).reduce((a,r)=>a+Number(r.unit_usd||0)*Number(r.qty||1),0); }
+
+async function renderReportes(){
+  const bt = Number(state.settings?.bt_usd||0);
+  const ovUSD = (state.cacheOv||[]).reduce((a,r)=>a+Number(r.amount_usd_fixed||0),0);
+  const invUSD = sumInvUSD();
+  const realCostUSD = ovUSD + sumSalesCostUSD();
+  const uso = bt>0 ? (ovUSD + invUSD)/bt : 0;
+  const ejec = bt>0 ? realCostUSD/bt : 0;
+
+  const toMoney = (v)=> state.viewCurr==='USD' ? fmtUSD(v) : fmtCOP(v*(state.settings?.default_trm||4200));
+  $('#repUso').innerHTML = `${toMoney(ovUSD)} + ${toMoney(invUSD)} ⇒ <b>${(100*uso).toFixed(1)}%</b>`;
+  $('#repReal').innerHTML = `${toMoney(ovUSD)} + ${toMoney(sumSalesCostUSD())} ⇒ <b>${(100*ejec).toFixed(1)}%</b>`;
 }
 
-/* ======= TRM ======= */
-async function fetchTRM(){
-  try{
-    const r = await fetch('https://open.er-api.com/v6/latest/USD');
-    const j = await r.json();
-    if(j && j.rates && j.rates.COP){
-      TRM = Number(j.rates.COP);
-      $('#inpTRM').value = TRM;
-      renderKPIs(); renderInventory(); renderReports();
-      alert('TRM actualizada');
-    }else throw new Error('Sin rates');
-  }catch(e){
-    alert('No se pudo actualizar TRM. Ingresa manual.');
-  }
+function renderAll(){ renderOverheads(); renderInv(); renderKPIs(); renderReportes(); }
+
+/*** ===========================
+ *  LOAD ALL
+ * ============================*/
+async function loadAll(){
+  if(!state.tripId) return;
+  await loadTripSettings(state.tripId);
+  await Promise.all([loadOverheads(), loadCatalog(), loadInv(), loadSales()]);
+  if(state.trmToday==null){ state.trmToday = await fetchTRMFromAPI(); }
+  $('#kpiTRM').textContent = state.trmToday? fmtCOP(state.trmToday):'—';
+  renderAll();
 }
-$('#btnFetchTRM').onclick=fetchTRM;
-$('#btnManualTRM').onclick=()=>{
-  const v=prompt('TRM (COP/USD):', String(TRM));
-  if(v){ TRM=Number(v); $('#inpTRM').value=TRM; renderKPIs(); renderInventory(); renderReports(); }
-};
-$('#inpTRM').onchange=()=>{
-  const v=Number($('#inpTRM').value||0);
-  if(v>0){ TRM=v; renderKPIs(); renderInventory(); renderReports(); }
-};
 
-/* ======= SYNC ======= */
-async function syncAll(){
-  await Promise.all([loadOverheads(), loadCatalog(), loadInventory(), loadSales()]);
-  renderKPIs(); fillSaleProducts(); renderReports(); fillStoreDatalist(); showLastStoreChip();
-}
-$('#btnSync').onclick = syncAll;
-
-/* ======= CONFIG LISTENERS ======= */
-$('#inpBT').onchange=()=>{ BT = Number($('#inpBT').value||7000); renderKPIs(); renderInventory(); renderReports(); };
-$('#inpGB').onchange=()=>{ GB = Number($('#inpGB').value||30); renderKPIs(); renderInventory(); renderReports(); };
-
-/* ======= CÁMARA + OCR ======= */
-const videoEl = $('#camVideo');
-const canvasEl = $('#camCanvas');
-const btnStart = $('#camStart');
-const btnShot  = $('#camShot');
-const btnStop  = $('#camStop');
-
-function cameraSupported(){
-  return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
-}
-if(!cameraSupported()){
-  $('#camHint').textContent = 'Este navegador no soporta cámara (getUserMedia). Prueba Chrome móvil/desktop en HTTPS.';
-}
-async function startCamera(){
-  try{
-    camStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' }, audio:false });
-    videoEl.srcObject = camStream;
-    await videoEl.play();
-    btnStart.disabled = true; btnShot.disabled = false; btnStop.disabled = false;
-  }catch(e){
-    alert('No se pudo abrir la cámara. Usa HTTPS o localhost y concede permisos.');
-  }
-}
-function stopCamera(){
-  if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
-  videoEl.pause(); videoEl.srcObject=null;
-  btnStart.disabled=false; btnShot.disabled=true; btnStop.disabled=true;
-}
-async function shotAndOCR(){
-  if(!videoEl.videoWidth){ alert('La cámara no está lista aún.'); return; }
-  canvasEl.width = videoEl.videoWidth;
-  canvasEl.height = videoEl.videoHeight;
-  const ctx = canvasEl.getContext('2d');
-  ctx.drawImage(videoEl,0,0,canvasEl.width,canvasEl.height);
-  const dataURL = canvasEl.toDataURL('image/png');
-
-  const res = await Tesseract.recognize(dataURL,'eng+spa',{ logger:m=>console.log(m) });
-  const text = (res && res.data && res.data.text) ? res.data.text : '';
-  if(!text.trim()){ alert('No se leyó texto. Intenta de nuevo con mejor iluminación.'); return; }
-
-  const priceMatch = text.match(/\$?\s?(\d{1,4}(?:[.,]\d{2})?)/);
-  if(priceMatch){
-    let val = priceMatch[1].replace(',','.');
-    const num = Number(val);
-    if(num>0 && num<10000){ $('#svUnitUSD').value = String(num); }
-  }
-  const lines = text.split('\n').map(s=>s.trim()).filter(Boolean);
-  const brands = ['NIKE','ADIDAS','PUMA','CONVERSE','LEVI','TOMMY','COACH','MICHAEL KORS','SAMSUNG','APPLE','SONY','BOSE','HP','DELL'];
-  let brand = lines.find(l=>brands.some(b=>l.toUpperCase().includes(b)));
-  let model = lines.find(l=> l.length>3 && !/\$|\bprice\b|\bstyle\b|\bsize\b/i.test(l));
-  const desc = (brand?brand+' ':'') + (model?model:'');
-  if(desc.trim().length>=4){ $('#svName').value = desc.trim(); }
-
-  if($('#svName').value.trim().length>=4){ $('#svEval').click(); }
-}
-btnStart.onclick = ()=> { if(!cameraSupported()){ alert('getUserMedia no soportado'); return; } startCamera(); };
-btnShot.onclick  = shotAndOCR;
-btnStop.onclick  = stopCamera;
-
-/* ======= INIT ======= */
+/*** ===========================
+ *  INIT
+ * ============================*/
 (async function init(){
-  $('#inpBT').value = BT;
-  $('#inpGB').value = GB;
-  $('#inpTRM').value = TRM;
-  await syncAll();
+  // si no hay viajes, creamos uno de ejemplo
+  await loadTrips();
+  if(!state.tripId){
+    await createTrip('Orlando Nov 7 2025');
+  } else {
+    await loadAll();
+  }
 })();
+
 </script>
+
 </body>
 </html>
