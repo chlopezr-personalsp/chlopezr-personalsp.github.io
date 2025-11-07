@@ -3,547 +3,526 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>PS · Arbitraje por Viaje</title>
-
-<!-- Anti-cache en GH Pages (mejorar refresco inmediato) -->
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
-<meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/>
-<meta name="theme-color" content="#0b0f14"/>
-
+<title>PS Arbitraje</title>
 <style>
-  :root { color-scheme: dark; --bg:#0b0f14; --panel:#121821; --txt:#e6edf3; --muted:#94a3b8; --brand:#60a5fa; --ok:#22c55e; --warn:#f59e0b; --err:#ef4444; --line:#1f2937; }
-  *{box-sizing:border-box}
-  body{margin:0;font:14px/1.45 ui-sans-serif,system-ui,Segoe UI,Roboto,Inter;background:var(--bg);color:var(--txt)}
-  header{display:flex;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(11,15,20,.88);backdrop-filter:saturate(160%) blur(8px);z-index:20}
-  .logo{font-weight:800}
-  select,input,button{background:#0f1620;border:1px solid #223043;color:var(--txt);padding:8px 10px;border-radius:10px}
-  button{cursor:pointer}
-  button.small{padding:6px 8px;font-size:12px}
-  .primary{background:linear-gradient(180deg,#1e293b,#0f172a);border-color:#293445}
-  .pill{padding:3px 8px;border:1px solid #2a3a51;border-radius:999px;color:#cbd5e1;font-size:12px}
-  .toggle{display:inline-flex;gap:6px;align-items:center}
-  .grid{display:grid;gap:10px}
-  .cols-4{grid-template-columns:repeat(4,1fr)}
-  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px}
-  .kpi{display:flex;flex-direction:column;gap:6px}
-  .kpi b{font-size:18px}
-  nav.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 12px}
-  nav.tabs button{border-radius:12px}
-  .tab{display:none;margin:12px}
-  .tab.active{display:block}
-  table{width:100%;border-collapse:collapse}
-  th,td{padding:8px;border-bottom:1px solid #1f2937;text-align:left;vertical-align:top}
-  th{color:#cbd5e1;font-weight:600}
-  .muted{color:var(--muted)}
-  .hr{height:1px;background:#1f2937;margin:8px 0}
-  .img-preview{max-width:220px;max-height:180px;border:1px dashed #334155;border-radius:10px;object-fit:contain}
+  :root{--bg:#0a0f1a;--panel:#0f172a;--line:#1f2937;--text:#e5e7eb;--muted:#94a3b8;--brand:#60a5fa;--ok:#10b981;--warn:#f59e0b;--bad:#ef4444}
+  html,body{height:100%} body{margin:0;background:linear-gradient(120deg,#0a0f1a,#0d1422);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Ubuntu}
+  .wrap{max-width:1280px;margin:0 auto;padding:12px}
+  .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .card{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .kpi{flex:1 1 260px}
+  .k{font-size:12px;color:var(--muted)} .v{font-size:20px;font-weight:800}
+  .btn{background:#0f172a;border:1px solid #334155;color:var(--text);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer}
+  .btn:hover{background:#111827} .btn.primary{background:#1d4ed8;border-color:#1d4ed8}
+  .btn.success{background:#059669;border-color:#059669} .btn.warn{background:#b45309;border-color:#b45309}
+  .input,select{background:#0b1220;color:var(--text);border:1px solid #334155;border-radius:10px;padding:8px;width:100%}
+  .muted{color:var(--muted)} .right{text-align:right} .center{text-align:center}
+  table{width:100%;border-collapse:collapse;font-size:13px} th,td{padding:8px 6px;border-bottom:1px solid #1f2937}
+  thead th{position:sticky;top:0;background:#0b1220;z-index:1}
+  .tabs{display:flex;gap:6px;margin:10px 0 6px} .tab{padding:6px 10px;border:1px solid #334155;border-radius:10px;background:#0f172a;cursor:pointer;font-size:13px}
+  .tab.active{background:#1f2937;border-color:#475569}
+  .grid{display:grid;gap:10px} .grid2{grid-template-columns:1fr 1fr} .grid4{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:900px){.grid4{grid-template-columns:repeat(2,1fr)} .grid2{grid-template-columns:1fr}}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:999px;border:1px solid #334155;background:#0f172a;font-size:12px}
+  .chip.ok{background:rgba(16,185,129,.12);border-color:#065f46;color:#a7f3d0}
   .progress{height:10px;background:#0b1220;border:1px solid #334155;border-radius:999px;overflow:hidden}
   .progress>div{height:100%;background:linear-gradient(90deg,#22d3ee,#60a5fa);width:0%}
-  .badge{display:inline-block;padding:2px 6px;border:1px solid #314256;border-radius:8px;font-size:11px;color:#cbd5e1}
-  .ok{color:var(--ok)} .warn{color:var(--warn)} .danger{color:var(--err)}
+  .logo{width:26px;height:26px;border-radius:8px;background:linear-gradient(145deg,#60a5fa,#22d3ee);display:inline-flex;align-items:center;justify-content:center;color:#0b1220;font-weight:900}
 </style>
 </head>
 <body>
+<div class="wrap">
 
-<header>
-  <div class="logo">🅿️🆂 <span class="muted">Arbitraje</span></div>
-  <select id="tripSelect" title="Seleccionar viaje"></select>
-  <button id="btnNewTrip" class="small primary">+ Nuevo</button>
-  <button id="btnDupTrip" class="small">⎘ Duplicar…</button>
-
-  <span style="flex:1"></span>
-  <span class="muted small">Vista:</span>
-  <div class="toggle">
-    <button id="btnViewUSD" class="small pill">USD</button>
-    <button id="btnViewCOP" class="small pill">COP</button>
+  <!-- Header -->
+  <div class="card">
+    <div class="row" style="justify-content:space-between">
+      <div class="row">
+        <div class="logo">PS</div>
+        <div style="margin-left:8px">
+          <div style="font-weight:800">PS Arbitraje</div>
+          <div class="muted" style="font-size:12px">Viajes/proyectos con TRM fijada por registro</div>
+        </div>
+      </div>
+      <div class="row">
+        <select id="tripSelect" class="input" style="min-width:220px"></select>
+        <button id="btnNewTrip" class="btn">+ Nuevo</button>
+        <button id="btnDupTrip" class="btn">📄 Duplicar</button>
+        <span class="muted" id="tripUpdated" style="margin-left:8px"></span>
+      </div>
+      <div class="row">
+        <span class="muted">Vista:</span>
+        <button id="viewUSD" class="btn">USD</button>
+        <button id="viewCOP" class="btn">COP</button>
+        <button id="btnSync" class="btn">🔄 Sync</button>
+        <button id="btnTRM" class="btn">⇅ TRM (hoy)</button>
+        <button id="btnHard" class="btn">⤳ Forzar recarga</button>
+      </div>
+    </div>
   </div>
-  <button id="btnSync" class="small">⟳ Sync</button>
-  <button id="btnTRM" class="small">⇅ TRM (hoy)</button>
-  <button id="btnHardReload" class="small">⤳ Forzar recarga</button>
-</header>
 
-<!-- KPIs -->
-<div class="grid cols-4" style="padding:12px">
-  <div class="panel kpi"><span class="muted">BT (USD)</span><b id="kpiBT">—</b><span class="muted" id="kpiUpdated">Actualizado: —</span></div>
-  <div class="panel kpi"><span class="muted">Overheads</span><b id="kpiOV">—</b><span class="muted">rO = Overheads/BT</span><b id="kpiRO">—</b></div>
-  <div class="panel kpi"><span class="muted">Compras acumuladas</span><b id="kpiCompras">—</b><span class="muted">Vista: <span id="lblVista"></span></span></div>
-  <div class="panel kpi"><span class="muted">TRM del día</span><b id="kpiTRM">—</b><span class="muted">Fijada por registro</span></div>
+  <!-- KPIs -->
+  <div class="row" style="margin-top:8px">
+    <div class="card kpi">
+      <div class="k">BT (USD)</div><div class="v" id="kBT">—</div>
+      <div class="muted" id="kBTcop">—</div>
+    </div>
+    <div class="card kpi">
+      <div class="k">Overheads (USD)</div><div class="v" id="kOv">—</div>
+      <div class="muted" id="kOvCop">—</div>
+    </div>
+    <div class="card kpi">
+      <div class="k">rO = Overheads/BT</div><div class="v" id="kRO">—</div>
+      <div class="muted">Se usa en VSV</div>
+    </div>
+    <div class="card kpi">
+      <div class="k">TRM del día</div><div class="v" id="kTRM">—</div>
+      <div class="muted">Fijada por registro</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" data-tab="config">⚙️ Configuración</div>
+    <div class="tab" data-tab="catalog">📚 Catálogo</div>
+    <div class="tab" data-tab="overheads">💼 Overheads</div>
+    <div class="tab" data-tab="reportes">📊 Reportes</div>
+  </div>
+
+  <!-- PANEL: Config -->
+  <div id="panel-config" class="card">
+    <div class="grid grid2">
+      <div>
+        <label class="k">BT (USD)</label>
+        <input id="inpBT" class="input" type="number" step="0.01">
+      </div>
+      <div>
+        <label class="k">Margen objetivo GB% (sobre venta)</label>
+        <input id="inpGB" class="input" type="number" step="1">
+      </div>
+      <div>
+        <label class="k">TRM por defecto (UI)</label>
+        <input id="inpTRM" class="input" type="number" step="1">
+        <div class="muted" style="margin-top:4px">Solo para UI. Cada registro guarda su TRM.</div>
+      </div>
+      <div style="display:flex;align-items:end">
+        <button id="btnSaveSettings" class="btn success">💾 Guardar configuración</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL: Catálogo -->
+  <div id="panel-catalog" class="card" style="display:none">
+    <div class="k">Alta manual</div>
+    <div class="grid grid4" style="margin-top:6px">
+      <input id="cName" class="input" placeholder="Nombre / modelo">
+      <input id="cBrand" class="input" placeholder="Marca (opcional)">
+      <input id="cCat" class="input" placeholder="Categoría (opcional)">
+      <div class="row" style="gap:6px">
+        <input id="cRef" class="input" type="number" step="100" placeholder="VR COP">
+        <button id="cAdd" class="btn success">＋ Agregar</button>
+      </div>
+    </div>
+
+    <hr style="border:0;border-top:1px solid #1f2937;margin:12px 0">
+
+    <div class="k">Carga masiva XLSX/CSV → vista previa → importar</div>
+    <div class="row" style="margin-top:6px">
+      <input type="file" id="fileCat" accept=".xlsx,.xls,.csv" />
+      <button id="btnPreview" class="btn">Vista previa</button>
+      <button id="btnImport" class="btn primary" disabled>Importar (≥100)</button>
+      <span class="muted">Mapeo mínimo: <span class="chip">name</span> <span class="chip">ref_cop</span> · Opcionales: <span class="chip">brand</span> <span class="chip">cat</span></span>
+    </div>
+
+    <div style="max-height:300px;overflow:auto;margin-top:8px">
+      <table>
+        <thead><tr><th>#</th><th>Nombre</th><th>Marca</th><th>Cat</th><th class="right">VR COP</th><th>Fuente</th><th>Acción</th></tr></thead>
+        <tbody id="catPreview"></tbody>
+      </table>
+    </div>
+
+    <div style="max-height:320px;overflow:auto;margin-top:12px">
+      <table>
+        <thead><tr><th>Fecha</th><th>Nombre</th><th>Marca/Cat</th><th class="right">VR COP</th><th>Fuente</th><th>Acciones</th></tr></thead>
+        <tbody id="catBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PANEL: Overheads -->
+  <div id="panel-overheads" class="card" style="display:none">
+    <div class="k">Overheads (USD/COP). Se fija TRM por fecha y se guarda USD/COP determinístico.</div>
+    <div class="grid grid4" style="margin-top:6px">
+      <input id="ohDesc" class="input" placeholder="Descripción (tiquetes, hotel, envío…)">
+      <input id="ohCat" class="input" placeholder="Categoría (Transporte/Envío/… )">
+      <div class="row" style="gap:6px;flex:1">
+        <select id="ohCur" class="input" style="flex:0 0 110px"><option>USD</option><option>COP</option></select>
+        <input id="ohAmt" class="input" type="number" step="0.01" placeholder="Monto">
+      </div>
+      <div class="row" style="gap:6px;flex:1">
+        <input id="ohDate" class="input" type="date" style="flex:1">
+        <input id="ohTRM" class="input" type="number" step="1" placeholder="TRM manual (opcional)" style="flex:1">
+      </div>
+      <div style="grid-column:1/-1;display:flex;gap:8px">
+        <button id="ohAdd" class="btn success">＋ Agregar</button>
+        <button id="ohDelSel" class="btn warn">Eliminar seleccionados</button>
+      </div>
+    </div>
+
+    <div style="max-height:340px;overflow:auto;margin-top:10px">
+      <table>
+        <thead>
+          <tr>
+            <th></th><th>Fecha</th><th>Desc</th><th>Cat</th><th>Moneda</th>
+            <th class="right">Monto</th><th class="right">TRM usada</th>
+            <th class="right">USD fijo</th><th class="right">COP fijo</th><th class="center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="ohBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PANEL: Reportes -->
+  <div id="panel-reportes" class="card" style="display:none">
+    <div class="grid grid2">
+      <div class="card">
+        <div class="k">Uso de BT (estimado)</div>
+        <div class="progress" style="margin-top:6px"><div id="progBT"></div></div>
+        <div class="muted" id="progTxt" style="margin-top:6px">—</div>
+      </div>
+      <div class="card">
+        <div class="k">Resumen</div>
+        <div id="repBox">—</div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
-<nav class="tabs">
-  <button data-tab="cfg" class="small primary">Configuración</button>
-  <button data-tab="cat" class="small">Catálogo</button>
-  <button data-tab="sem" class="small">Semáforo (OCR/ML)</button>
-  <button data-tab="inv" class="small">Inventario</button>
-  <button data-tab="ven" class="small">Ventas</button>
-  <button data-tab="rep" class="small">Reportes</button>
-</nav>
-
-<!-- CONFIG -->
-<section id="tab-cfg" class="tab active">
-  <div class="panel">
-    <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:10px">
-      <div><div class="muted">Margen objetivo (GB%)</div><input id="inpGB" type="number" step="0.1" min="0" max="95" placeholder="30"/></div>
-      <div><div class="muted">BT (USD)</div><input id="inpBT" type="number" step="0.01" min="0" placeholder="7000"/></div>
-      <div><div class="muted">TRM por defecto (UI)</div><input id="inpTRMDef" type="number" step="0.01" min="0" placeholder="4200"/></div>
-    </div>
-    <div style="margin-top:8px"><button id="btnSaveCfg" class="primary">Guardar configuración</button></div>
-  </div>
-
-  <div class="panel" style="margin-top:10px">
-    <div class="muted">Overheads (USD/COP). Se fija TRM por fecha y se guarda USD/COP determinístico.</div>
-    <div class="grid" style="grid-template-columns:2fr 1fr 100px 1fr 1fr 1fr 140px;gap:8px;margin-top:8px">
-      <input id="ovDesc" placeholder="Descripción (tiquetes, hotel, envío…)"/>
-      <input id="ovCat" placeholder="Categoría"/>
-      <select id="ovCur"><option>USD</option><option>COP</option></select>
-      <input id="ovAmt" type="number" step="0.01" placeholder="Monto"/>
-      <input id="ovDate" type="date"/>
-      <input id="ovTRM" type="number" step="0.01" placeholder="TRM manual (opcional)"/>
-      <button id="btnAddOv" class="primary">+ Agregar</button>
-    </div>
-
-    <div class="hr"></div>
-    <table id="tblOv"><thead><tr>
-      <th>Fecha</th><th>Desc</th><th>Cat</th><th>Moneda</th><th>Monto</th><th>TRM usada</th><th>USD fijo</th><th>COP fijo</th>
-    </tr></thead><tbody></tbody></table>
-  </div>
-</section>
-
-<!-- CATÁLOGO -->
-<section id="tab-cat" class="tab">
-  <div class="panel">
-    <div class="grid" style="grid-template-columns:2fr 1fr 1fr 1fr 140px;gap:8px">
-      <input id="catName" placeholder="Nombre / modelo"/>
-      <input id="catBrand" placeholder="Marca"/>
-      <input id="catCat" placeholder="Categoría"/>
-      <input id="catRef" type="number" step="1" min="0" placeholder="VR COP"/>
-      <button id="btnAddCat" class="primary">+ Agregar</button>
-    </div>
-    <div class="hr"></div>
-    <div class="grid" style="grid-template-columns:1fr auto auto;gap:8px;align-items:center">
-      <input type="file" id="fileCatalog" accept=".xlsx,.xls,.csv"/>
-      <button id="btnPreview" class="small">Vista previa</button>
-      <button id="btnImport" class="small primary">Importar (≥100)</button>
-    </div>
-    <div class="muted" style="margin-top:8px">Mapeo mínimo: <span class="badge">name</span> <span class="badge">ref_cop</span> · Opcionales: <span class="badge">brand</span> <span class="badge">cat</span></div>
-    <div id="previewBox" class="muted" style="margin-top:8px"></div>
-    <div class="hr"></div>
-    <table id="tblCat"><thead><tr>
-      <th>Nombre</th><th>Marca</th><th>Cat</th><th>VR (COP)</th><th>Fuente</th><th>Creado</th>
-    </tr></thead><tbody></tbody></table>
-  </div>
-</section>
-
-<!-- SEMÁFORO -->
-<section id="tab-sem" class="tab">
-  <div class="panel">
-    <div class="grid" style="grid-template-columns:1fr auto auto auto;gap:8px">
-      <input id="semText" placeholder="Pega texto/SKU o usa imagen…"/>
-      <button id="btnCam" class="small">📷 Cámara</button>
-      <input id="semFile" type="file" accept="image/*"/>
-      <button id="btnOCR" class="primary">Extraer & ML</button>
-    </div>
-    <div class="grid" style="grid-template-columns:1fr;gap:8px;margin-top:8px">
-      <video id="video" autoplay playsinline class="hidden" style="max-height:200px"></video>
-      <canvas id="canvas" class="hidden"></canvas>
-      <img id="imgPrev" class="img-preview hidden"/>
-      <div id="ocrOut" class="muted"></div>
-    </div>
-    <div class="hr"></div>
-    <div id="mlOut" class="panel" style="background:#0f1620"></div>
-  </div>
-</section>
-
-<!-- INVENTARIO -->
-<section id="tab-inv" class="tab">
-  <div class="panel">
-    <div class="grid" style="grid-template-columns:2fr 1fr 1fr 1fr 140px;gap:8px">
-      <input id="invName" placeholder="Producto"/>
-      <input id="invStore" placeholder="Tienda"/>
-      <input id="invUnitUSD" type="number" step="0.01" placeholder="Costo USD"/>
-      <input id="invQty" type="number" step="1" min="1" value="1" placeholder="Qty"/>
-      <button id="btnAddInv" class="primary">+ Agregar</button>
-    </div>
-    <div class="hr"></div>
-    <table id="tblInv"><thead><tr>
-      <th>Producto</th><th>Tienda</th><th>Qty</th><th>Costo USD</th><th>VSV USD</th><th>Aporte USD</th><th>Margen USD</th>
-    </tr></thead><tbody></tbody></table>
-  </div>
-</section>
-
-<!-- VENTAS -->
-<section id="tab-ven" class="tab">
-  <div class="panel">
-    <div class="grid" style="grid-template-columns:2fr 1fr 1fr 1fr 1fr 1fr 160px;gap:8px">
-      <input id="venName" placeholder="Producto vendido"/>
-      <input id="venStore" placeholder="Tienda"/>
-      <input id="venQty" type="number" step="1" min="1" value="1"/>
-      <input id="venUnitUSD" type="number" step="0.01" placeholder="Costo USD"/>
-      <input id="venDate" type="date"/>
-      <input id="venTRM" type="number" step="0.01" placeholder="TRM (auto)"/>
-      <input id="venSaleCOP" type="number" step="1" min="0" placeholder="PVP COP"/>
-      <button id="btnAddSale" class="primary">+ Registrar</button>
-    </div>
-    <div class="hr"></div>
-    <table id="tblVen"><thead><tr>
-      <th>Fecha</th><th>Prod</th><th>Qty</th><th>Costo USD</th><th>TRM usada</th><th>Venta COP</th><th>Aporte USD</th><th>Profit USD</th>
-    </tr></thead><tbody></tbody></table>
-  </div>
-</section>
-
-<!-- REPORTES -->
-<section id="tab-rep" class="tab">
-  <div class="panel grid" style="grid-template-columns:1fr 1fr;gap:12px">
-    <div>
-      <div class="muted">Uso de BT (estimado)</div>
-      <b id="repUso">—</b>
-      <div class="muted">= (overheads USD + costo inventario USD) / BT</div>
-      <div style="margin-top:8px" class="grid" style="grid-template-columns:auto auto;gap:8px">
-        <button id="btnExportEst" class="small">⬇ Exportar CSV</button>
-      </div>
-    </div>
-    <div>
-      <div class="muted">Ejecución real</div>
-      <b id="repReal">—</b>
-      <div class="muted">= (overheads USD + costo ventas ejecutadas USD) / BT</div>
-      <div style="margin-top:8px">
-        <button id="btnExportReal" class="small">⬇ Exportar CSV</button>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- LIBRERÍAS (UMD) con cache-busting ?v= -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js?v=2025-11-06"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js?v=2025-11-06"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js?v=2025-11-06"></script>
+<!-- LIBRERÍAS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script>
-/*** ========= CONFIG SUPABASE ========= ***/
-const SUPABASE_URL = 'https://ucrkhrehdedmubykzfzs.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcmtocmVoZGVkbXVieWt6ZnpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1OTc5MzgsImV4cCI6MjA3NzE3MzkzOH0.7CXUuyAPQlm_9RIKbaO9y8Kwjh9c6M7UJcu4xAIM7WA';
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false } });
+/*** ====== SUPABASE CONFIG ====== ***/
+const SUPABASE_URL  = 'https://ucrkhrehdedmubykzfzs.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcmtocmVoZGVkbXVieWt6ZnpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1OTc5MzgsImV4cCI6MjA3NzE3MzkzOH0.7CXUuyAPQlm_9RIKbaO9y8Kwjh9c6M7UJcu4xAIM7WA';
+const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-/*** ========= ESTADO ========= ***/
-const state = {
-  tripId: null,
-  viewCurr: 'USD',
-  settings: null,
-  trmToday: null,
-  ov: [], cat: [], inv: [], ven: []
-};
+/*** ====== ESTADO ====== ***/
+let activeTripId=null, trips=[], settings=null, TRM_UI=4200, VIEW='USD';
+let OVERHEADS=[], CATALOG=[];
+
+/*** ====== HELPERS ====== ***/
 const $ = s=>document.querySelector(s);
+const $$ = s=>Array.from(document.querySelectorAll(s));
+const fmtUSD = n => "$"+Number(n||0).toFixed(2);
+const fmtCOP = n => "$"+Math.round(Number(n||0)).toLocaleString("es-CO");
+const esc = s => (s??'').toString().replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+const fmtFecha = iso => (iso? new Date(iso).toLocaleDateString('es-CO'):'—');
 
-/*** ========= HELPERS ========= ***/
-const fmtUSD = v => (v==null?'—':`$${Number(v).toFixed(2)} USD`);
-const fmtCOP = v => (v==null?'—':`$${Number(v).toLocaleString('es-CO')} COP`);
-const fmtPct100 = v => (v==null?'—':`${(100*Number(v)).toFixed(1)}%`);
-const todayISO = () => new Date().toISOString().slice(0,10);
-function downloadText(name, text){ const a=document.createElement('a'); a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(text); a.download=name; a.click(); }
-async function fetchTRMFromAPI(){
-  try{ const r=await fetch('https://open.er-api.com/v6/latest/USD',{cache:'no-store'}); const j=await r.json(); return j?.rates?.COP? Number(j.rates.COP):null; }
-  catch(e){ console.warn('TRM API',e); return null; }
+function sumOverheadsUSD(){ return OVERHEADS.reduce((s,o)=>s+Number(o.amount_usd_fixed||0),0); }
+function aportePorDolar(){ const V=sumOverheadsUSD(); return (settings?.bt_usd>0)? (V/settings.bt_usd):0; }
+function renderKPIs(){
+  const BT=settings?.bt_usd||0; const VUSD=sumOverheadsUSD();
+  $('#kBT').textContent = fmtUSD(BT);
+  $('#kBTcop').textContent = fmtCOP(BT*TRM_UI);
+  $('#kOv').textContent = fmtUSD(VUSD);
+  $('#kOvCop').textContent = fmtCOP(VUSD*TRM_UI);
+  $('#kRO').textContent = (aportePorDolar()).toFixed(3);
+  $('#kTRM').textContent = fmtCOP(TRM_UI)+" COP/USD";
+  // reportes
+  const pct = Math.max(0, Math.min(100, BT>0? (VUSD/BT)*100 : 0));
+  $('#progBT').style.width = pct.toFixed(1)+'%';
+  $('#progTxt').textContent = `Uso de BT: ${pct.toFixed(1)}% — ${fmtUSD(VUSD)} de ${fmtUSD(BT)}`;
+  $('#repBox').innerHTML = `
+    <div>Overheads USD: <b>${fmtUSD(VUSD)}</b></div>
+    <div>Overheads COP: <b>${fmtCOP(VUSD*TRM_UI)}</b></div>
+    <div>rO: <b>${(aportePorDolar()).toFixed(3)}</b></div>
+  `;
 }
-function medianIQR(arr0){
-  const a = (arr0||[]).filter(Number.isFinite).sort((x,y)=>x-y);
-  if(!a.length) return null;
-  const q1=a[Math.floor(a.length/4)], q3=a[Math.floor(a.length*3/4)], iqr=q3-q1;
-  const lo=q1-1.5*iqr, hi=q3+1.5*iqr;
-  const t=a.filter(x=>x>=lo && x<=hi);
-  const m=Math.floor(t.length/2);
-  if(!t.length) return null;
-  return (t.length%2)? t[m] : (t[m-1]+t[m])/2;
-}
+function setView(v){ VIEW=v; $('#viewUSD').classList.toggle('primary', v==='USD'); $('#viewCOP').classList.toggle('primary', v==='COP'); renderOH(); }
 
-/*** ========= TABS ========= ***/
-document.querySelectorAll('nav.tabs button').forEach(b=>{
-  b.addEventListener('click',()=>{
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-    $('#tab-'+b.dataset.tab).classList.add('active');
-  });
-});
-
-/*** ========= VIAJES ========= ***/
+/*** ====== TRIPS ====== ***/
 async function loadTrips(){
-  const {data,error} = await sb.from('trips').select('*').order('created_at',{ascending:false});
-  if(error){ alert('Error trips: '+error.message); return; }
-  const sel=$('#tripSelect'); sel.innerHTML=''; (data||[]).forEach(r=>{ const o=document.createElement('option'); o.value=r.id; o.textContent=`${r.name} (#${r.id})`; sel.appendChild(o); });
-  if(!state.tripId && data?.length) state.tripId = data[0].id;
-  if(state.tripId) sel.value = state.tripId;
-  sel.onchange=()=>{ state.tripId=Number(sel.value); loadAll(); };
+  const {data,error}=await supa.from('trips').select('id,name,created_at').order('created_at',{ascending:false});
+  if(error) throw error; trips=data||[];
+  const sel=$('#tripSelect'); sel.innerHTML="";
+  trips.forEach(t=>{ const opt=document.createElement('option'); opt.value=t.id; opt.textContent=`${t.name} (#${t.id})`; sel.appendChild(opt); });
+  if(!activeTripId && trips.length){ activeTripId=trips[0].id; }
+  if(activeTripId) sel.value=activeTripId;
 }
-async function createTrip(name){
+async function createTrip(){
+  const name=prompt('Nombre del viaje/proyecto:','Orlando Nov 7 2025'); if(!name) return;
+  const {data,error}=await supa.from('trips').insert({name}).select().single();
+  if(error){ alert(error.message); return; }
+  await supa.from('trip_settings').insert({trip_id:data.id}).onConflict('trip_id').ignore();
+  activeTripId=data.id; await loadTrips(); await loadSettings(); await reloadAll();
+}
+async function duplicateTrip(){
+  const from = activeTripId; if(!from){ alert('Selecciona un viaje.'); return; }
+  const name=prompt('Nombre del nuevo viaje (duplicado de catálogo/overheads):','Copia de '+($('#tripSelect option:selected')?.textContent||from));
   if(!name) return;
-  const {data,error} = await sb.from('trips').insert({name}).select().single();
+  const {data:newTrip, error} = await supa.from('trips').insert({name}).select().single();
   if(error){ alert(error.message); return; }
-  await sb.rpc('upsert_trip_settings',{ p_trip_id:data.id, p_bt_usd:7000, p_gb_pct:30, p_default_trm:4200 });
-  state.tripId=data.id; await loadTrips(); await loadAll();
+  await supa.from('trip_settings').insert({trip_id:newTrip.id}).onConflict('trip_id').ignore();
+  // dup catalog & no dup sales
+  const catRows = (await supa.from('catalog').select('name,brand,cat,ref_cop,source').eq('trip_id',from)).data||[];
+  if(catRows.length){
+    const rows = catRows.map(r=>({trip_id:newTrip.id, ...r}));
+    await bulkUpsertCatalog(rows);
+  }
+  const ohRows = (await supa.from('overheads').select('description,cat,currency,amount_usd,amount_cop,trm_used,amount_usd_fixed,amount_cop_fixed').eq('trip_id',from)).data||[];
+  for(const o of ohRows){
+    await supa.from('overheads').insert({trip_id:newTrip.id, ...o});
+  }
+  activeTripId=newTrip.id; await loadTrips(); await loadSettings(); await reloadAll();
 }
-async function duplicateTrip(fromId,name){
-  if(!fromId||!name) return;
-  const {data:newTrip,error} = await sb.from('trips').insert({name,notes:`Dup de ${fromId}`}).select().single();
-  if(error){ alert(error.message); return; }
-  const {data:set} = await sb.from('trip_settings').select('*').eq('trip_id',fromId).maybeSingle();
-  await sb.rpc('upsert_trip_settings',{ p_trip_id:newTrip.id, p_bt_usd:set?.bt_usd??7000, p_gb_pct:set?.gb_pct??30, p_default_trm:set?.default_trm??4200 });
-  const {data:catRows} = await sb.from('catalog').select('*').eq('trip_id',fromId);
-  if(catRows?.length){ const batch=catRows.map(r=>({trip_id:newTrip.id,name:r.name,brand:r.brand,cat:r.cat,ref_cop:r.ref_cop,source:r.source||'manual'})); await sb.rpc('upsert_catalog_batch',{p_rows:JSON.stringify(batch)}); }
-  state.tripId=newTrip.id; await loadTrips(); await loadAll();
-}
-$('#btnNewTrip').onclick=()=>{ const n=prompt('Nombre del viaje (ej: Orlando Nov 7 2025)'); if(n) createTrip(n); };
-$('#btnDupTrip').onclick=()=>{ const n=prompt('Nombre para el duplicado'); if(n) duplicateTrip(state.tripId,n); };
 
-/*** ========= SETTINGS ========= ***/
-async function loadTripSettings(){
-  const {data,error} = await sb.from('trip_settings').select('*').eq('trip_id',state.tripId).maybeSingle();
-  if(error){ alert('Settings: '+error.message); return; }
-  state.settings = data || { trip_id:state.tripId, bt_usd:7000, gb_pct:30, default_trm:4200 };
-  $('#inpBT').value = state.settings.bt_usd ?? 7000;
-  $('#inpGB').value = state.settings.gb_pct ?? 30;
-  $('#inpTRMDef').value = state.settings.default_trm ?? 4200;
-  $('#kpiBT').textContent = fmtUSD(state.settings.bt_usd);
-  $('#kpiUpdated').textContent = 'Actualizado: '+(state.settings.updated_at? new Date(state.settings.updated_at).toLocaleString():'—');
+/*** ====== SETTINGS ====== ***/
+async function loadSettings(){
+  if(!activeTripId) return;
+  // si no existe, crea por defecto
+  let {data,error}=await supa.from('trip_settings').select('*').eq('trip_id',activeTripId).single();
+  if(error && error.code==='PGRST116'){ // not found
+    await supa.from('trip_settings').insert({trip_id:activeTripId});
+    ({data,error}=await supa.from('trip_settings').select('*').eq('trip_id',activeTripId).single());
+  }
+  if(error) throw error;
+  settings=data; TRM_UI=settings.default_trm||4200;
+  $('#inpBT').value = settings.bt_usd||7000;
+  $('#inpGB').value = settings.gb_pct||30;
+  $('#inpTRM').value = TRM_UI;
+  $('#tripUpdated').textContent = 'Actualizado: '+new Date(settings.updated_at).toLocaleString('es-CO');
+  renderKPIs();
 }
-$('#btnSaveCfg').onclick=async ()=>{
-  const bt=Number($('#inpBT').value), gb=Number($('#inpGB').value), dtrm=Number($('#inpTRMDef').value);
-  await sb.rpc('upsert_trip_settings',{ p_trip_id:state.tripId, p_bt_usd:bt, p_gb_pct:gb, p_default_trm:dtrm });
-  await loadTripSettings(); renderKPIs(); renderInv(); renderReports();
-};
+async function saveSettings(){
+  const p = {
+    p_trip_id: activeTripId,
+    p_bt_usd: Number($('#inpBT').value||0),
+    p_gb_pct: Number($('#inpGB').value||0),
+    p_default_trm: Number($('#inpTRM').value||0)
+  };
+  const {error}=await supa.rpc('upsert_trip_settings', p);
+  if(error){ alert('No se pudo guardar: '+error.message); return; }
+  await loadSettings(); await reloadAll();
+}
 
-/*** ========= TRM ========= ***/
-async function ensureTRM(dateISO){
-  const d = dateISO || todayISO();
-  let trm = await fetchTRMFromAPI();
-  if(!trm) trm = Number($('#inpTRMDef').value || state.settings?.default_trm || 4200);
-  const {data,error} = await sb.rpc('ensure_trm',{ p_date:d, p_trm:trm });
-  if(error) console.warn('ensure_trm',error);
-  return data ?? trm;
+/*** ====== TRM (hoy) ====== ***/
+async function fetchTRM(){
+  try{
+    const r=await fetch('https://open.er-api.com/v6/latest/USD'); const j=await r.json();
+    if(j?.rates?.COP){ TRM_UI = Number(j.rates.COP); $('#inpTRM').value=TRM_UI; renderKPIs(); }
+    else throw new Error('Sin rates');
+  }catch(e){ alert('No se pudo obtener TRM. Ingresa manual.'); }
 }
-$('#btnTRM').onclick = async ()=>{ state.trmToday = await fetchTRMFromAPI(); $('#kpiTRM').textContent = state.trmToday? fmtCOP(state.trmToday) : '—'; };
 
-/*** ========= OVERHEADS ========= ***/
-async function loadOverheads(){
-  const {data,error} = await sb.from('overheads').select('*').eq('trip_id',state.tripId).order('created_at',{ascending:false});
-  if(error){ console.warn(error); return; }
-  state.ov = data||[]; renderOverheads();
+/*** ====== OVERHEADS ====== ***/
+function fmtMontoVista(o){
+  if(VIEW==='USD') return fmtUSD(o.amount_usd_fixed);
+  return fmtCOP(o.amount_cop_fixed);
 }
-function renderOverheads(){
-  const tb=$('#tblOv tbody'); tb.innerHTML='';
-  const viewUSD = state.viewCurr==='USD';
-  state.ov.forEach(r=>{
+async function loadOH(){
+  const {data,error}=await supa.from('overheads').select('*').eq('trip_id',activeTripId).order('created_at',{ascending:false});
+  if(error) throw error; OVERHEADS=data||[]; renderOH(); renderKPIs();
+}
+function renderOH(){
+  const tb=$('#ohBody'); tb.innerHTML="";
+  OVERHEADS.forEach(o=>{
     const tr=document.createElement('tr');
-    tr.innerHTML = `<td>${new Date(r.created_at).toLocaleDateString()}</td>
-      <td>${r.description||''}</td><td>${r.cat||''}</td><td>${r.currency}</td>
-      <td>${ viewUSD ? fmtUSD(r.currency==='USD'?r.amount_usd:(r.amount_usd_fixed))
-                     : fmtCOP(r.currency==='COP'?r.amount_cop:(r.amount_cop_fixed)) }</td>
-      <td>${fmtCOP(r.trm_used)}</td><td>${fmtUSD(r.amount_usd_fixed)}</td><td>${fmtCOP(r.amount_cop_fixed)}</td>`;
+    tr.innerHTML = `
+      <td><input type="checkbox" class="oh-check" value="${o.id}"></td>
+      <td>${fmtFecha(o.created_at)}</td>
+      <td>${esc(o.description||'')}</td>
+      <td>${esc(o.cat||'')}</td>
+      <td>${o.currency||'—'}</td>
+      <td class="right">${fmtMontoVista(o)}</td>
+      <td class="right">${fmtCOP(o.trm_used)} COP</td>
+      <td class="right">${fmtUSD(o.amount_usd_fixed)}</td>
+      <td class="right">${fmtCOP(o.amount_cop_fixed)}</td>
+      <td class="center"><button class="btn warn" data-del="${o.id}">🗑</button></td>
+    `;
     tb.appendChild(tr);
   });
+  tb.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.onclick = async ()=>{
+      if(!confirm('¿Eliminar este gasto?')) return;
+      const {error}=await supa.from('overheads').delete().eq('id', btn.dataset.del);
+      if(error){ alert('No se pudo eliminar: '+error.message); return; }
+      await loadOH(); renderKPIs();
+    };
+  });
 }
-$('#btnAddOv').onclick = async ()=>{
-  const desc=$('#ovDesc').value.trim(), cat=$('#ovCat').value.trim(), cur=$('#ovCur').value;
-  const amt=Number($('#ovAmt').value), date=$('#ovDate').value || todayISO();
-  const trmManual = Number($('#ovTRM').value||0);
-  if(!(amt>0)){ alert('Monto inválido'); return; }
-  const trm = trmManual>0 ? trmManual : await ensureTRM(date);
-  const {error} = await sb.rpc('add_overhead',{ p_trip_id:state.tripId, p_description:desc, p_cat:cat, p_currency:cur, p_amount:amt, p_date:date, p_trm:trm });
+async function addOH(){
+  const desc=$('#ohDesc').value.trim();
+  const cat=$('#ohCat').value.trim();
+  const cur=$('#ohCur').value.trim();
+  const amt=Number($('#ohAmt').value||0);
+  const date=$('#ohDate').value ? new Date($('#ohDate').value+'T00:00:00') : new Date();
+  const trmMan=$('#ohTRM').value? Number($('#ohTRM').value) : null;
+  if(!desc || !amt || !cur){ alert('Completa descripción, moneda y monto.'); return; }
+  const payload={
+    p_trip_id: activeTripId, p_description: desc, p_cat: cat||null, p_currency: cur,
+    p_amount: amt, p_date: date.toISOString().slice(0,10), p_trm: trmMan
+  };
+  const {error}=await supa.rpc('add_overhead', payload);
   if(error){ alert('Overhead: '+error.message); return; }
-  ['ovDesc','ovCat','ovAmt','ovTRM'].forEach(id=>$('#'+id).value='');
-  await loadOverheads(); renderKPIs(); renderReports();
-};
+  $('#ohDesc').value=''; $('#ohCat').value=''; $('#ohAmt').value=''; $('#ohTRM').value='';
+  await loadOH(); renderKPIs();
+}
+async function delSelectedOH(){
+  const ids = $$('.oh-check:checked').map(x=>x.value);
+  if(!ids.length){ alert('Marca al menos un gasto.'); return; }
+  if(!confirm(`Eliminar ${ids.length} gastos seleccionados?`)) return;
+  const {error}=await supa.from('overheads').delete().in('id', ids);
+  if(error){ alert('No se pudo eliminar: '+error.message); return; }
+  await loadOH(); renderKPIs();
+}
 
-/*** ========= CATÁLOGO ========= ***/
+/*** ====== CATALOGO ====== ***/
 async function loadCatalog(){
-  // Incluye registros legacy con trip_id NULL para que no “desaparezcan”
-  const {data,error} = await sb.from('catalog').select('*').or(`trip_id.eq.${state.tripId},trip_id.is.null`).order('created_at',{ascending:false});
-  if(error){ console.warn(error); return; }
-  state.cat = data||[]; renderCatalog();
+  const {data,error}=await supa.from('catalog').select('*').eq('trip_id',activeTripId).order('created_at',{ascending:false});
+  if(error) throw error; CATALOG=data||[]; renderCatalog();
 }
 function renderCatalog(){
-  const tb=$('#tblCat tbody'); tb.innerHTML='';
-  state.cat.forEach(r=>{
+  const tb=$('#catBody'); tb.innerHTML="";
+  CATALOG.forEach(c=>{
     const tr=document.createElement('tr');
-    tr.innerHTML = `<td>${r.name}</td><td>${r.brand||''}</td><td>${r.cat||''}</td><td>${fmtCOP(r.ref_cop)}</td><td>${r.source||''}</td><td>${new Date(r.created_at).toLocaleString()}</td>`;
+    tr.innerHTML=`
+      <td>${fmtFecha(c.created_at)}</td>
+      <td>${esc(c.name)}</td>
+      <td>${esc(c.brand||'')}${c.cat?(' / '+esc(c.cat)) : ''}</td>
+      <td class="right">${fmtCOP(c.ref_cop)}</td>
+      <td>${esc(c.source||'manual')}</td>
+      <td class="center"><button class="btn warn" data-del="${c.id}">🗑</button></td>
+    `;
     tb.appendChild(tr);
   });
+  tb.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.onclick=async ()=>{
+      if(!confirm('¿Eliminar esta referencia?')) return;
+      const {error}=await supa.from('catalog').delete().eq('id',btn.dataset.del);
+      if(error){ alert(error.message); return; }
+      await loadCatalog();
+    };
+  });
 }
-$('#btnAddCat').onclick = async ()=>{
-  const name=$('#catName').value.trim(); const ref=Number($('#catRef').value||0);
-  if(!name || !(ref>0)){ alert('Nombre y VR COP requeridos'); return; }
-  const payload=[{ trip_id: state.tripId, name, brand: $('#catBrand').value.trim(), cat: $('#catCat').value.trim(), ref_cop: ref, source:'manual' }];
-  const {error} = await sb.rpc('upsert_catalog_batch',{ p_rows: JSON.stringify(payload) });
-  if(error){ alert('Catálogo: '+error.message); return; }
-  ['catName','catBrand','catCat','catRef'].forEach(id=>$('#'+id).value='');
+async function addCatalogManual(){
+  const name=$('#cName').value.trim();
+  const brand=$('#cBrand').value.trim()||null;
+  const cat=$('#cCat').value.trim()||null;
+  const ref=Number($('#cRef').value||0);
+  if(!name || !ref){ alert('Ingresa nombre y VR COP'); return; }
+  const {error}=await supa.from('catalog').insert({trip_id:activeTripId,name,brand,cat,ref_cop:ref,source:'manual'});
+  if(error){ alert(error.message); return; }
+  $('#cName').value=''; $('#cBrand').value=''; $('#cCat').value=''; $('#cRef').value='';
   await loadCatalog();
-};
-let parsedCatalog=[];
-$('#btnPreview').onclick = async ()=>{
-  const f=$('#fileCatalog').files?.[0]; if(!f){ alert('Selecciona archivo'); return; }
-  const ab=await f.arrayBuffer(); const wb=XLSX.read(ab,{type:'array'}); const ws=wb.Sheets[wb.SheetNames[0]];
-  const rows=XLSX.utils.sheet_to_json(ws,{defval:'',raw:true});
-  parsedCatalog = rows.map(r=>({
-    trip_id: state.tripId,
-    name: String(r.name || r.Nombre || r.NOMBRE || '').trim(),
-    brand: String(r.brand || r.Marca || '').trim(),
-    cat: String(r.cat || r.Categoria || r.category || '').trim(),
-    ref_cop: Number(r.ref_cop || r.VR || r.VR_COP || 0),
-    source: 'manual'
-  }));
-  const errs=[]; const ok=parsedCatalog.filter((r,i)=>{ const v=r.name && r.ref_cop>0; if(!v) errs.push(`Fila ${i+2}: name/ref_cop`); return v; });
-  $('#previewBox').innerHTML = `<b>Preview (50):</b><br>${ok.slice(0,50).map(r=>`${r.name} | ${r.brand} | ${r.cat} | ${r.ref_cop}`).join('<br>') || '—'}<div class="${errs.length?'warn':'ok'}" style="margin-top:6px">${errs.length? (errs.length+' errores filtrados'): 'Listo para importar'}</div>`;
-};
-$('#btnImport').onclick = async ()=>{
-  if(parsedCatalog.length<1){ alert('Primero vista previa'); return; }
-  const {error}=await sb.rpc('upsert_catalog_batch',{ p_rows: JSON.stringify(parsedCatalog) });
-  if(error){ alert('Import catálogo: '+error.message); return; }
-  parsedCatalog=[]; $('#previewBox').innerHTML='<span class="ok">Importado.</span>'; await loadCatalog();
-};
-
-/*** ========= SEMÁFORO (OCR + ML) ========= ***/
-let stream;
-$('#btnCam').onclick = async ()=>{
-  try{ stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}); const v=$('#video'); v.srcObject=stream; v.classList.remove('hidden'); }
-  catch(e){ alert('Cámara: '+e.message); }
-};
-$('#btnOCR').onclick = async ()=>{
-  const file=$('#semFile').files?.[0]; let text=$('#semText').value.trim();
-  if(!text && (stream||file)){
-    let blob;
-    if(stream){ const v=$('#video'), c=$('#canvas'); c.width=v.videoWidth; c.height=v.videoHeight; const ctx=c.getContext('2d'); ctx.drawImage(v,0,0); blob=await new Promise(res=>c.toBlob(res,'image/png')); }
-    else { blob=file; $('#imgPrev').classList.remove('hidden'); $('#imgPrev').src=URL.createObjectURL(file); }
-    try{
-      const worker=await Tesseract.createWorker('spa','eng'); const {data}=await worker.recognize(blob); await worker.terminate();
-      text=(data?.text||'').replace(/\s+/g,' ').trim();
-    }catch(e){ console.warn(e); }
-  }
-  if(!text){ alert('Sin texto/imagen.'); return; }
-  $('#ocrOut').innerHTML = `<b>OCR/Texto:</b> <span class="muted">${text.slice(0,240)}…</span>`;
-  const vr = await fetchMLandCompute(text);
-  renderMLResult(vr);
-};
-async function fetchMLandCompute(query){
-  const q = encodeURIComponent(query.slice(0,120));
-  const url = `https://api.mercadolibre.com/sites/MCO/search?q=${q}`;
-  const r=await fetch(url); const j=await r.json();
-  const prices=(j.results||[]).map(x=>Number(x.price)).filter(x=>x>0);
-  return { count:prices.length, median:medianIQR(prices), sample:prices.slice(0,12) };
-}
-function renderMLResult(v){
-  const box=$('#mlOut');
-  if(!v || !v.median){ box.innerHTML='<span class="danger">Sin precios confiables.</span>'; return; }
-  box.innerHTML=`
-    <div class="muted">Resultados ML: <b>${v.count}</b></div>
-    <div>VR propuesto (p50/IQR): <b>${fmtCOP(v.median)}</b></div>
-    <div class="muted">Muestra: ${v.sample.map(x=>fmtCOP(x)).join(' · ')}</div>
-    <div class="hr"></div>
-    <div class="grid" style="grid-template-columns:2fr 1fr 1fr 140px;gap:8px">
-      <input id="mlName" placeholder="Nombre catálogo"/>
-      <input id="mlBrand" placeholder="Marca"/>
-      <input id="mlCat" placeholder="Cat"/>
-      <button id="btnSaveVR" class="primary">Guardar en catálogo</button>
-    </div>`;
-  $('#btnSaveVR').onclick = async ()=>{
-    const name=$('#mlName').value.trim(); if(!name){ alert('Nombre'); return; }
-    const row=[{ trip_id:state.tripId, name, brand:$('#mlBrand').value.trim(), cat:$('#mlCat').value.trim(), ref_cop:v.median, source:'ML' }];
-    const {error}=await sb.rpc('upsert_catalog_batch',{ p_rows: JSON.stringify(row) });
-    if(error){ alert(error.message); return; }
-    await loadCatalog(); alert('VR guardado.');
-  };
 }
 
-/*** ========= INVENTARIO ========= ***/
-async function loadInv(){
-  const {data,error} = await sb.from('products').select('*').eq('trip_id',state.tripId).order('created_at',{ascending:false});
-  if(error){ console.warn(error); return; }
-  state.inv=data||[]; renderInv();
+/* ---- Carga masiva ---- */
+let previewRows=[];
+function parseExcel(file){
+  return new Promise((res,rej)=>{
+    const reader=new FileReader();
+    reader.onload = e=>{
+      try{
+        const data=new Uint8Array(e.target.result);
+        const wb=XLSX.read(data,{type:'array'});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        const rows=XLSX.utils.sheet_to_json(ws,{defval:'',raw:true});
+        res(rows);
+      }catch(err){ rej(err); }
+    };
+    reader.onerror=rej; reader.readAsArrayBuffer(file);
+  });
 }
-function sumOvUSD(){ return (state.ov||[]).reduce((a,r)=>a+Number(r.amount_usd_fixed||0),0); }
-function rO(){ const bt=Number(state.settings?.bt_usd||0); const v=sumOvUSD(); return bt>0? v/bt : 0; }
-function derive(p){ const gb=(Number(state.settings?.gb_pct||0)/100); const ro=rO(); const vsv=Number(p.unit_usd)*(1+gb+ro); const ap=Number(p.unit_usd)*ro; const mg=vsv-Number(p.unit_usd)-ap; return {vsv,ap,mg}; }
-function renderInv(){
-  const tb=$('#tblInv tbody'); tb.innerHTML='';
-  state.inv.forEach(r=>{ const d=derive(r); const tr=document.createElement('tr'); tr.innerHTML=`<td>${r.name}</td><td>${r.store||''}</td><td>${r.qty}</td><td>${fmtUSD(r.unit_usd)}</td><td>${fmtUSD(d.vsv)}</td><td>${fmtUSD(d.ap)}</td><td>${fmtUSD(d.mg)}</td>`; tb.appendChild(tr); });
-  const sumUSD = state.inv.reduce((s,p)=>s+Number(p.unit_usd||0)*Number(p.qty||1),0);
-  $('#kpiCompras').textContent = state.viewCurr==='USD' ? fmtUSD(sumUSD) : fmtCOP(sumUSD*(state.settings?.default_trm||4200));
+function validateMap(obj){
+  const name = (obj.name??obj.Nombre??obj.nombre??'').toString().trim();
+  const ref_raw = obj.ref_cop ?? obj.VR ?? obj['VR COP'] ?? obj['ref'] ?? obj['precio'] ?? '';
+  const ref_cop = Number((ref_raw??'').toString().replace(/[^\d.,]/g,'').replace(',','.'));
+  const brand = (obj.brand??obj.marca??'').toString().trim() || null;
+  const cat   = (obj.cat??obj.categoria??'').toString().trim() || null;
+  return { ok: !!(name && ref_cop>0), row:{trip_id:activeTripId, name, brand, cat, ref_cop, source:'manual'} };
 }
-$('#btnAddInv').onclick = async ()=>{
-  const name=$('#invName').value.trim(); if(!name) return alert('Producto');
-  const store=$('#invStore').value.trim(); const unit=Number($('#invUnitUSD').value||0); const qty=Number($('#invQty').value||1);
-  const d=derive({unit_usd:unit}); const row={ trip_id:state.tripId, name, store, unit_usd:unit, qty, est_sell_usd:d.vsv, est_aporte_usd:d.ap, est_margin_usd:d.mg };
-  const {error}=await sb.from('products').insert(row); if(error){ alert(error.message); return; }
-  ['invName','invStore','invUnitUSD'].forEach(id=>$('#'+id).value=''); $('#invQty').value=1;
-  await loadInv(); renderKPIs(); renderReports();
-};
-
-/*** ========= VENTAS ========= ***/
-async function loadSales(){
-  const {data,error} = await sb.from('sales').select('*').eq('trip_id',state.tripId).order('created_at',{ascending:false});
-  if(error){ console.warn(error); return; }
-  state.ven=data||[]; renderSales();
-}
-function renderSales(){
-  const tb=$('#tblVen tbody'); tb.innerHTML='';
-  state.ven.forEach(r=>{ const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${new Date(r.created_at).toLocaleDateString()}</td><td>${r.product_name||''}</td><td>${r.qty}</td><td>${fmtUSD(r.unit_usd)}</td><td>${fmtCOP(r.trm_used)}</td><td>${fmtCOP(r.sale_cop)}</td><td>${fmtUSD(r.aporte_usd)}</td><td>${fmtUSD(r.profit_usd)}</td>`;
+function renderPreview(){
+  const tb=$('#catPreview'); tb.innerHTML="";
+  previewRows.forEach((r,i)=>{
+    const tr=document.createElement('tr');
+    const cls = r.ok? '':' style="color:#fda4af"';
+    tr.innerHTML=`
+      <td${cls}>${i+1}</td>
+      <td${cls}>${esc(r.row.name||'')}</td>
+      <td${cls}>${esc(r.row.brand||'')}</td>
+      <td${cls}>${esc(r.row.cat||'')}</td>
+      <td class="right"${cls}>${r.row.ref_cop? fmtCOP(r.row.ref_cop):'—'}</td>
+      <td${cls}>manual</td>
+      <td${cls}>${r.ok? '✓' : 'Error'}</td>
+    `;
     tb.appendChild(tr);
   });
 }
-$('#btnAddSale').onclick = async ()=>{
-  const name=$('#venName').value.trim(); if(!name) return alert('Producto');
-  const store=$('#venStore').value.trim(); const qty=Number($('#venQty').value||1); const unit=Number($('#venUnitUSD').value||0);
-  const date=$('#venDate').value||todayISO(); let trm=Number($('#venTRM').value||0); if(!(trm>0)) trm=await ensureTRM(date);
-  const saleCOP=Number($('#venSaleCOP').value||0); const aporteUSD=rO()*unit*qty; const profitUSD=(saleCOP/trm)-(unit*qty)-aporteUSD;
-  const row={ trip_id:state.tripId, product_name:name, store, qty, unit_usd:unit, trm_used:trm, sale_cop:saleCOP, aporte_usd:aporteUSD, profit_usd:profitUSD };
-  const {error}=await sb.from('sales').insert(row); if(error){ alert(error.message); return; }
-  ['venName','venStore','venQty','venUnitUSD','venTRM','venSaleCOP'].forEach(id=>$('#'+id).value=''); await loadSales(); renderReports();
-};
-
-/*** ========= REPORTES ========= ***/
-function renderKPIs(){
-  $('#kpiBT').textContent = fmtUSD(state.settings?.bt_usd);
-  const ovUSD=sumOvUSD(); $('#kpiOV').textContent = state.viewCurr==='USD' ? fmtUSD(ovUSD) : fmtCOP(ovUSD*(state.settings?.default_trm||4200));
-  $('#kpiRO').textContent = fmtPct100(rO());
-  $('#lblVista').textContent = state.viewCurr;
-  $('#kpiTRM').textContent = state.trmToday? fmtCOP(state.trmToday):'—';
+async function bulkUpsertCatalog(rows){
+  // chunk en lotes de 500
+  for(let i=0;i<rows.length;i+=500){
+    const chunk = rows.slice(i,i+500);
+    const {error}=await supa.rpc('upsert_catalog_batch', { p_rows: chunk });
+    if(error) throw error;
+  }
 }
-function sumInvUSD(){ return state.inv.reduce((s,p)=>s+Number(p.unit_usd||0)*Number(p.qty||1),0); }
-function sumSalesCostUSD(){ return state.ven.reduce((s,r)=>s+Number(r.unit_usd||0)*Number(r.qty||1),0); }
-function renderReports(){
-  const bt=Number(state.settings?.bt_usd||0), ovUSD=sumOvUSD(), invUSD=sumInvUSD(), salesCostUSD=sumSalesCostUSD();
-  const uso=bt>0? (ovUSD+invUSD)/bt : 0; const ejec=bt>0? (ovUSD+salesCostUSD)/bt : 0;
-  const toMoney=v=> state.viewCurr==='USD'? fmtUSD(v) : fmtCOP(v*(state.settings?.default_trm||4200));
-  $('#repUso').innerHTML = `${toMoney(ovUSD)} + ${toMoney(invUSD)} ⇒ <b>${(100*uso).toFixed(1)}%</b>`;
-  $('#repReal').innerHTML = `${toMoney(ovUSD)} + ${toMoney(salesCostUSD)} ⇒ <b>${(100*ejec).toFixed(1)}%</b>`;
+async function previewFile(){
+  const f=$('#fileCat').files[0]; if(!f){ alert('Selecciona archivo XLSX/CSV'); return; }
+  const raw=await parseExcel(f);
+  previewRows = raw.map(validateMap);
+  renderPreview();
+  const okCount = previewRows.filter(x=>x.ok).length;
+  $('#btnImport').disabled = okCount<1; // deja importar incluso si <100 para pruebas
+  if(okCount<1) alert('No hay filas válidas (requiere columnas name y ref_cop).');
 }
-$('#btnExportEst').onclick = ()=>{ const ovUSD=sumOvUSD(), invUSD=sumInvUSD(), bt=Number(state.settings?.bt_usd||0); const rows=[['BT_USD',bt],['Overheads_USD',ovUSD],['CostoInventario_USD',invUSD],['Uso_BT_%', bt? ((ovUSD+invUSD)/bt*100).toFixed(2):'0']]; downloadText('reporte_estimado.csv', rows.map(r=>r.join(',')).join('\n')); };
-$('#btnExportReal').onclick = ()=>{ const ovUSD=sumOvUSD(), costUSD=sumSalesCostUSD(), bt=Number(state.settings?.bt_usd||0); const rows=[['BT_USD',bt],['Overheads_USD',ovUSD],['CostoVentasEjecutadas_USD',costUSD],['Ejecucion_BT_%', bt? ((ovUSD+costUSD)/bt*100).toFixed(2):'0']]; downloadText('reporte_real.csv', rows.map(r=>r.join(',')).join('\n')); };
-
-/*** ========= VISTA Y SYNC ========= ***/
-$('#btnViewUSD').onclick=()=>{ state.viewCurr='USD'; renderOverheads(); renderInv(); renderKPIs(); renderReports(); };
-$('#btnViewCOP').onclick=()=>{ state.viewCurr='COP'; renderOverheads(); renderInv(); renderKPIs(); renderReports(); };
-$('#btnSync').onclick=()=>loadAll();
-
-/*** ========= HARD RELOAD (anti-cache) ========= ***/
-$('#btnHardReload').onclick = ()=>{ const u=new URL(window.location.href); u.searchParams.set('v', Date.now().toString()); window.location.replace(u.toString()); };
-
-/*** ========= LOAD ALL ========= ***/
-async function loadAll(){
-  if(!state.tripId) return;
-  await loadTripSettings();
-  await Promise.all([loadOverheads(), loadCatalog(), loadInv(), loadSales()]);
-  if(state.trmToday==null) state.trmToday = await fetchTRMFromAPI();
-  renderKPIs(); renderReports();
+async function importPreview(){
+  const toImport = previewRows.filter(x=>x.ok).map(x=>x.row);
+  if(!toImport.length){ alert('No hay filas válidas.'); return; }
+  try{
+    await bulkUpsertCatalog(toImport);
+    alert('Importado.');
+    $('#catPreview').innerHTML='';
+    $('#btnImport').disabled=true; $('#fileCat').value='';
+    await loadCatalog();
+  }catch(e){
+    alert('Error importando: '+(e?.message||e));
+  }
 }
 
-/*** ========= INIT ========= ***/
+/*** ====== SYNC / RELOAD ====== ***/
+async function reloadAll(){ await Promise.all([loadOH(), loadCatalog()]); renderKPIs(); }
+
+/*** ====== EVENTS ====== ***/
+$('#tripSelect').onchange = async ()=>{ activeTripId=Number($('#tripSelect').value); await loadSettings(); await reloadAll(); };
+$('#btnNewTrip').onclick = createTrip;
+$('#btnDupTrip').onclick = duplicateTrip;
+$('#btnSaveSettings').onclick = saveSettings;
+$('#btnTRM').onclick = fetchTRM;
+$('#btnSync').onclick = reloadAll;
+$('#btnHard').onclick = ()=>{ const u=new URL(location.href); u.searchParams.set('v', Date.now()); location.href=u.toString(); };
+$('#viewUSD').onclick = ()=>setView('USD');
+$('#viewCOP').onclick = ()=>setView('COP');
+
+$('#ohAdd').onclick = addOH;
+$('#ohDelSel').onclick = delSelectedOH;
+
+$('#cAdd').onclick = addCatalogManual;
+$('#btnPreview').onclick = previewFile;
+$('#btnImport').onclick = importPreview;
+
+/*** ====== INIT ====== ***/
 (async function init(){
-  try{ // ping REST para detectar CORS/keys
-    const r=await fetch(`${SUPABASE_URL}/rest/v1/`,{headers:{apikey:SUPABASE_ANON_KEY,Authorization:`Bearer ${SUPABASE_ANON_KEY}`},mode:'cors'}); if(!r.ok) console.warn('REST ping',r.status,r.statusText);
-  }catch(e){ alert('Conexión Supabase: '+e.message); }
-  await loadTrips();
-  if(!state.tripId){ await createTrip('Orlando Nov 7 2025'); } else { await loadAll(); }
+  try{
+    await loadTrips();
+    if(!activeTripId){ await createTrip(); return; }
+    await loadSettings();
+    await reloadAll();
+    setView('USD');
+  }catch(e){ alert('Error cargando: '+(e?.message||e)); }
 })();
 </script>
-
 </body>
 </html>
