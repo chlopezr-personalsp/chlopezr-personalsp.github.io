@@ -1,620 +1,746 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Personal Shopper USA — estable</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>PS Arbitraje — Operacional</title>
 <style>
   :root{
-    --bg:#0b1220; --panel:#111827; --muted:#94a3b8; --text:#e5e7eb;
-    --brand:#60a5fa; --ok:#10b981; --warn:#f59e0b; --bad:#ef4444; --chip:#1f2937;
-    --card:#0f172a; --accent:#1e293b; --line:#334155;
+    --bg:#0b1220;--panel:#0f172a;--muted:#93a4b8;--text:#e7eaf0;--line:#1f2937;
+    --brand:#60a5fa;--ok:#10b981;--warn:#f59e0b;--bad:#ef4444;
   }
   html,body{height:100%}
-  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu;
-       background:linear-gradient(120deg,#0a0f1a,#101726,#0d1422); color:var(--text)}
-  .wrap{max-width:1200px;margin:0 auto;padding:14px}
-  .brand-row{display:flex;align-items:center;gap:10px;justify-content:space-between}
-  .app-title{display:flex;align-items:center;gap:10px}
-  .logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(145deg,#60a5fa,#22d3ee);
-        display:inline-flex;align-items:center;justify-content:center;color:#0b1220;font-weight:900}
-  .header-card{background:rgba(255,255,255,0.04);border:1px solid #1f2937;border-radius:14px;padding:12px 14px}
-  .toolbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-  .btn{display:inline-flex;align-items:center;gap:6px;background:#0f172a;color:var(--text);
-       border:1px solid #334155;border-radius:8px;padding:4px 8px;font-size:12px;line-height:1.1;cursor:pointer;white-space:nowrap}
-  .btn:hover{background:#111827} .btn.primary{background:#1d4ed8;border-color:#1d4ed8}
-  .btn.success{background:#059669;border-color:#059669} .btn.warn{background:#b45309;border-color:#b45309}
-  .btn:disabled{opacity:.55;cursor:not-allowed}
-  #btnSync,#btnFetchTRM,#btnManualTRM,#btnHardReload{padding:2px 6px!important;font-size:11px!important;line-height:1.05!important;border-radius:7px!important}
-  .grid{display:grid;gap:12px}
-  .cards{grid-template-columns:repeat(4,1fr)}
-  @media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}}
-  @media(max-width:580px){.cards{grid-template-columns:1fr}}
-  .card{background:rgba(255,255,255,0.04);border:1px solid #1f2937;border-radius:14px;padding:14px}
-  .k{color:var(--muted);font-size:12px}
-  .v{font-size:20px;font-weight:700}
-  .sub{color:var(--muted);font-size:11px}
-  .tabs{display:flex;gap:6px;margin:10px 0 6px}
-  .tab{padding:6px 10px;border:1px solid #334155;border-radius:10px;background:#0f172a;cursor:pointer;font-size:13px}
-  .tab.active{background:#1f2937;color:#e5e7eb;border-color:#475569}
-  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  @media(max-width:900px){.row{grid-template-columns:1fr}}
-  .input, select{width:100%;background:#0b1220;color:var(--text);border:1px solid #334155;border-radius:10px;padding:10px;font-size:14px}
-  label{font-size:12px;color:var(--muted);display:block;margin:8px 0 6px}
+  body{margin:0;background:linear-gradient(120deg,#0a0f1a,#0c1322,#0a1224);color:var(--text);
+       font-family:system-ui,-apple-system,Segoe UI,Inter,Roboto}
+  .wrap{max-width:1200px;margin:0 auto;padding:16px}
+  .top{display:flex;gap:10px;align-items:center;justify-content:space-between}
+  .logo{display:flex;align-items:center;gap:10px}
+  .emblem{width:28px;height:28px;border-radius:8px;background:linear-gradient(145deg,#60a5fa,#22d3ee);
+          color:#0b1220;font-weight:900;display:inline-flex;align-items:center;justify-content:center}
+  .bar{display:flex; gap:6px; flex-wrap:wrap}
+  .btn{background:#111827;border:1px solid var(--line);color:var(--text);padding:6px 10px;
+       border-radius:10px;cursor:pointer;font-size:13px}
+  .btn:hover{background:#152033}
+  .btn.primary{background:#1d4ed8;border-color:#1d4ed8}
+  .btn.success{background:#059669;border-color:#059669}
+  .btn.warn{background:#b45309;border-color:#b45309}
+  .btn.bad{background:#7f1d1d;border-color:#7f1d1d}
+  .select, .input{background:#0b1220;border:1px solid var(--line);color:var(--text);
+                  border-radius:10px;padding:8px 10px;font-size:14px;width:100%}
+  .k{font-size:12px;color:var(--muted)}
+  .v{font-size:20px;font-weight:800}
+  .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:12px 0}
+  @media(max-width:940px){.cards{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:560px){.cards{grid-template-columns:1fr}}
+  .card{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:16px;padding:12px}
+  .tabs{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+  .tab{padding:6px 10px;border:1px solid var(--line);border-radius:10px;background:#0f172a;cursor:pointer;font-size:13px}
+  .tab.active{background:#1f2937}
+  .panel{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:10px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:900px){.grid2{grid-template-columns:1fr}}
   table{width:100%;border-collapse:collapse;font-size:13px}
-  th,td{border-bottom:1px solid #1f2937;padding:8px 6px;text-align:left}
-  thead th{position:sticky;top:0;background:#0b1220;z-index:1}
-  .chip{display:inline-flex;align-items:center;gap:6px;background:#0f172a;border:1px solid #334155;color:#cbd5e1;
-        border-radius:999px;padding:2px 8px;font-size:12px}
-  .chip.ok{background:rgba(16,185,129,0.12);border-color:#065f46;color:#a7f3d0}
-  .chip.warn{background:rgba(245,158,11,0.12);border-color:#78350f;color:#fde68a}
-  .chip.bad{background:rgba(239,68,68,0.12);border-color:#7f1d1d;color:#fecaca}
-  .progress{height:10px;background:#0b1220;border:1px solid #334155;border-radius:999px;overflow:hidden}
-  .progress>div{height:100%;background:linear-gradient(90deg,#22d3ee,#60a5fa);width:0%}
-  .muted{color:var(--muted)}
+  th,td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left}
+  thead th{position:sticky;top:0;background:#0b1220}
   .right{text-align:right}
-  .hint{font-size:11px;color:#9ca3af;margin-top:4px}
-  .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;border:1px solid #334155;background:#0f172a;font-size:12px;cursor:pointer}
-  .pill:hover{background:#111827}
-  .err{background:#7f1d1d33;border:1px solid #fca5a5;color:#ffe4e6;padding:8px;border-radius:8px;margin-top:8px;display:none}
+  .center{text-align:center}
+  .muted{color:var(--muted)}
+  .chip{display:inline-flex;align-items:center;gap:6px;background:#0f172a;border:1px solid var(--line);
+        border-radius:999px;padding:4px 8px;font-size:12px}
+  .chip.ok{background:rgba(16,185,129,.12);border-color:#065f46;color:#a7f3d0}
+  .chip.warn{background:rgba(245,158,11,.12);border-color:#7c3d0a;color:#fde68a}
+  .chip.bad{background:rgba(239,68,68,.12);border-color:#7f1d1d;color:#fecaca}
+  .progress{height:10px;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:#0b1220}
+  .progress>div{height:100%;background:linear-gradient(90deg,#22d3ee,#60a5fa);width:0%}
+  .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:4px 8px;background:#0f172a}
+  .danger{color:#ffb4b4}
+  .ok{color:#a7f3d0}
+  .warn{color:#fde68a}
+  .mono{font-family:ui-monospace,Consolas,Menlo,monospace;font-size:12px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <!-- Header -->
-  <div class="header-card">
-    <div class="brand-row">
-      <div class="app-title">
-        <div class="logo">PS</div>
-        <div>
-          <div style="font-weight:800;font-size:18px">Personal Shopper USA — estable</div>
-          <div class="muted" style="font-size:12px">Control de costos, inventario y viabilidad en tiempo real</div>
-        </div>
-      </div>
-      <div class="toolbar">
-        <button id="btnSync" class="btn" title="Sincronizar con Supabase">⟳ Sync</button>
-        <button id="btnFetchTRM" class="btn" title="Actualizar TRM automáticamente">⇅ TRM</button>
-        <button id="btnManualTRM" class="btn" title="Ingresar TRM manual">✍ TRM</button>
-        <button id="btnHardReload" class="btn" title="Romper caché y recargar">⤳ Hard-reload</button>
+  <!-- HEADER -->
+  <div class="top">
+    <div class="logo">
+      <div class="emblem">PS</div>
+      <div>
+        <div style="font-size:18px;font-weight:800">PS Arbitraje — Operacional</div>
+        <div class="muted" style="font-size:12px">Viajes/proyectos con TRM fijada por registro</div>
       </div>
     </div>
-    <div id="errBox" class="err"></div>
+    <div class="bar">
+      <select id="tripSelect" class="select" style="min-width:260px"></select>
+      <button id="btnNewTrip" class="btn">+ Nuevo</button>
+      <button id="btnDupTrip" class="btn">📄 Duplicar</button>
+      <button id="btnSync" class="btn">⟳ Sync</button>
+      <button id="btnTRM" class="btn">⤓ TRM (hoy)</button>
+      <button id="btnHard" class="btn">↻ Hard-reload</button>
+      <select id="viewCurrency" class="select">
+        <option value="USD">Vista: USD</option>
+        <option value="COP">Vista: COP</option>
+      </select>
+    </div>
   </div>
 
   <!-- KPIs -->
-  <div class="grid cards" style="margin-top:12px">
+  <div class="cards">
     <div class="card">
-      <div class="k">Presupuesto Estimado (BT) USD</div>
-      <div class="v" id="kpiBT">$7,000.00</div>
-      <div class="sub" id="kpiBTcop">—</div>
+      <div class="k">BT (USD)</div>
+      <div class="v" id="kBT">—</div>
+      <div class="k muted" id="kBTcop">—</div>
     </div>
     <div class="card">
-      <div class="k">Costos del viaje (Overheads) USD</div>
-      <div class="v" id="kpiV">—</div>
-      <div class="sub" id="kpiVcop">—</div>
+      <div class="k">Overheads</div>
+      <div class="v" id="kOv">—</div>
+      <div class="k muted" id="kOvCop">—</div>
     </div>
     <div class="card">
-      <div class="k">Aporte por dólar (V/BT)</div>
-      <div class="v" id="kpiRO">—</div>
-      <div class="sub muted">Se usa para VSV</div>
+      <div class="k">rO = Overheads/BT</div>
+      <div class="v" id="kRO">—</div>
+      <div class="k muted">Se usa en VSV</div>
     </div>
     <div class="card">
-      <div class="k">TRM vigente</div>
-      <div class="v" id="kpiTRM">—</div>
-      <div class="sub">Histórico por día</div>
+      <div class="k">TRM del día</div>
+      <div class="v" id="kTRM">—</div>
+      <div class="k muted">Fijada por registro</div>
     </div>
   </div>
 
-  <!-- KPIs Presupuesto Real -->
-  <div class="grid cards" style="margin-top:12px">
-    <div class="card">
-      <div class="k">Compras acumuladas (Costo USD)</div>
-      <div class="v" id="kpiComprasUSD">—</div>
-      <div class="sub" id="kpiComprasCOP">—</div>
-    </div>
-    <div class="card">
-      <div class="k">Presupuesto Real Acumulado = Overheads + Compras</div>
-      <div class="v" id="kpiRealUSD">—</div>
-      <div class="sub" id="kpiRealCOP">—</div>
-    </div>
-    <div class="card" style="grid-column: span 2">
-      <div class="k">Uso del presupuesto estimado (BT)</div>
-      <div class="progress" style="margin-top:6px"><div id="progBT" style="width:0%"></div></div>
-      <div class="sub" id="progBTText" style="margin-top:6px">—</div>
-    </div>
-  </div>
-
-  <!-- Tabs -->
+  <!-- TABS -->
   <div class="tabs">
-    <div class="tab active" data-tab="config">⚙️ Configuración</div>
-    <div class="tab" data-tab="catalog">📚 Catálogo referencia</div>
-    <div class="tab" data-tab="overheads">💼 Overheads</div>
-    <div class="tab" data-tab="reportes">📊 Reportes</div>
+    <div class="tab active" data-tab="cfg">⚙️ Configuración</div>
+    <div class="tab" data-tab="cat">📚 Catálogo</div>
+    <div class="tab" data-tab="oh">💼 Overheads</div>
+    <div class="tab" data-tab="inv">📦 Inventario</div>
+    <div class="tab" data-tab="ven">💵 Ventas</div>
+    <div class="tab" data-tab="rep">📊 Reportes</div>
+    <div class="tab" data-tab="diag">🩺 Diagnóstico</div>
   </div>
 
-  <!-- Panel Config -->
-  <div id="panel-config" class="card">
-    <div class="row">
+  <!-- CONFIG -->
+  <div class="panel" id="p-cfg">
+    <div class="grid2">
       <div>
-        <label>Presupuesto total (BT) USD</label>
-        <input id="inpBT" class="input" type="number" step="0.01" value="7000">
+        <label class="k">Presupuesto total (BT) USD</label>
+        <input id="inpBT" class="input" type="number" step="0.01" placeholder="7000"/>
       </div>
       <div>
-        <label>Margen objetivo GB% (sobre venta)</label>
-        <input id="inpGB" class="input" type="number" step="1" value="30">
-        <div class="hint">Al cambiar, se recalculan KPIs, semáforo, inventario estimado y reportes</div>
+        <label class="k">Margen objetivo (GB%)</label>
+        <input id="inpGB" class="input" type="number" step="1" placeholder="30"/>
       </div>
       <div>
-        <label>TRM (COP/USD) – día de hoy (UI)</label>
-        <input id="inpTRM" class="input" type="number" step="1" placeholder="Ej: 4200">
+        <label class="k">TRM por defecto (UI)</label>
+        <input id="inpTRM" class="input" type="number" step="1" placeholder="4200"/>
       </div>
       <div>
-        <label>Notas</label>
-        <input id="inpNotes" class="input" placeholder="Opcional">
+        <label class="k">Notas</label>
+        <input id="inpNotes" class="input" placeholder="Opcional"/>
       </div>
+    </div>
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+      <button id="btnSaveCfg" class="btn success">💾 Guardar configuración</button>
     </div>
   </div>
 
-  <!-- Panel Catálogo -->
-  <div id="panel-catalog" class="card" style="display:none">
-    <div class="k">Base de referencia (VR) en COP. Se usa para comparar en el semáforo.</div>
-    <div class="row">
+  <!-- CATALOGO -->
+  <div class="panel" id="p-cat" style="display:none">
+    <div class="grid2">
       <div>
-        <label>Descripción / SKU</label>
-        <input id="catName" class="input" placeholder="Ej: Nike Air Max 90">
+        <label class="k">Nombre / modelo</label>
+        <input id="catName" class="input" placeholder="Nike Air Max 90"/>
       </div>
       <div>
-        <label>Marca / Categoría (opcional)</label>
-        <input id="catMeta" class="input" placeholder="Nike / Calzado">
+        <label class="k">Marca</label>
+        <input id="catBrand" class="input" placeholder="Nike"/>
       </div>
       <div>
-        <label>Precio referencia (COP)</label>
-        <input id="catCOP" class="input" type="number" step="100">
+        <label class="k">Categoría</label>
+        <input id="catCat" class="input" placeholder="Calzado"/>
       </div>
-      <div style="display:flex;align-items:flex-end;gap:8px">
-        <button id="catAdd" class="btn success">＋ Agregar</button>
-        <button id="catSync" class="btn">⟳ Refrescar</button>
+      <div>
+        <label class="k">VR (COP)</label>
+        <input id="catCOP" class="input" type="number" step="100"/>
       </div>
     </div>
-
-    <hr style="border:0;border-top:1px solid #1f2937;margin:12px 0">
-
-    <div class="k">Carga masiva (XLSX/CSV). Mínimo: <b>name</b>, <b>ref_cop</b>. Opcionales: <b>brand</b>, <b>cat</b>.</div>
-    <div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-      <input type="file" id="catFile" accept=".xlsx,.xls,.csv"/>
-      <button id="catPrevBtn" class="btn">Vista previa</button>
-      <button id="catImpBtn" class="btn primary" disabled>Importar (lotes)</button>
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+      <button id="catAdd" class="btn success">＋ Agregar</button>
+      <input type="file" id="catFile" accept=".xlsx,.xls,.csv" class="input" style="max-width:360px"/>
+      <button id="catPreview" class="btn">👁 Vista previa</button>
+      <button id="catImport" class="btn primary">⬆ Importar</button>
+      <button id="catReload" class="btn">⟳ Recargar</button>
     </div>
-    <div style="margin-top:8px;max-height:240px;overflow:auto">
+    <div id="catStatus" class="k muted" style="margin-top:6px"></div>
+    <div style="max-height:320px;overflow:auto;margin-top:8px">
       <table>
-        <thead><tr><th>#</th><th>name</th><th>brand</th><th>cat</th><th class="right">ref_cop</th><th>OK</th></tr></thead>
-        <tbody id="catPrevBody"></tbody>
-      </table>
-    </div>
-
-    <div style="margin-top:10px;max-height:300px;overflow:auto">
-      <table>
-        <thead><tr><th>Fecha</th><th>Descripción</th><th>Marca/Cat</th><th class="right">COP</th><th>Fuente</th><th>Acciones</th></tr></thead>
+        <thead><tr>
+          <th>Fecha</th><th>Nombre</th><th>Marca</th><th>Cat</th><th class="right">VR (COP)</th><th>Fuente</th><th class="center">Acciones</th>
+        </tr></thead>
         <tbody id="catTbody"></tbody>
       </table>
     </div>
   </div>
 
-  <!-- Panel Overheads -->
-  <div id="panel-overheads" class="card" style="display:none">
-    <div class="k">TRM fijada por fecha; se guardan USD/COP determinísticos. Compatible con esquema legado.</div>
-    <div class="row">
+  <!-- OVERHEADS -->
+  <div class="panel" id="p-oh" style="display:none">
+    <div class="grid2">
       <div>
-        <label>Descripción</label>
-        <input id="ohDesc" class="input" placeholder="Tiquetes / Hospedaje / Envío...">
+        <label class="k">Descripción</label>
+        <input id="ohDesc" class="input" placeholder="Tiquetes / Envío / Hospedaje"/>
       </div>
       <div>
-        <label>Categoría</label>
-        <input id="ohCat" class="input" placeholder="Transporte / Envío / ...">
+        <label class="k">Categoría</label>
+        <input id="ohCat" class="input" placeholder="Transporte / Envío / Hotel..."/>
       </div>
       <div>
-        <label>Moneda y monto</label>
-        <div style="display:flex;gap:6px">
-          <select id="ohCur" class="input" style="max-width:110px"><option>USD</option><option>COP</option></select>
-          <input id="ohUsd" class="input" type="number" step="0.01" placeholder="Monto">
-        </div>
+        <label class="k">Moneda</label>
+        <select id="ohCur" class="select"><option>USD</option><option>COP</option></select>
       </div>
       <div>
-        <label>Fecha y TRM manual (opcional)</label>
-        <div style="display:flex;gap:6px">
-          <input id="ohDate" class="input" type="date">
-          <input id="ohTRM" class="input" type="number" step="1" placeholder="TRM manual">
-        </div>
+        <label class="k">Monto</label>
+        <input id="ohAmt" class="input" type="number" step="0.01"/>
       </div>
-      <div style="display:flex;align-items:flex-end;gap:8px">
-        <button id="ohAdd" class="btn success">＋ Agregar costo</button>
-        <button id="ohDelSel" class="btn warn">Eliminar seleccionados</button>
+      <div>
+        <label class="k">Fecha (TRM a fijar)</label>
+        <input id="ohDate" class="input" type="date"/>
+      </div>
+      <div>
+        <label class="k">TRM manual (opcional)</label>
+        <input id="ohTRM" class="input" type="number" step="1" placeholder="Deja vacío para usar API o TRM UI"/>
       </div>
     </div>
-
-    <div style="margin-top:8px;max-height:320px;overflow:auto">
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+      <button id="ohAdd" class="btn success">＋ Agregar</button>
+      <button id="ohDelSel" class="btn bad">🗑 Eliminar seleccionados</button>
+      <span class="k muted">Cada registro persiste su TRM y USD/COP fijos.</span>
+    </div>
+    <div style="max-height:360px;overflow:auto;margin-top:8px">
       <table>
         <thead><tr>
-          <th></th><th>Fecha</th><th>Descripción</th><th>Cat</th><th>Moneda</th>
-          <th class="right">Vista</th><th class="right">TRM usada</th>
+          <th></th><th>Fecha</th><th>Desc</th><th>Cat</th><th>Moneda</th>
+          <th class="right">Monto</th><th class="right">TRM usada</th>
           <th class="right">USD fijo</th><th class="right">COP fijo</th>
-          <th>Acciones</th>
+          <th class="center">Acciones</th>
         </tr></thead>
         <tbody id="ohTbody"></tbody>
       </table>
     </div>
   </div>
 
-  <!-- Panel Reportes -->
-  <div id="panel-reportes" class="card" style="display:none">
-    <div class="grid" style="grid-template-columns:1fr 1fr;gap:12px">
+  <!-- INVENTARIO -->
+  <div class="panel" id="p-inv" style="display:none">
+    <div class="grid2">
+      <div>
+        <label class="k">Producto</label>
+        <input id="invName" class="input" placeholder="Producto"/>
+      </div>
+      <div>
+        <label class="k">Tienda</label>
+        <input id="invStore" class="input" placeholder="Outlet / Retail"/>
+      </div>
+      <div>
+        <label class="k">Costo unitario (USD)</label>
+        <input id="invUSD" class="input" type="number" step="0.01"/>
+      </div>
+      <div>
+        <label class="k">Cantidad</label>
+        <input id="invQty" class="input" type="number" step="1" value="1"/>
+      </div>
+      <div>
+        <label class="k">PVP estimado (COP)</label>
+        <input id="invCOP" class="input" type="number" step="100"/>
+      </div>
+    </div>
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+      <button id="invAdd" class="btn success">＋ Agregar a inventario</button>
+      <button id="invReload" class="btn">⟳ Recargar</button>
+    </div>
+    <div style="margin-top:10px" class="k muted">Cobertura de costos (aporte estimado vs Overheads):</div>
+    <div class="progress" style="margin-top:6px"><div id="invProg" style="width:0%"></div></div>
+    <div id="invProgTxt" class="k muted" style="margin-top:6px"></div>
+
+    <div style="max-height:360px;overflow:auto;margin-top:8px">
+      <table>
+        <thead><tr>
+          <th>Fecha</th><th>Producto</th><th>Tienda</th>
+          <th class="right">Costo USD × q</th><th class="right">PVP est. COP</th>
+          <th class="right">Aporte est. USD</th><th class="right">Margen est. USD</th>
+          <th class="center">Acciones</th>
+        </tr></thead>
+        <tbody id="invTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- VENTAS -->
+  <div class="panel" id="p-ven" style="display:none">
+    <div class="grid2">
+      <div>
+        <label class="k">Producto (del inventario)</label>
+        <select id="saleSel" class="select"></select>
+      </div>
+      <div>
+        <label class="k">Cantidad</label>
+        <input id="saleQty" class="input" type="number" step="1" value="1"/>
+      </div>
+      <div>
+        <label class="k">PVP (COP, por unidad)</label>
+        <input id="saleCOP" class="input" type="number" step="100"/>
+      </div>
+      <div>
+        <label class="k">Fecha de la venta (TRM a fijar)</label>
+        <input id="saleDate" class="input" type="date"/>
+      </div>
+    </div>
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+      <button id="saleAdd" class="btn success">💾 Registrar venta</button>
+      <button id="saleReload" class="btn">⟳ Recargar</button>
+    </div>
+    <div style="max-height:360px;overflow:auto;margin-top:8px">
+      <table>
+        <thead><tr>
+          <th>Fecha</th><th>Producto</th><th>Tienda</th><th class="right">Cant.</th>
+          <th class="right">PVP (COP)</th><th class="right">Aporte USD</th><th class="right">Utilidad USD</th>
+          <th class="center">Acciones</th>
+        </tr></thead>
+        <tbody id="saleTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- REPORTES -->
+  <div class="panel" id="p-rep" style="display:none">
+    <div class="grid2">
       <div class="card">
-        <div class="k">Reporte estimado (inventario)</div>
+        <div class="k">Estimado (inventario)</div>
         <div id="repEst">—</div>
       </div>
       <div class="card">
-        <div class="k">Reporte realizado (ventas)</div>
+        <div class="k">Real (ventas)</div>
         <div id="repReal">—</div>
       </div>
     </div>
   </div>
+
+  <!-- DIAGNÓSTICO -->
+  <div class="panel" id="p-diag" style="display:none">
+    <div class="k">Último mensaje</div>
+    <div id="log" class="mono" style="white-space:pre-wrap;background:#0b1220;border:1px solid var(--line);border-radius:10px;padding:8px;margin-top:6px">—</div>
+  </div>
 </div>
 
-<!-- LIBRERÍAS: UMD para GitHub Pages -->
+<!-- LIBRERÍAS (UMD) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script>
-/* ======= CONFIG SUPABASE ======= */
-const SUPABASE_URL = "https://ucrkhrehdedmubykzfzs.supabase.co";
-const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcmtocmVoZGVkbXVieWt6ZnpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1OTc5MzgsImV4cCI6MjA3NzE3MzkzOH0.7CXUuyAPQlm_9RIKbaO9y8Kwjh9c6M7UJcu4xAIM7WA";
-const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+/* ================== SUPABASE CONFIG ================== */
+const SB_URL = "https://ucrkhrehdedmubykzfzs.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcmtocmVoZGVkbXVieWt6ZnpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1OTc5MzgsImV4cCI6MjA3NzE3MzkzOH0.7CXUuyAPQlm_9RIKbaO9y8Kwjh9c6M7UJcu4xAIM7WA";
+const sb = window.supabase.createClient(SB_URL, SB_KEY);
 
-/* ======= ESTADO ======= */
-let BT = 7000;
-let GB = 30;
-let TRM = 4200;
-let OVERHEADS = [];
-let CATALOG = [];
-let INVENTORY = [];
-let SALES = [];
-let overheadsFixedSchema = null; // se detecta en runtime
-let catalogNeedsTrip = null;     // true si la fila trae trip_id en DB
-let lastTripId = null;
+/* ================== ESTADO ================== */
+let trips=[], tripId=null, settings=null;
+let overheads=[], catalog=[], products=[], sales=[];
+let view='USD';
+let defaultTRM=4200, BT=7000, GB=30;
 
-/* ======= HELPERS ======= */
-const fmtUSD = n => "$" + (Number(n||0)).toFixed(2);
-const fmtCOP = n => "$" + (Math.round(Number(n||0))).toLocaleString("es-CO");
-const $ = s => document.querySelector(s);
-const $$ = s => Array.from(document.querySelectorAll(s));
-function showErr(msg){ const box=$('#errBox'); box.style.display='block'; box.textContent=msg; setTimeout(()=>{box.style.display='none'}, 7000); }
+const $ = s=>document.querySelector(s);
+const $$ = s=>Array.from(document.querySelectorAll(s));
 
-/* ======= TABS ======= */
-$$('.tab').forEach(t=>{
-  t.onclick=()=>{
-    $$('.tab').forEach(x=>x.classList.remove('active'));
-    t.classList.add('active');
-    const tab = t.dataset.tab;
-    ['config','catalog','overheads','reportes'].forEach(id=>{
-      $('#panel-'+id).style.display = (id===tab?'block':'none');
-    });
-  };
-});
+const fmtUSD = n => "$"+Number(n||0).toFixed(2);
+const fmtCOP = n => "$"+Math.round(Number(n||0)).toLocaleString("es-CO");
+const todayStr = ()=> new Date().toISOString().slice(0,10);
 
-/* ======= KPIs ======= */
-function renderKPIs(){
-  const VUSD = OVERHEADS.reduce((s,o)=> s + Number(o._usd_fixed||0), 0);
-  const comprasUSD = INVENTORY.reduce((s,p)=> s + (Number(p.unit_usd||0)*Number(p.qty||0)), 0);
-  const realUSD = VUSD + comprasUSD;
-
-  $('#kpiBT').textContent = fmtUSD(BT);
-  $('#kpiBTcop').textContent = fmtCOP(BT*TRM);
-  $('#kpiV').textContent = fmtUSD(VUSD);
-  $('#kpiVcop').textContent = fmtCOP(VUSD*TRM);
-  $('#kpiRO').textContent = (BT>0 ? (VUSD/BT) : 0).toFixed(3);
-  $('#kpiTRM').textContent = fmtCOP(TRM) + " COP/USD";
-
-  $('#kpiComprasUSD').textContent = fmtUSD(comprasUSD);
-  $('#kpiComprasCOP').textContent = fmtCOP(comprasUSD*TRM);
-  $('#kpiRealUSD').textContent = fmtUSD(realUSD);
-  $('#kpiRealCOP').textContent = fmtCOP(realUSD*TRM);
-
-  const pct = Math.max(0, Math.min(100, BT>0 ? (realUSD/BT)*100 : 0));
-  $('#progBT').style.width = pct.toFixed(1)+"%";
-  $('#progBTText').textContent = `Uso de BT: ${pct.toFixed(1)}% — Real: ${fmtUSD(realUSD)} de ${fmtUSD(BT)}`;
+/* ================== LOG ================== */
+function log(msg, data){
+  const t = new Date().toLocaleString('es-CO');
+  const line = typeof data!=='undefined' ? `${t}\n${msg}\n${JSON.stringify(data,null,2)}\n` : `${t}\n${msg}\n`;
+  $('#log').textContent = line + "\n" + $('#log').textContent;
+  console.log(msg, data||'');
 }
 
-/* ======= SCHEMA DETECTION ======= */
-async function detectSchemas(){
-  try{
-    const r = await supa.from('overheads').select('*').limit(1);
-    if(!r.error){
-      const row = (r.data||[])[0] || {};
-      overheadsFixedSchema = ('amount_usd_fixed' in row) || ('trm_used' in row);
-    }
-  }catch(e){}
-  try{
-    const r = await supa.from('catalog').select('*').limit(1);
-    if(!r.error){
-      const row = (r.data||[])[0] || {};
-      catalogNeedsTrip = ('trip_id' in row);
-    }
-  }catch(e){}
-  try{
-    const tr = await supa.from('trips').select('id').order('created_at',{ascending:false}).limit(1);
-    if(!tr.error && tr.data && tr.data.length){ lastTripId = tr.data[0].id; }
-  }catch(e){}
+/* ================== TRIPS ================== */
+async function loadTrips(){
+  const {data,error} = await sb.from('trips').select('id,name,created_at').order('created_at',{ascending:false});
+  if(error){ alert("Error cargando viajes"); log('loadTrips error',error); return; }
+  trips=data||[];
+  const sel=$('#tripSelect'); sel.innerHTML='';
+  trips.forEach(t=>{ const o=document.createElement('option'); o.value=t.id; o.textContent=t.name; sel.appendChild(o); });
+  if(!trips.length){ const {data:ins} = await sb.from('trips').insert({name:'Default Trip'}).select();
+    tripId=ins[0].id; } 
+  if(!tripId) tripId = trips[0]?.id;
+  sel.value = String(tripId);
+  await loadSettings();
+  await syncAll();
 }
+$('#tripSelect').onchange=async e=>{ tripId=Number(e.target.value); await loadSettings(); await syncAll(); };
 
-/* ======= OVERHEADS ======= */
-async function loadOverheads(){
-  const {data,error} = await supa.from('overheads').select('*').order('created_at',{ascending:false});
-  if(error){ showErr('loadOverheads: '+error.message); return; }
-  OVERHEADS = (data||[]).map(o=>{
-    // mapa tolerante: soporta esquema nuevo o legado
-    const usdFixed = (o.amount_usd_fixed!=null) ? Number(o.amount_usd_fixed)
-                   : (o.usd!=null) ? Number(o.usd)
-                   : (o.amount_usd!=null && o.trm_used) ? Number(o.amount_usd)
-                   : 0;
-    const copFixed = (o.amount_cop_fixed!=null) ? Number(o.amount_cop_fixed)
-                   : (o.usd!=null && TRM) ? Number(o.usd)*TRM
-                   : (o.amount_cop!=null) ? Number(o.amount_cop)
-                   : 0;
-    return {...o, _usd_fixed:usdFixed, _cop_fixed:copFixed};
-  });
-  renderOverheads();
+$('#btnNewTrip').onclick = async ()=>{
+  const name = prompt('Nombre del viaje/proyecto:','Orlando Nov 7 2025');
+  if(!name) return;
+  const {data,error} = await sb.from('trips').insert({name}).select();
+  if(error){ alert('No se pudo crear viaje'); log('newTrip error', error); return; }
+  tripId = data[0].id;
+  await sb.from('trip_settings').insert({trip_id:tripId}).select();
+  await loadTrips();
+};
+$('#btnDupTrip').onclick = async ()=>{
+  if(!tripId) return;
+  const base = trips.find(t=>t.id===tripId);
+  const name = prompt('Nombre nuevo (duplicado de '+(base?.name||'')+'):', (base?.name||'Trip')+' (copy)');
+  if(!name) return;
+  const {data:ins, error} = await sb.from('trips').insert({name}).select();
+  if(error){ alert('Error duplicando'); log('dup error',error); return; }
+  const newId = ins[0].id;
+  // copia settings
+  if(settings){
+    await sb.from('trip_settings').upsert({trip_id:newId, bt_usd:settings.bt_usd, gb_pct:settings.gb_pct, default_trm:settings.default_trm});
+  }
+  tripId=newId; await loadTrips();
+};
+
+/* ================== SETTINGS ================== */
+async function loadSettings(){
+  const {data} = await sb.from('trip_settings').select('*').eq('trip_id',tripId).maybeSingle();
+  if(!data){
+    await sb.from('trip_settings').insert({trip_id:tripId});
+    settings={bt_usd:7000,gb_pct:30,default_trm:4200};
+  }else settings=data;
+  BT=Number(settings.bt_usd||7000);
+  GB=Number(settings.gb_pct||30);
+  defaultTRM=Number(settings.default_trm||4200);
+  $('#inpBT').value = BT; $('#inpGB').value=GB; $('#inpTRM').value=defaultTRM;
   renderKPIs();
 }
+$('#btnSaveCfg').onclick = async ()=>{
+  const bt=Number($('#inpBT').value||0);
+  const gb=Number($('#inpGB').value||0);
+  const trm=Number($('#inpTRM').value||0);
+  const {error}=await sb.from('trip_settings').upsert({trip_id:tripId,bt_usd:bt,gb_pct:gb,default_trm:trm,updated_at:new Date().toISOString()});
+  if(error){ alert('No se pudo guardar'); log('save cfg',error); return; }
+  BT=bt; GB=gb; defaultTRM=trm; renderKPIs(); renderAll();
+};
 
-function renderOverheads(){
-  const tb = $('#ohTbody'); tb.innerHTML="";
-  OVERHEADS.forEach(o=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML = `
-      <td><input type="checkbox" class="ohchk" value="${o.id}"></td>
-      <td>${new Date(o.created_at).toLocaleString('es-CO')}</td>
-      <td>${o.description||''}</td>
-      <td>${o.cat||''}</td>
-      <td>${o.currency|| (overheadsFixedSchema?'—':'USD')}</td>
-      <td class="right">${fmtUSD(o._usd_fixed)}</td>
-      <td class="right">${fmtCOP(o.trm_used || TRM)}</td>
-      <td class="right">${fmtUSD(o._usd_fixed)}</td>
-      <td class="right">${fmtCOP(o._cop_fixed)}</td>
-      <td class="center"><button class="btn" data-del="${o.id}">🗑</button></td>
-    `;
-    tb.appendChild(tr);
-  });
-  // delete 1
-  tb.querySelectorAll('[data-del]').forEach(btn=>{
-    btn.onclick = async ()=>{
-      const r = await supa.from('overheads').delete().eq('id', btn.dataset.del);
-      if(r.error){ showErr('Eliminar overhead: '+r.error.message); return; }
-      await loadOverheads();
-    };
-  });
-}
-
-// insertar compatible
-async function addOverhead(){
-  const desc = $('#ohDesc').value.trim();
-  const cat = $('#ohCat').value.trim();
-  const cur = $('#ohCur').value;
-  const amt = Number($('#ohUsd').value||0);
-  const dateStr = $('#ohDate').value ? $('#ohDate').value : (new Date()).toISOString().slice(0,10);
-  const trmManual = Number($('#ohTRM').value||0) || null;
-  if(!desc || !(amt>0)){ alert('Ingresa descripción y monto'); return; }
-
-  // Asegura TRM del día en tabla trm_daily si existe la columna en backend (si no, solo UI)
-  let trmToUse = trmManual || TRM;
-  try{
-    const existing = await supa.from('trm_daily').select('*').eq('d', dateStr).maybeSingle();
-    if(existing?.data?.trm) trmToUse = Number(existing.data.trm);
-    else if(!trmManual){
-      // inserta registro trm_daily con TRM UI (no es obligatorio si no existe tabla)
-      await supa.from('trm_daily').insert({d:dateStr,trm:TRM}).catch(()=>{});
-      trmToUse = TRM;
-    }
-  }catch(e){}
-
-  // intenta esquema nuevo
-  let ins = {
-    description:desc, cat:cat||null, currency:cur,
-    trm_used: trmToUse
-  };
-  if(cur==='USD'){
-    ins.amount_usd = amt;
-    ins.amount_usd_fixed = amt;
-    ins.amount_cop_fixed = Math.round(amt*trmToUse);
-  }else{
-    ins.amount_cop = amt;
-    ins.amount_cop_fixed = Math.round(amt);
-    ins.amount_usd_fixed = amt/(trmToUse||1);
-  }
-  try{
-    const r = await supa.from('overheads').insert(ins);
-    if(r.error) throw r.error;
-  }catch(e){
-    // fallback a esquema legado { usd }
+/* ================== TRM DIARIA ================== */
+async function ensureTRM(dateISO, manual=null){
+  const d = dateISO || todayStr();
+  let {data} = await sb.from('trm_daily').select('*').eq('d', d).maybeSingle();
+  if(data) return Number(data.trm);
+  let trm = manual || defaultTRM;
+  if(!manual){
     try{
-      const r2 = await supa.from('overheads').insert({description:desc,cat,usd:(cur==='USD'?amt:amt/TRM)});
-      if(r2.error) throw r2.error;
-    }catch(e2){
-      showErr('addOverhead: '+(e2.message||e2)); return;
-    }
+      const r=await fetch('https://open.er-api.com/v6/latest/USD'); const j=await r.json();
+      if(j && j.rates && j.rates.COP) trm = Number(j.rates.COP);
+    }catch(e){ log('TRM API fallback', e); }
   }
-  // limpiar UI
-  $('#ohDesc').value=''; $('#ohCat').value=''; $('#ohUsd').value=''; $('#ohTRM').value=''; $('#ohDate').value='';
+  await sb.from('trm_daily').insert({d, trm});
+  return trm;
+}
+$('#btnTRM').onclick = async ()=>{ const t=await ensureTRM(todayStr(), null); alert('TRM guardada: '+fmtCOP(t)+' COP/USD'); renderKPIs(); };
+
+/* ================== OVERHEADS ================== */
+async function addOverhead(){
+  const desc=$('#ohDesc').value.trim();
+  const cat=$('#ohCat').value.trim();
+  const currency=$('#ohCur').value.trim();
+  const amount=Number($('#ohAmt').value||0);
+  const date = $('#ohDate').value || todayStr();
+  const trmManual = Number($('#ohTRM').value||0) || null;
+  if(!desc || amount<=0){ alert('Completa descripción y monto'); return; }
+  const trm = await ensureTRM(date, trmManual);
+  let row = {trip_id:tripId, description:desc, cat, currency, trm_used:trm};
+  if(currency==='USD'){
+    row.amount_usd=amount;
+    row.amount_usd_fixed=amount;
+    row.amount_cop_fixed=amount*trm;
+  }else{
+    row.amount_cop=amount;
+    row.amount_usd_fixed=amount/trm;
+    row.amount_cop_fixed=amount;
+  }
+  const {error} = await sb.from('overheads').insert(row);
+  if(error){ alert('Error agregando overhead'); log('addOverhead', error); return; }
+  $('#ohDesc').value=''; $('#ohCat').value=''; $('#ohAmt').value=''; $('#ohTRM').value='';
   await loadOverheads();
 }
+$('#ohAdd').onclick = addOverhead;
 
-// delete por lote
-async function deleteSelectedOverheads(){
-  const ids = $$('.ohchk:checked').map(x=>x.value);
-  if(!ids.length){ alert('Marca al menos un gasto'); return; }
-  if(!confirm(`Eliminar ${ids.length} gastos?`)) return;
-  const r = await supa.from('overheads').delete().in('id', ids);
-  if(r.error){ showErr('Eliminar seleccionados: '+r.error.message); return; }
+async function loadOverheads(){
+  const {data,error} = await sb.from('overheads').select('*').eq('trip_id',tripId).order('created_at',{ascending:false});
+  if(error){ log('loadOverheads',error); return; }
+  overheads=data||[]; renderOverheads(); renderKPIs();
+}
+async function deleteOverhead(id){ await sb.from('overheads').delete().eq('id',id); await loadOverheads(); }
+$('#ohDelSel').onclick = async ()=>{
+  const ids=[...document.querySelectorAll('[data-ohchk]:checked')].map(x=>Number(x.dataset.id));
+  if(!ids.length) return;
+  await sb.from('overheads').delete().in('id', ids);
   await loadOverheads();
-}
-
-/* ======= CATÁLOGO ======= */
-async function loadCatalog(){
-  const select = catalogNeedsTrip ? 'id,created_at,name,brand,cat,ref_cop,source,trip_id' : '*';
-  const {data,error} = await supa.from('catalog').select(select).order('created_at',{ascending:false});
-  if(error){ showErr('loadCatalog: '+error.message); return; }
-  CATALOG = data||[];
-  renderCatalog();
-}
-function renderCatalog(){
-  const tb = $('#catTbody'); tb.innerHTML="";
-  CATALOG.forEach(c=>{
+};
+function renderOverheads(){
+  const tb=$('#ohTbody'); tb.innerHTML='';
+  overheads.forEach(o=>{
+    const usdFixed = Number(o.amount_usd_fixed||0);
+    const copFixed = Number(o.amount_cop_fixed||0);
     const tr=document.createElement('tr');
     tr.innerHTML=`
-      <td>${new Date(c.created_at).toLocaleString('es-CO')}</td>
-      <td>${c.name||''}</td>
-      <td>${(c.brand||'')}${c.cat?(' / '+c.cat):''}</td>
-      <td class="right">${fmtCOP(c.ref_cop||0)}</td>
-      <td>${c.source||'manual'}</td>
-      <td class="center"><button class="btn" data-del="${c.id}">🗑</button></td>
+      <td class="center"><input type="checkbox" data-ohchk data-id="${o.id}"/></td>
+      <td>${new Date(o.created_at).toLocaleDateString('es-CO')}</td>
+      <td>${o.description||''}</td>
+      <td>${o.cat||''}</td>
+      <td>${o.currency||''}</td>
+      <td class="right">${o.currency==='USD'? fmtUSD(o.amount_usd||0) : fmtCOP(o.amount_cop||0)}</td>
+      <td class="right">${fmtCOP(o.trm_used||defaultTRM)}</td>
+      <td class="right">${fmtUSD(usdFixed)}</td>
+      <td class="right">${fmtCOP(copFixed)}</td>
+      <td class="center"><button class="btn bad" data-del="${o.id}">🗑</button></td>
     `;
     tb.appendChild(tr);
   });
-  tb.querySelectorAll('[data-del]').forEach(btn=>{
-    btn.onclick=async ()=>{
-      await supa.from('catalog').delete().eq('id', btn.dataset.del);
-      await loadCatalog();
-    };
-  });
+  tb.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>deleteOverhead(Number(b.dataset.del)));
 }
-$('#catAdd').onclick=async ()=>{
-  const name=$('#catName').value.trim();
-  const meta=$('#catMeta').value.trim();
-  const cop=Number($('#catCOP').value||0);
-  if(!name||!cop){ alert('Ingresa descripción y COP'); return; }
-  let brand=null, cat=null;
-  if(meta){ const p=meta.split('/').map(s=>s.trim()); brand=p[0]||null; cat=p[1]||null; }
-  const row = {name,brand,cat,ref_cop:Math.round(cop),source:'manual'};
-  const payload = (catalogNeedsTrip && lastTripId)? {...row, trip_id:lastTripId } : row;
-  const r = await supa.from('catalog').insert(payload);
-  if(r.error){ showErr('catAdd: '+r.error.message); return; }
-  $('#catName').value=''; $('#catMeta').value=''; $('#catCOP').value='';
+
+/* ================== CATALOGO ================== */
+$('#catAdd').onclick = async ()=>{
+  const name=$('#catName').value.trim(); const brand=$('#catBrand').value.trim()||null;
+  const cat=$('#catCat').value.trim()||null; const cop=Number($('#catCOP').value||0);
+  if(!name || cop<=0){ alert('Ingresa nombre y VR'); return; }
+  const {error}=await sb.from('catalog').insert({trip_id:tripId,name,brand,cat,ref_cop:cop,source:'manual'});
+  if(error){ alert('No se pudo guardar'); log('catAdd',error); return; }
+  $('#catName').value=''; $('#catBrand').value=''; $('#catCat').value=''; $('#catCOP').value='';
   await loadCatalog();
 };
-$('#catSync').onclick = loadCatalog;
+$('#catReload').onclick = ()=>loadCatalog();
 
-/* ======= IMPORTAR CATÁLOGO XLSX ======= */
-let CAT_PREVIEW = [];
-function normRef(v){
-  if(v==null) return NaN;
-  const s = String(v).replace(/[^\d,.,,]/g,'').trim();
-  if(!s) return NaN;
-  // 1.234.567,89  /  1234567.89
-  const comma=(s.match(/,/g)||[]).length, dot=(s.match(/\./g)||[]).length;
-  let t=s;
-  if(comma && dot){ t=s.replace(/\./g,'').replace(',', '.'); }
-  return Number(t);
+async function loadCatalog(){
+  const {data,error} = await sb.from('catalog').select('*').eq('trip_id',tripId).order('created_at',{ascending:false});
+  if(error){ log('loadCatalog',error); alert('loadCatalog: '+(error.message||'error')); return; }
+  catalog=data||[]; renderCatalog();
 }
-function mapRow(o){
-  const name =(o.name??o.Nombre??o.NOMBRE??'').toString().trim();
-  const brand=(o.brand??o.Marca??'').toString().trim()||null;
-  const cat  =(o.cat??o.Categoria??'').toString().trim()||null;
-  const ref  = normRef(o.ref_cop??o['VR COP']??o.VR??o.ref??o.precio);
-  return { ok: !!(name && ref>0), row:{ name, brand, cat, ref_cop: Math.round(ref), source:'manual' } };
-}
-function renderCatPreview(){
-  const tb = $('#catPrevBody'); tb.innerHTML='';
-  CAT_PREVIEW.forEach((r,i)=>{
-    const bad = r.ok?'':' style="color:#fca5a5"';
+function renderCatalog(){
+  const tb=$('#catTbody'); tb.innerHTML='';
+  catalog.forEach(c=>{
     const tr=document.createElement('tr');
-    tr.innerHTML = `<td${bad}>${i+1}</td><td${bad}>${r.row.name}</td><td${bad}>${r.row.brand||''}</td><td${bad}>${r.row.cat||''}</td><td class="right"${bad}>${fmtCOP(r.row.ref_cop||0)}</td><td${bad}>${r.ok?'✓':'Err'}</td>`;
+    tr.innerHTML=`
+      <td>${new Date(c.created_at).toLocaleDateString('es-CO')}</td>
+      <td>${c.name}</td>
+      <td>${c.brand||''}</td>
+      <td>${c.cat||''}</td>
+      <td class="right">${fmtCOP(c.ref_cop)}</td>
+      <td>${c.source||'manual'}</td>
+      <td class="center"><button class="btn bad" data-del="${c.id}">🗑</button></td>`;
     tb.appendChild(tr);
   });
-  $('#catImpBtn').disabled = CAT_PREVIEW.filter(x=>x.ok).length===0;
+  tb.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{
+    await sb.from('catalog').delete().eq('id',Number(b.dataset.del)); await loadCatalog();
+  });
 }
-$('#catPrevBtn').onclick = ()=>{
-  const f = $('#catFile').files[0];
-  if(!f){ alert('Selecciona archivo XLSX/CSV'); return; }
-  const reader=new FileReader();
-  reader.onload = e=>{
-    try{
-      const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
-      const ws = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(ws,{defval:'',raw:true});
-      CAT_PREVIEW = rows.map(mapRow);
-      renderCatPreview();
-    }catch(err){ showErr('Vista previa: '+err.message); }
-  };
-  reader.readAsArrayBuffer(f);
+
+/* ==== Importación XLSX/CSV ==== */
+let previewRows=[];
+$('#catPreview').onclick = async ()=>{
+  const f=$('#catFile').files[0]; if(!f){ alert('Selecciona archivo'); return; }
+  const data=await f.arrayBuffer(); const wb=XLSX.read(data,{type:'array'});
+  const ws=wb.Sheets[wb.SheetNames[0]]; const rows=XLSX.utils.sheet_to_json(ws,{defval:null});
+  // normalizar columnas
+  previewRows = rows.map(r=>{
+    return {
+      trip_id: tripId,
+      name: r.name??r.Nombre??r.nombre??r.Modelo??'',
+      brand: r.brand??r.Marca??r.marca??null,
+      cat: r.cat??r.Categoria??r.categoria??null,
+      ref_cop: Number(r.ref_cop??r.COP??r.cop??0),
+      source: r.source??'manual'
+    };
+  }).filter(r=> r.name && r.ref_cop>0);
+  $('#catStatus').textContent = `Vista previa: ${previewRows.length} filas válidas`;
 };
-$('#catImpBtn').onclick = async ()=>{
-  const ok = CAT_PREVIEW.filter(x=>x.ok).map(x=>x.row);
-  if(!ok.length){ alert('Nada para importar'); return; }
-  // aplica trip_id si es requerido
-  const payload = (catalogNeedsTrip && lastTripId) ? ok.map(r=>({...r,trip_id:lastTripId})) : ok;
-  try{
-    for(let i=0;i<payload.length;i+=500){
-      const chunk = payload.slice(i,i+500);
-      const ins = await supa.from('catalog').insert(chunk);
-      if(ins.error) throw ins.error;
-    }
-    alert('Catálogo importado');
-    $('#catPrevBody').innerHTML=''; $('#catImpBtn').disabled=true; $('#catFile').value='';
-    await loadCatalog();
-  }catch(e){ showErr('Importar catálogo: '+(e.message||e)); }
+$('#catImport').onclick = async ()=>{
+  if(!previewRows.length){ alert('Primero genera Vista previa'); return; }
+  const batch = previewRows.splice(0,1000); // lote grande pero seguro
+  const {error} = await sb.from('catalog').insert(batch);
+  if(error){ alert('Importar: '+error.message); log('catImport',error); return; }
+  $('#catStatus').textContent = `Importado.`;
+  await loadCatalog();
 };
 
-/* ======= TRM ======= */
-async function fetchTRM(){
-  try{
-    const r = await fetch('https://open.er-api.com/v6/latest/USD');
-    const j = await r.json();
-    if(j && j.rates && j.rates.COP){
-      TRM = Number(j.rates.COP);
-      $('#inpTRM').value = TRM;
-      renderKPIs();
-      alert('TRM actualizada');
-    }else throw new Error('Sin rates');
-  }catch(e){ showErr('TRM: '+e.message); }
+/* ================== INVENTARIO ================== */
+function aportePorDolar(){
+  const V = overheads.reduce((s,o)=> s + Number(o.amount_usd_fixed||0), 0);
+  return BT>0 ? V/BT : 0;
 }
-$('#btnFetchTRM').onclick=fetchTRM;
-$('#btnManualTRM').onclick=()=>{
-  const v=prompt('TRM (COP/USD):', String(TRM));
-  if(v){ TRM=Number(v); $('#inpTRM').value=TRM; renderKPIs(); }
+$('#invAdd').onclick = async ()=>{
+  const name=$('#invName').value.trim(); const store=$('#invStore').value.trim()||null;
+  const unit=Number($('#invUSD').value||0); const qty=Number($('#invQty').value||0);
+  const estCOP=Number($('#invCOP').value||0);
+  if(!name || unit<=0 || qty<=0 || estCOP<=0){ alert('Completa los campos'); return; }
+  const rO = aportePorDolar();
+  const estUSD = estCOP/(defaultTRM||4200);
+  const apUSD = unit*rO;
+  const mgUSD = estUSD - unit - apUSD;
+  const row = {trip_id:tripId,name,store,unit_usd:unit,qty,est_sell_cop:estCOP,est_sell_usd:estUSD,est_aporte_usd:apUSD,est_margin_usd:mgUSD};
+  const {error}=await sb.from('products').insert(row);
+  if(error){ alert('No se pudo agregar'); log('invAdd',error); return; }
+  $('#invName').value=''; $('#invStore').value=''; $('#invUSD').value=''; $('#invQty').value='1'; $('#invCOP').value='';
+  await loadInventory(); renderKPIs(); fillSaleSel();
 };
-$('#inpTRM').onchange=()=>{ const v=Number($('#inpTRM').value||0); if(v>0){ TRM=v; renderKPIs(); } };
+$('#invReload').onclick = ()=>loadInventory();
 
-/* ======= SYNC ======= */
+async function loadInventory(){
+  const {data,error} = await sb.from('products').select('*').eq('trip_id',tripId).order('created_at',{ascending:false});
+  if(error){ log('loadInventory',error); return; }
+  products=data||[]; renderInventory(); fillSaleSel();
+}
+async function delProd(id){ await sb.from('products').delete().eq('id',id); await loadInventory(); fillSaleSel(); renderKPIs(); }
+
+function renderInventory(){
+  const tb=$('#invTbody'); tb.innerHTML='';
+  const V = overheads.reduce((s,o)=>s+Number(o.amount_usd_fixed||0),0);
+  const apAcum = products.reduce((s,p)=> s + Number(p.est_aporte_usd|| (Number(p.unit_usd||0)*aportePorDolar()))*Number(p.qty||0), 0);
+  const pct = V>0 ? Math.min(100, apAcum/V*100) : 0;
+  $('#invProg').style.width = pct.toFixed(1)+'%';
+  $('#invProgTxt').textContent = `Cobertura: ${pct.toFixed(1)}% (${fmtUSD(apAcum)} de ${fmtUSD(V)})`;
+
+  products.forEach(p=>{
+    const estCOP = p.est_sell_cop!=null ? Number(p.est_sell_cop) : null;
+    const estUSD = p.est_sell_usd!=null ? Number(p.est_sell_usd) : (estCOP? estCOP/(defaultTRM||4200):null);
+    const apUSD = p.est_aporte_usd!=null ? Number(p.est_aporte_usd) : Number(p.unit_usd||0)*aportePorDolar();
+    const mgUSD = p.est_margin_usd!=null ? Number(p.est_margin_usd) : (estUSD!=null? (estUSD-Number(p.unit_usd||0)-apUSD):null);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td>${new Date(p.created_at).toLocaleDateString('es-CO')}</td>
+      <td>${p.name}</td>
+      <td>${p.store||'—'}</td>
+      <td class="right">${fmtUSD(p.unit_usd)} × ${p.qty||1}</td>
+      <td class="right">${estCOP!=null? fmtCOP(estCOP):'—'}</td>
+      <td class="right">${fmtUSD(apUSD)}</td>
+      <td class="right">${mgUSD!=null? fmtUSD(mgUSD):'—'}</td>
+      <td class="center"><button class="btn bad" data-del="${p.id}">🗑</button></td>
+    `;
+    tb.appendChild(tr);
+  });
+  tb.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>delProd(Number(b.dataset.del)));
+}
+
+/* ================== VENTAS ================== */
+function fillSaleSel(){
+  const sel=$('#saleSel'); sel.innerHTML='';
+  products.forEach(p=>{
+    const o=document.createElement('option'); o.value=p.id;
+    o.textContent = `${p.name} — ${fmtUSD(p.unit_usd)} × ${p.qty}${p.store?(' @ '+p.store):''}`;
+    sel.appendChild(o);
+  });
+}
+$('#saleAdd').onclick = async ()=>{
+  const pid=Number($('#saleSel').value||0); const qty=Number($('#saleQty').value||0);
+  const cop=Number($('#saleCOP').value||0); const d=$('#saleDate').value||todayStr();
+  const p=products.find(x=>x.id===pid); if(!p || qty<=0 || cop<=0){ alert('Completa venta'); return; }
+  const trm = await ensureTRM(d, null);
+  const apUSDunit = Number(p.unit_usd||0)*aportePorDolar();
+  const saleUSDunit = cop/trm;
+  const profitUSDunit = saleUSDunit - Number(p.unit_usd||0) - apUSDunit;
+  const row = {trip_id:tripId,product_id:p.id,product_name:p.name,store:p.store||null,qty,unit_usd:p.unit_usd,trm_used:trm,sale_cop:cop,aporte_usd:apUSDunit*qty,profit_usd:profitUSDunit*qty};
+  const {error}=await sb.from('sales').insert(row);
+  if(error){ alert('No se pudo registrar'); log('saleAdd',error); return; }
+  $('#saleQty').value='1'; $('#saleCOP').value=''; await loadSales(); renderKPIs(); renderReports();
+};
+$('#saleReload').onclick = ()=>loadSales();
+
+async function loadSales(){
+  const {data,error} = await sb.from('sales').select('*').eq('trip_id',tripId).order('created_at',{ascending:false});
+  if(error){ log('loadSales',error); return; }
+  sales=data||[]; renderSales(); renderReports();
+}
+async function delSale(id){ await sb.from('sales').delete().eq('id',id); await loadSales(); renderReports(); }
+function renderSales(){
+  const tb=$('#saleTbody'); tb.innerHTML='';
+  sales.forEach(s=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td>${new Date(s.created_at).toLocaleDateString('es-CO')}</td>
+      <td>${s.product_name||'—'}</td>
+      <td>${s.store||'—'}</td>
+      <td class="right">${s.qty||0}</td>
+      <td class="right">${fmtCOP(s.sale_cop||0)}</td>
+      <td class="right">${fmtUSD(s.aporte_usd||0)}</td>
+      <td class="right">${fmtUSD(s.profit_usd||0)}</td>
+      <td class="center"><button class="btn bad" data-del="${s.id}">🗑</button></td>
+    `;
+    tb.appendChild(tr);
+  });
+  tb.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>delSale(Number(b.dataset.del)));
+}
+
+/* ================== REPORTES & KPIs ================== */
+function renderKPIs(){
+  const V = overheads.reduce((s,o)=> s + Number(o.amount_usd_fixed||0), 0);
+  const rO = BT>0 ? V/BT : 0;
+  $('#kBT').textContent = fmtUSD(BT);
+  $('#kBTcop').textContent = fmtCOP(BT*(defaultTRM||4200));
+  $('#kOv').textContent = fmtUSD(V);
+  $('#kOvCop').textContent = fmtCOP(V*(defaultTRM||4200));
+  $('#kRO').textContent = rO.toFixed(3);
+  $('#kTRM').textContent = fmtCOP(defaultTRM||4200)+' COP/USD';
+}
+function renderReports(){
+  // Estimado
+  let estCostUSD=0, estAporteUSD=0, estMarginUSD=0, estVentaCOP=0;
+  products.forEach(p=>{
+    const qty=Number(p.qty||0);
+    const apUSD = p.est_aporte_usd!=null ? Number(p.est_aporte_usd) : Number(p.unit_usd||0)*aportePorDolar();
+    const estCOP = p.est_sell_cop!=null ? Number(p.est_sell_cop) : 0;
+    const estUSD = p.est_sell_usd!=null ? Number(p.est_sell_usd) : (estCOP/(defaultTRM||4200));
+    const mgUSD = p.est_margin_usd!=null ? Number(p.est_margin_usd) : (estUSD-Number(p.unit_usd||0)-apUSD);
+    estCostUSD   += Number(p.unit_usd||0)*qty;
+    estAporteUSD += apUSD*qty;
+    estMarginUSD += mgUSD*qty;
+    estVentaCOP  += estCOP*qty;
+  });
+  $('#repEst').innerHTML = `
+    <div>Ventas estimadas: <b>${fmtCOP(estVentaCOP)}</b></div>
+    <div>COGS (USD): <b>${fmtUSD(estCostUSD)}</b></div>
+    <div>Aporte estimado (USD): <b>${fmtUSD(estAporteUSD)}</b></div>
+    <div>Margen estimado (USD): <b>${fmtUSD(estMarginUSD)}</b></div>
+  `;
+  // Real
+  let realCOP=0, realAporteUSD=0, realProfitUSD=0;
+  sales.forEach(s=>{ realCOP+=Number(s.sale_cop||0); realAporteUSD+=Number(s.aporte_usd||0); realProfitUSD+=Number(s.profit_usd||0); });
+  $('#repReal').innerHTML = `
+    <div>Ventas realizadas: <b>${fmtCOP(realCOP)}</b> (${fmtUSD(realCOP/(defaultTRM||4200))})</div>
+    <div>Aporte a costos (USD): <b>${fmtUSD(realAporteUSD)}</b></div>
+    <div>Utilidad (USD): <b>${fmtUSD(realProfitUSD)}</b></div>
+  `;
+}
+function renderAll(){ renderKPIs(); renderOverheads(); renderCatalog(); renderInventory(); renderSales(); renderReports(); }
+
+/* ================== VIEW & SYNC ================== */
+$('#viewCurrency').onchange = e=>{ view = e.target.value; renderKPIs(); };
+$('#btnSync').onclick = ()=>syncAll();
+$('#btnHard').onclick = ()=>{
+  const u = new URL(location.href); u.searchParams.set('v', 'go-live-3-'+Date.now()); location.href = u.toString();
+};
+
 async function syncAll(){
-  await detectSchemas();
-  await Promise.all([loadOverheads(), loadCatalog()]).catch(e=>showErr('sync: '+e.message));
-  renderKPIs();
+  await Promise.all([loadOverheads(), loadCatalog(), loadInventory(), loadSales()]);
+  renderAll();
 }
-$('#btnSync').onclick = syncAll;
 
-/* ======= CONFIG LISTENERS ======= */
-$('#inpBT').onchange=()=>{ BT = Number($('#inpBT').value||7000); renderKPIs(); };
-$('#inpGB').onchange=()=>{ GB = Number($('#inpGB').value||30); renderKPIs(); };
+/* ================== TABS ================== */
+$$('.tab').forEach(t=> t.onclick=()=>{
+  $$('.tab').forEach(x=>x.classList.remove('active')); t.classList.add('active');
+  const id=t.dataset.tab;
+  ['cfg','cat','oh','inv','ven','rep','diag'].forEach(k=>{
+    $('#p-'+k).style.display = (k===id?'block':'none');
+  });
+});
 
-/* ======= OVERHEADS eventos ======= */
-$('#ohAdd').onclick = addOverhead;
-$('#ohDelSel').onclick = deleteSelectedOverheads;
-
-/* ======= HARD RELOAD ======= */
-$('#btnHardReload').onclick = ()=>{
-  const u = new URL(location.href);
-  u.searchParams.set('v', Date.now());
-  location.href = u.toString();
-};
-
-/* ======= INIT ======= */
+/* ================== INIT ================== */
 (async function init(){
-  try{
-    $('#inpBT').value = BT;
-    $('#inpGB').value = GB;
-    $('#inpTRM').value = TRM;
-    await syncAll();
-  }catch(e){ showErr('init: '+(e.message||e)); }
+  $('#ohDate').value = todayStr();
+  $('#saleDate').value = todayStr();
+  await loadTrips();
 })();
 </script>
 </body>
