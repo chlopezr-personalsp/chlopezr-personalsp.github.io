@@ -2,11 +2,12 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>PS Arbitraje – estable</title>
 <style>
 :root{--bg:#0a0f1a;--panel:#0f172a;--line:#1f2937;--text:#e5e7eb;--muted:#94a3b8;--brand:#60a5fa}
-html,body{height:100%} body{margin:0;background:linear-gradient(120deg,#0a0f1a,#0d1422);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto}
+*{box-sizing:border-box} html,body{height:100%}
+body{margin:0;background:linear-gradient(120deg,#0a0f1a,#0d1422);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto}
 .wrap{max-width:1280px;margin:0 auto;padding:12px}
 .card{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:12px;padding:12px}
 .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
@@ -22,12 +23,17 @@ thead th{position:sticky;top:0;background:#0b1220;z-index:1}
 @media(max-width:900px){.g2{grid-template-columns:1fr}.g4{grid-template-columns:repeat(2,1fr)}}
 .progress{height:10px;background:#0b1220;border:1px solid #334155;border-radius:999px;overflow:hidden}
 .progress>div{height:100%;background:linear-gradient(90deg,#22d3ee,#60a5fa);width:0%}
-.badge{display:inline-flex;gap:6px;align-items:center;padding:2px 8px;border-radius:999px;border:1px solid #334155;background:#0f172a;font-size:12px}
 .logo{width:26px;height:26px;border-radius:8px;background:linear-gradient(145deg,#60a5fa,#22d3ee);display:inline-flex;align-items:center;justify-content:center;color:#0a0f1a;font-weight:900}
+.badge{display:inline-flex;gap:6px;align-items:center;padding:2px 8px;border-radius:999px;border:1px solid #334155;background:#0f172a;font-size:12px}
+.err{background:#7f1d1d;border:1px solid #fecaca;color:#ffe4e6;padding:8px;border-radius:8px}
+.right{text-align:right}
 </style>
 </head>
 <body>
 <div class="wrap">
+
+  <!-- Error banner -->
+  <div id="errBox" class="err" style="display:none"></div>
 
   <!-- HEADER -->
   <div class="card">
@@ -35,14 +41,14 @@ thead th{position:sticky;top:0;background:#0b1220;z-index:1}
       <div class="row">
         <div class="logo">PS</div>
         <div style="margin-left:8px">
-          <div style="font-weight:800">PS Arbitraje (estable)</div>
-          <div class="k">TRM fijada por registro · Funciona sin RPC</div>
+          <div style="font-weight:800">PS Arbitraje – estable</div>
+          <div class="k">TRM fijada por registro · sin RPC · con autodiagnóstico</div>
         </div>
       </div>
       <div class="row">
         <select id="tripSel" class="input" style="min-width:260px"></select>
-        <button id="newTrip" class="btn">+ Nuevo</button>
-        <button id="dupTrip" class="btn">📄 Duplicar</button>
+        <button id="btnNewTrip" class="btn">+ Nuevo</button>
+        <button id="btnDupTrip" class="btn">📄 Duplicar</button>
         <span class="k" id="lastUpd"></span>
       </div>
       <div class="row">
@@ -50,7 +56,7 @@ thead th{position:sticky;top:0;background:#0b1220;z-index:1}
         <button id="viewCOP" class="btn">COP</button>
         <button id="btnSync" class="btn">⟳ Sync</button>
         <button id="btnTRM" class="btn">⇅ TRM (hoy)</button>
-        <button id="btnHard" class="btn">⤳ Forzar recarga</button>
+        <button id="btnHard" class="btn">⤳ Hard-reload</button>
       </div>
     </div>
   </div>
@@ -65,31 +71,20 @@ thead th{position:sticky;top:0;background:#0b1220;z-index:1}
 
   <!-- TABS -->
   <div class="tabs">
-    <div class="tab active" data-tab="config">⚙️ Configuración</div>
+    <div class="tab active" data-tab="config">⚙️ Config</div>
     <div class="tab" data-tab="catalog">📚 Catálogo</div>
     <div class="tab" data-tab="overheads">💼 Overheads</div>
     <div class="tab" data-tab="reportes">📊 Reportes</div>
+    <div class="tab" data-tab="diag">🩺 Self-check</div>
   </div>
 
   <!-- CONFIG -->
   <div id="panel-config" class="card">
     <div class="grid g2">
-      <div>
-        <label class="k">BT (USD)</label>
-        <input id="inpBT" class="input" type="number" step="0.01">
-      </div>
-      <div>
-        <label class="k">Margen objetivo (GB%)</label>
-        <input id="inpGB" class="input" type="number" step="1">
-      </div>
-      <div>
-        <label class="k">TRM por defecto (UI)</label>
-        <input id="inpTRM" class="input" type="number" step="1">
-        <div class="k">Solo UI. Cada registro guarda su TRM.</div>
-      </div>
-      <div style="display:flex;align-items:end">
-        <button id="saveCfg" class="btn success">💾 Guardar configuración</button>
-      </div>
+      <div><label class="k">BT (USD)</label><input id="inpBT" class="input" type="number" step="0.01"></div>
+      <div><label class="k">Margen objetivo (GB%)</label><input id="inpGB" class="input" type="number" step="1"></div>
+      <div><label class="k">TRM por defecto (UI)</label><input id="inpTRM" class="input" type="number" step="1"><div class="k">Solo UI. Cada registro guarda su TRM.</div></div>
+      <div style="display:flex;align-items:end"><button id="btnSaveCfg" class="btn success">💾 Guardar configuración</button></div>
     </div>
   </div>
 
@@ -102,24 +97,20 @@ thead th{position:sticky;top:0;background:#0b1220;z-index:1}
       <input id="cCat" class="input" placeholder="Categoría (opcional)">
       <div class="row" style="gap:6px">
         <input id="cRef" class="input" type="number" step="100" placeholder="VR COP">
-        <button id="cAdd" class="btn success">＋ Agregar</button>
+        <button id="btnCatAdd" class="btn success">＋ Agregar</button>
       </div>
     </div>
-
     <hr style="border:0;border-top:1px solid #1f2937;margin:12px 0">
-
-    <div class="k">Carga masiva (XLSX/CSV) → vista previa → importar</div>
+    <div class="k">Carga masiva (XLSX/CSV): vista previa → importar</div>
     <div class="row" style="margin-top:6px">
       <input type="file" id="fileCat" accept=".xlsx,.xls,.csv"/>
       <button id="btnPrev" class="btn">Vista previa</button>
       <button id="btnImp" class="btn primary" disabled>Importar</button>
       <span class="k">Mínimo: <span class="badge">name</span> <span class="badge">ref_cop</span></span>
     </div>
-
-    <div style="max-height:260px;overflow:auto;margin-top:6px">
+    <div style="max-height:220px;overflow:auto;margin-top:6px">
       <table><thead><tr><th>#</th><th>Nombre</th><th>Marca</th><th>Cat</th><th class="right">VR COP</th><th>Ok</th></tr></thead><tbody id="catPrev"></tbody></table>
     </div>
-
     <div style="max-height:340px;overflow:auto;margin-top:10px">
       <table>
         <thead><tr><th>Fecha</th><th>Nombre</th><th>Marca/Cat</th><th class="right">VR COP</th><th>Fuente</th><th>Acciones</th></tr></thead>
@@ -143,17 +134,16 @@ thead th{position:sticky;top:0;background:#0b1220;z-index:1}
         <input id="ohTRM" class="input" type="number" step="1" placeholder="TRM manual (opcional)" style="flex:1">
       </div>
       <div style="grid-column:1/-1;display:flex;gap:8px">
-        <button id="ohAdd" class="btn success">＋ Agregar</button>
-        <button id="ohDelSel" class="btn warn">Eliminar seleccionados</button>
+        <button id="btnOhAdd" class="btn success">＋ Agregar</button>
+        <button id="btnOhDelSel" class="btn warn">Eliminar seleccionados</button>
       </div>
     </div>
-
     <div style="max-height:340px;overflow:auto;margin-top:10px">
       <table>
         <thead>
           <tr>
             <th></th><th>Fecha</th><th>Desc</th><th>Cat</th><th>Moneda</th>
-            <th class="right">Monto</th><th class="right">TRM usada</th>
+            <th class="right">Vista</th><th class="right">TRM usada</th>
             <th class="right">USD fijo</th><th class="right">COP fijo</th><th>Acciones</th>
           </tr>
         </thead>
@@ -177,6 +167,12 @@ thead th{position:sticky;top:0;background:#0b1220;z-index:1}
     </div>
   </div>
 
+  <!-- DIAGNÓSTICO -->
+  <div id="panel-diag" class="card" style="display:none">
+    <div class="k">Self-check (conexión y tablas). Si algo falla se muestra aquí y en el banner rojo.</div>
+    <pre id="diagBox" style="white-space:pre-wrap;background:#0b1220;border:1px solid #334155;border-radius:8px;padding:8px;margin-top:8px;max-height:300px;overflow:auto">—</pre>
+  </div>
+
 </div>
 
 <!-- LIBS -->
@@ -184,7 +180,7 @@ thead th{position:sticky;top:0;background:#0b1220;z-index:1}
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script>
-/* ===== Supabase ===== */
+/* ===== Config Supabase ===== */
 const URL='https://ucrkhrehdedmubykzfzs.supabase.co';
 const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcmtocmVoZGVkbXVieWt6ZnpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1OTc5MzgsImV4cCI6MjA3NzE3MzkzOH0.7CXUuyAPQlm_9RIKbaO9y8Kwjh9c6M7UJcu4xAIM7WA';
 const sb = window.supabase.createClient(URL, KEY);
@@ -197,6 +193,11 @@ const fmtUSD=n=>"$"+Number(n||0).toFixed(2);
 const fmtCOP=n=>"$"+Math.round(Number(n||0)).toLocaleString("es-CO");
 const fmtDate=iso=>iso? new Date(iso).toLocaleDateString('es-CO'):'—';
 const esc=s=>(s??'').toString().replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+
+/* ===== Manejo de errores visible ===== */
+function showErr(msg){ const b=$('#errBox'); b.textContent=msg; b.style.display='block'; }
+window.addEventListener('error',e=>showErr('JS error: '+(e?.message||e)));
+window.addEventListener('unhandledrejection',e=>showErr('Promise error: '+(e?.reason?.message||e?.reason||e)));
 
 /* ===== Util ===== */
 function sumOverheadsUSD(){ return OVERHEADS.reduce((s,o)=>s+Number(o.amount_usd_fixed||0),0); }
@@ -214,78 +215,69 @@ function setView(v){ VIEW=v; $('#viewUSD').classList.toggle('primary',v==='USD')
 
 /* ===== Trips ===== */
 async function loadTrips(){
-  try{
-    const {data,error}=await sb.from('trips').select('id,name,created_at').order('created_at',{ascending:false});
-    if(error) throw error;
-    trips=data||[];
-    const sel=$('#tripSel'); sel.innerHTML="";
-    trips.forEach(t=>{const o=document.createElement('option');o.value=t.id;o.textContent=`${t.name} (#${t.id})`;sel.appendChild(o);});
-    if(!activeTrip && trips.length) activeTrip=trips[0].id;
-    if(activeTrip) sel.value=activeTrip;
-  }catch(e){ console.error('loadTrips',e); alert('No se pudieron cargar viajes'); }
+  const {data,error}=await sb.from('trips').select('id,name,created_at').order('created_at',{ascending:false});
+  if(error){ showErr('loadTrips: '+error.message); return; }
+  trips=data||[];
+  const sel=$('#tripSel'); sel.innerHTML="";
+  trips.forEach(t=>{const o=document.createElement('option');o.value=t.id;o.textContent=`${t.name} (#${t.id})`;sel.appendChild(o);});
+  if(!activeTrip && trips.length) activeTrip=trips[0].id;
+  if(activeTrip) sel.value=activeTrip;
 }
 async function createTrip(){
   const name=prompt('Nombre del viaje/proyecto:','Orlando Nov 7 2025'); if(!name) return;
-  try{
-    const {data,error}=await sb.from('trips').insert({name}).select().single(); if(error) throw error;
-    activeTrip=data.id;
-    await sb.from('trip_settings').insert({trip_id:activeTrip}).onConflict('trip_id').ignore();
-    await loadTrips(); await loadSettings(); await reloadAll();
-  }catch(e){ console.error(e); alert('No se pudo crear el viaje: '+e.message); }
+  const {data,error}=await sb.from('trips').insert({name}).select().single();
+  if(error){ showErr('createTrip: '+error.message); return; }
+  activeTrip=data.id;
+  await sb.from('trip_settings').insert({trip_id:activeTrip}).onConflict('trip_id').ignore();
+  await loadTrips(); await loadSettings(); await reloadAll();
 }
 async function duplicateTrip(){
   if(!activeTrip){ alert('Selecciona un viaje'); return; }
   const name=prompt('Nombre del nuevo viaje (duplicado):','Copia'); if(!name) return;
-  try{
-    const {data:newTrip,error:e1}=await sb.from('trips').insert({name}).select().single(); if(e1) throw e1;
-    await sb.from('trip_settings').insert({trip_id:newTrip.id}).onConflict('trip_id').ignore();
-    // dup catálogo
-    const {data:rows}=await sb.from('catalog').select('name,brand,cat,ref_cop,source').eq('trip_id',activeTrip);
-    if(rows?.length){ for(let i=0;i<rows.length;i+=500){ const chunk=rows.slice(i,i+500).map(r=>({trip_id:newTrip.id,...r})); await sb.from('catalog').insert(chunk); } }
-    // dup overheads
-    const {data:ohs}=await sb.from('overheads').select('description,cat,currency,amount_usd,amount_cop,trm_used,amount_usd_fixed,amount_cop_fixed').eq('trip_id',activeTrip);
-    if(ohs?.length){ for(const o of ohs){ await sb.from('overheads').insert({trip_id:newTrip.id,...o}); } }
-    activeTrip=newTrip.id; await loadTrips(); await loadSettings(); await reloadAll();
-  }catch(e){ console.error(e); alert('No se pudo duplicar: '+e.message); }
+  const r=await sb.from('trips').insert({name}).select().single(); if(r.error){ showErr('dupTrip: '+r.error.message); return; }
+  const newId=r.data.id;
+  await sb.from('trip_settings').insert({trip_id:newId}).onConflict('trip_id').ignore();
+  const cat=await sb.from('catalog').select('name,brand,cat,ref_cop,source').eq('trip_id',activeTrip);
+  if(!cat.error && cat.data?.length){ for(let i=0;i<cat.data.length;i+=500){ await sb.from('catalog').insert(cat.data.slice(i,i+500).map(x=>({trip_id:newId,...x}))); } }
+  const oh=await sb.from('overheads').select('description,cat,currency,amount_usd,amount_cop,trm_used,amount_usd_fixed,amount_cop_fixed').eq('trip_id',activeTrip);
+  if(!oh.error && oh.data?.length){ for(const o of oh.data){ await sb.from('overheads').insert({trip_id:newId,...o}); } }
+  activeTrip=newId; await loadTrips(); await loadSettings(); await reloadAll();
 }
 
 /* ===== Settings ===== */
 async function loadSettings(){
   if(!activeTrip) return;
-  try{
-    let {data,error}=await sb.from('trip_settings').select('*').eq('trip_id',activeTrip).maybeSingle();
-    if(error) throw error;
-    if(!data){ await sb.from('trip_settings').insert({trip_id:activeTrip}); data=(await sb.from('trip_settings').select('*').eq('trip_id',activeTrip).single()).data; }
-    settings=data; TRM_UI=settings.default_trm||4200;
-    $('#inpBT').value=settings.bt_usd||7000; $('#inpGB').value=settings.gb_pct||30; $('#inpTRM').value=TRM_UI;
-    $('#lastUpd').textContent='Actualizado: '+new Date(settings.updated_at||Date.now()).toLocaleString('es-CO');
-    renderKPIs();
-  }catch(e){ console.error(e); alert('No se pudieron cargar ajustes'); }
+  let r=await sb.from('trip_settings').select('*').eq('trip_id',activeTrip).maybeSingle();
+  if(r.error){ showErr('loadSettings: '+r.error.message); return; }
+  if(!r.data){ await sb.from('trip_settings').insert({trip_id:activeTrip}); r=await sb.from('trip_settings').select('*').eq('trip_id',activeTrip).single(); }
+  settings=r.data; TRM_UI=settings.default_trm||4200;
+  $('#inpBT').value=settings.bt_usd||7000; $('#inpGB').value=settings.gb_pct||30; $('#inpTRM').value=TRM_UI;
+  $('#lastUpd').textContent='Actualizado: '+new Date(settings.updated_at||Date.now()).toLocaleString('es-CO');
+  renderKPIs();
 }
 async function saveSettings(){
   if(!activeTrip) return;
   const obj={ bt_usd:Number($('#inpBT').value||0), gb_pct:Number($('#inpGB').value||0), default_trm:Number($('#inpTRM').value||0), updated_at:new Date().toISOString() };
-  try{
-    await sb.from('trip_settings').upsert({trip_id:activeTrip, ...obj}).select();
-    await loadSettings(); await reloadAll();
-  }catch(e){ console.error(e); alert('No se pudo guardar'); }
+  const r=await sb.from('trip_settings').upsert({trip_id:activeTrip, ...obj}).select();
+  if(r.error){ showErr('saveSettings: '+r.error.message); return; }
+  await loadSettings(); await reloadAll();
 }
 
-/* ===== TRM hoy ===== */
+/* ===== TRM ===== */
 async function fetchTRM(){
   try{
     const r=await fetch('https://open.er-api.com/v6/latest/USD'); const j=await r.json();
     if(j?.rates?.COP){ TRM_UI=Number(j.rates.COP); $('#inpTRM').value=TRM_UI; renderKPIs(); }
     else throw new Error('Sin rates');
-  }catch(e){ alert('No se pudo obtener TRM. Ingresa manual.'); }
+  }catch(e){ showErr('TRM: '+e.message); }
 }
 
-/* ===== Overheads (sin RPC) ===== */
+/* ===== Overheads ===== */
 function renderOH(){
   const tb=$('#ohBody'); tb.innerHTML="";
   OVERHEADS.forEach(o=>{
-    const tr=document.createElement('tr');
     const viewUSD = VIEW==='USD';
+    const tr=document.createElement('tr');
     tr.innerHTML=`
       <td><input type="checkbox" class="ohchk" value="${o.id}"></td>
       <td>${fmtDate(o.created_at)}</td>
@@ -300,26 +292,24 @@ function renderOH(){
     tb.appendChild(tr);
   });
   tb.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{
-    try{ await sb.from('overheads').delete().eq('id',b.dataset.del); await loadOH(); renderKPIs(); }catch(e){ alert('No se pudo eliminar'); }
+    const r=await sb.from('overheads').delete().eq('id',b.dataset.del);
+    if(r.error){ showErr('del OH: '+r.error.message); return; }
+    await loadOH(); renderKPIs();
   });
 }
 async function loadOH(){
   if(!activeTrip) return;
-  try{
-    const {data,error}=await sb.from('overheads').select('*').eq('trip_id',activeTrip).order('created_at',{ascending:false});
-    if(error) throw error; OVERHEADS=data||[]; renderOH(); renderKPIs();
-  }catch(e){ console.error(e); alert('No se pudieron cargar overheads'); }
+  const r=await sb.from('overheads').select('*').eq('trip_id',activeTrip).order('created_at',{ascending:false});
+  if(r.error){ showErr('loadOH: '+r.error.message); return; }
+  OVERHEADS=r.data||[]; renderOH(); renderKPIs();
 }
 async function ensureTRM(dateISO, manualTRM){
   const d=dateISO; if(!d) return TRM_UI;
-  try{
-    if(manualTRM){ await sb.from('trm_daily').upsert({d, trm:manualTRM}); return manualTRM; }
-    const row=(await sb.from('trm_daily').select('*').eq('d',d).maybeSingle()).data;
-    if(row) return Number(row.trm);
-    // si no existe, toma TRM_UI actual
-    await sb.from('trm_daily').insert({d, trm:TRM_UI});
-    return TRM_UI;
-  }catch(e){ console.error('ensureTRM',e); return TRM_UI; }
+  if(manualTRM){ await sb.from('trm_daily').upsert({d, trm:manualTRM}); return manualTRM; }
+  const row=(await sb.from('trm_daily').select('*').eq('d',d).maybeSingle()).data;
+  if(row) return Number(row.trm);
+  await sb.from('trm_daily').insert({d, trm:TRM_UI});
+  return TRM_UI;
 }
 async function addOH(){
   if(!activeTrip) return;
@@ -330,31 +320,30 @@ async function addOH(){
   const trm = await ensureTRM(dStr, trmMan);
   let amount_usd=null, amount_cop=null, usd_fixed=null, cop_fixed=null;
   if(cur==='USD'){ amount_usd=amt; usd_fixed=amt; cop_fixed=amt*trm; }
-  else { amount_cop=amt; usd_fixed=amt/ (trm||1); cop_fixed=amt; }
-  try{
-    await sb.from('overheads').insert({
-      trip_id:activeTrip, description:desc, cat:cat||null, currency:cur,
-      amount_usd, amount_cop, trm_used:trm,
-      amount_usd_fixed:usd_fixed, amount_cop_fixed:cop_fixed
-    });
-    $('#ohDesc').value=''; $('#ohCat').value=''; $('#ohAmt').value=''; $('#ohTRM').value='';
-    await loadOH(); renderKPIs();
-  }catch(e){ console.error(e); alert('No se pudo agregar overhead'); }
+  else { amount_cop=amt; usd_fixed=amt/(trm||1); cop_fixed=amt; }
+  const r=await sb.from('overheads').insert({
+    trip_id:activeTrip, description:desc, cat:cat||null, currency:cur,
+    amount_usd, amount_cop, trm_used:trm, amount_usd_fixed:usd_fixed, amount_cop_fixed:cop_fixed
+  });
+  if(r.error){ showErr('addOH: '+r.error.message); return; }
+  $('#ohDesc').value=''; $('#ohCat').value=''; $('#ohAmt').value=''; $('#ohTRM').value='';
+  await loadOH(); renderKPIs();
 }
 async function delSelectedOH(){
   const ids=$$('.ohchk:checked').map(x=>x.value);
   if(!ids.length){ alert('Marca al menos un gasto'); return; }
   if(!confirm(`Eliminar ${ids.length} gastos?`)) return;
-  try{ await sb.from('overheads').delete().in('id',ids); await loadOH(); renderKPIs(); }catch(e){ alert('No se pudo eliminar'); }
+  const r=await sb.from('overheads').delete().in('id',ids);
+  if(r.error){ showErr('delSelectedOH: '+r.error.message); return; }
+  await loadOH(); renderKPIs();
 }
 
-/* ===== Catálogo ===== */
+/* ===== Catalog ===== */
 async function loadCatalog(){
   if(!activeTrip) return;
-  try{
-    const {data,error}=await sb.from('catalog').select('*').eq('trip_id',activeTrip).order('created_at',{ascending:false});
-    if(error) throw error; CATALOG=data||[]; renderCatalog();
-  }catch(e){ console.error(e); alert('No se pudo cargar catálogo'); }
+  const r=await sb.from('catalog').select('*').eq('trip_id',activeTrip).order('created_at',{ascending:false});
+  if(r.error){ showErr('loadCatalog: '+r.error.message); return; }
+  CATALOG=r.data||[]; renderCatalog();
 }
 function renderCatalog(){
   const tb=$('#catBody'); tb.innerHTML="";
@@ -367,19 +356,21 @@ function renderCatalog(){
     tb.appendChild(tr);
   });
   tb.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{
-    try{ await sb.from('catalog').delete().eq('id',b.dataset.del); await loadCatalog(); }catch(e){ alert('No se pudo eliminar'); }
+    const r=await sb.from('catalog').delete().eq('id',b.dataset.del);
+    if(r.error){ showErr('del catalog: '+r.error.message); return; }
+    await loadCatalog();
   });
 }
 async function addCatalogManual(){
   const name=$('#cName').value.trim(), brand=($('#cBrand').value||'').trim()||null, cat=($('#cCat').value||'').trim()||null, ref=Number($('#cRef').value||0);
   if(!name||!(ref>0)){ alert('Nombre y VR COP'); return; }
-  try{
-    await sb.from('catalog').insert({trip_id:activeTrip,name,brand,cat,ref_cop:ref,source:'manual'});
-    $('#cName').value=''; $('#cBrand').value=''; $('#cCat').value=''; $('#cRef').value='';
-    await loadCatalog();
-  }catch(e){ console.error(e); alert('No se pudo agregar al catálogo'); }
+  const r=await sb.from('catalog').insert({trip_id:activeTrip,name,brand,cat,ref_cop:ref,source:'manual'});
+  if(r.error){ showErr('add catalog: '+r.error.message); return; }
+  $('#cName').value=''; $('#cBrand').value=''; $('#cCat').value=''; $('#cRef').value='';
+  await loadCatalog();
 }
-/* import xlsx */
+
+/* ===== Import XLSX ===== */
 let previewRows=[];
 function mapRow(o){
   const name=(o.name??o.Nombre??o.nombre??'').toString().trim();
@@ -407,7 +398,7 @@ async function previewFile(){
       const data=new Uint8Array(e.target.result); const wb=XLSX.read(data,{type:'array'}); const ws=wb.Sheets[wb.SheetNames[0]];
       const rows=XLSX.utils.sheet_to_json(ws,{defval:'',raw:true});
       previewRows=rows.map(mapRow); renderPreview();
-    }catch(err){ console.error(err); alert('No se pudo leer el archivo'); }
+    }catch(err){ showErr('preview XLSX: '+err.message); }
   };
   reader.readAsArrayBuffer(f);
 }
@@ -415,43 +406,50 @@ async function importPreview(){
   const rows=previewRows.filter(x=>x.ok).map(x=>x.row);
   if(!rows.length){ alert('Nada para importar'); return; }
   try{
-    for(let i=0;i<rows.length;i+=500){ const chunk=rows.slice(i,i+500); const {error}=await sb.from('catalog').insert(chunk); if(error) throw error; }
+    for(let i=0;i<rows.length;i+=500){ const chunk=rows.slice(i,i+500); const r=await sb.from('catalog').insert(chunk); if(r.error) throw r.error; }
     alert('Importado'); $('#catPrev').innerHTML=''; $('#btnImp').disabled=true; $('#fileCat').value='';
     await loadCatalog();
-  }catch(e){ console.error(e); alert('Error importando: '+(e.message||e)); }
+  }catch(e){ showErr('import XLSX: '+(e.message||e)); }
 }
 
-/* ===== Sync & Tabs ===== */
-async function reloadAll(){ await Promise.all([loadOH(), loadCatalog()]).catch(e=>console.error('reloadAll',e)); renderKPIs(); }
-function switchTab(id){
-  $$('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===id));
-  ['config','catalog','overheads','reportes'].forEach(p=>$('#panel-'+p).style.display = (p===id?'block':'none'));
+/* ===== Sync, Tabs y Diag ===== */
+async function reloadAll(){ await Promise.all([loadOH(), loadCatalog()]).catch(e=>showErr('reloadAll: '+e.message)); renderKPIs(); }
+function switchTab(id){ $$('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===id)); ['config','catalog','overheads','reportes','diag'].forEach(p=>$('#panel-'+p).style.display = (p===id?'block':'none')); }
+async function runDiag(){
+  const out=[];
+  async function log(title, fn){
+    try{ const r=await fn(); out.push(`✔ ${title}: OK (${(r.data||[]).length} filas)`); }
+    catch(e){ out.push(`✖ ${title}: ${e.message||e}`); showErr(`${title}: ${e.message||e}`); }
+  }
+  await log('trips', ()=>sb.from('trips').select('id').limit(3));
+  await log('trip_settings', ()=>sb.from('trip_settings').select('trip_id').limit(3));
+  await log('trm_daily', ()=>sb.from('trm_daily').select('d,trm').limit(3));
+  await log('overheads', ()=>sb.from('overheads').select('id').limit(3));
+  await log('catalog', ()=>sb.from('catalog').select('id').limit(3));
+  $('#diagBox').textContent=out.join('\n');
 }
 
-/* ===== Events ===== */
+/* ===== Eventos ===== */
 $('#tripSel').onchange=async()=>{ activeTrip=Number($('#tripSel').value); await loadSettings(); await reloadAll(); };
-$('#newTrip').onclick=createTrip;
-$('#dupTrip').onclick=duplicateTrip;
+$('#btnNewTrip').onclick=createTrip;
+$('#btnDupTrip').onclick=duplicateTrip;
 $('#viewUSD').onclick=()=>setView('USD'); $('#viewCOP').onclick=()=>setView('COP');
 $('#btnSync').onclick=reloadAll;
 $('#btnTRM').onclick=fetchTRM;
 $('#btnHard').onclick=()=>{ const u=new URL(location.href); u.searchParams.set('v',Date.now()); location.href=u.toString(); };
-$('#saveCfg').onclick=saveSettings;
-$('#ohAdd').onclick=addOH; $('#ohDelSel').onclick=delSelectedOH;
-$('#cAdd').onclick=addCatalogManual; $('#btnPrev').onclick=previewFile; $('#btnImp').onclick=importPreview;
-$$('.tab').forEach(t=> t.onclick=()=>switchTab(t.dataset.tab));
+$('#btnSaveCfg').onclick=saveSettings;
+$('#btnOhAdd').onclick=addOH; $('#btnOhDelSel').onclick=delSelectedOH;
+$('#btnCatAdd').onclick=addCatalogManual; $('#btnPrev').onclick=previewFile; $('#btnImp').onclick=importPreview;
+$$('.tab').forEach(t=> t.onclick=()=>{ switchTab(t.dataset.tab); if(t.dataset.tab==='diag') runDiag(); });
 
 /* ===== Init ===== */
 (async function init(){
-  try{
-    await loadTrips();
-    if(!activeTrip){ await createTrip(); return; }
-    await loadSettings();
-    await reloadAll();
-    setView('USD');
-  }catch(e){ console.error(e); alert('Error inicializando'); }
+  await loadTrips();
+  if(!activeTrip && trips.length===0){ await createTrip(); return; }
+  await loadSettings();
+  await reloadAll();
+  setView('USD');
 })();
 </script>
 </body>
 </html>
-
