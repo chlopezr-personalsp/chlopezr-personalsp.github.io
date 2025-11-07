@@ -3,57 +3,52 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>PS Arbitraje</title>
+<title>PS Arbitraje – estable</title>
 <style>
-  :root{--bg:#0a0f1a;--panel:#0f172a;--line:#1f2937;--text:#e5e7eb;--muted:#94a3b8;--brand:#60a5fa;--ok:#10b981;--warn:#f59e0b;--bad:#ef4444}
-  html,body{height:100%} body{margin:0;background:linear-gradient(120deg,#0a0f1a,#0d1422);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto,Ubuntu}
-  .wrap{max-width:1280px;margin:0 auto;padding:12px}
-  .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-  .card{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:12px;padding:12px}
-  .kpi{flex:1 1 260px}
-  .k{font-size:12px;color:var(--muted)} .v{font-size:20px;font-weight:800}
-  .btn{background:#0f172a;border:1px solid #334155;color:var(--text);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer}
-  .btn:hover{background:#111827} .btn.primary{background:#1d4ed8;border-color:#1d4ed8}
-  .btn.success{background:#059669;border-color:#059669} .btn.warn{background:#b45309;border-color:#b45309}
-  .input,select{background:#0b1220;color:var(--text);border:1px solid #334155;border-radius:10px;padding:8px;width:100%}
-  .muted{color:var(--muted)} .right{text-align:right} .center{text-align:center}
-  table{width:100%;border-collapse:collapse;font-size:13px} th,td{padding:8px 6px;border-bottom:1px solid #1f2937}
-  thead th{position:sticky;top:0;background:#0b1220;z-index:1}
-  .tabs{display:flex;gap:6px;margin:10px 0 6px} .tab{padding:6px 10px;border:1px solid #334155;border-radius:10px;background:#0f172a;cursor:pointer;font-size:13px}
-  .tab.active{background:#1f2937;border-color:#475569}
-  .grid{display:grid;gap:10px} .grid2{grid-template-columns:1fr 1fr} .grid4{grid-template-columns:repeat(4,1fr)}
-  @media(max-width:900px){.grid4{grid-template-columns:repeat(2,1fr)} .grid2{grid-template-columns:1fr}}
-  .chip{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:999px;border:1px solid #334155;background:#0f172a;font-size:12px}
-  .chip.ok{background:rgba(16,185,129,.12);border-color:#065f46;color:#a7f3d0}
-  .progress{height:10px;background:#0b1220;border:1px solid #334155;border-radius:999px;overflow:hidden}
-  .progress>div{height:100%;background:linear-gradient(90deg,#22d3ee,#60a5fa);width:0%}
-  .logo{width:26px;height:26px;border-radius:8px;background:linear-gradient(145deg,#60a5fa,#22d3ee);display:inline-flex;align-items:center;justify-content:center;color:#0b1220;font-weight:900}
+:root{--bg:#0a0f1a;--panel:#0f172a;--line:#1f2937;--text:#e5e7eb;--muted:#94a3b8;--brand:#60a5fa}
+html,body{height:100%} body{margin:0;background:linear-gradient(120deg,#0a0f1a,#0d1422);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto}
+.wrap{max-width:1280px;margin:0 auto;padding:12px}
+.card{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:12px;padding:12px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.k{font-size:12px;color:var(--muted)} .v{font-size:20px;font-weight:800}
+.btn{background:#0f172a;border:1px solid #334155;color:var(--text);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer}
+.btn:hover{background:#111827} .btn.primary{background:#1d4ed8;border-color:#1d4ed8} .btn.success{background:#059669;border-color:#059669} .btn.warn{background:#b45309;border-color:#b45309}
+.input,select{background:#0b1220;color:var(--text);border:1px solid #334155;border-radius:10px;padding:8px;width:100%}
+table{width:100%;border-collapse:collapse;font-size:13px} th,td{padding:8px 6px;border-bottom:1px solid #1f2937}
+thead th{position:sticky;top:0;background:#0b1220;z-index:1}
+.tabs{display:flex;gap:6px;margin:10px 0 6px} .tab{padding:6px 10px;border:1px solid #334155;border-radius:10px;background:#0f172a;cursor:pointer;font-size:13px}
+.tab.active{background:#1f2937;border-color:#475569}
+.grid{display:grid;gap:10px} .g2{grid-template-columns:1fr 1fr} .g4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:900px){.g2{grid-template-columns:1fr}.g4{grid-template-columns:repeat(2,1fr)}}
+.progress{height:10px;background:#0b1220;border:1px solid #334155;border-radius:999px;overflow:hidden}
+.progress>div{height:100%;background:linear-gradient(90deg,#22d3ee,#60a5fa);width:0%}
+.badge{display:inline-flex;gap:6px;align-items:center;padding:2px 8px;border-radius:999px;border:1px solid #334155;background:#0f172a;font-size:12px}
+.logo{width:26px;height:26px;border-radius:8px;background:linear-gradient(145deg,#60a5fa,#22d3ee);display:inline-flex;align-items:center;justify-content:center;color:#0a0f1a;font-weight:900}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <!-- Header -->
+  <!-- HEADER -->
   <div class="card">
     <div class="row" style="justify-content:space-between">
       <div class="row">
         <div class="logo">PS</div>
         <div style="margin-left:8px">
-          <div style="font-weight:800">PS Arbitraje</div>
-          <div class="muted" style="font-size:12px">Viajes/proyectos con TRM fijada por registro</div>
+          <div style="font-weight:800">PS Arbitraje (estable)</div>
+          <div class="k">TRM fijada por registro · Funciona sin RPC</div>
         </div>
       </div>
       <div class="row">
-        <select id="tripSelect" class="input" style="min-width:220px"></select>
-        <button id="btnNewTrip" class="btn">+ Nuevo</button>
-        <button id="btnDupTrip" class="btn">📄 Duplicar</button>
-        <span class="muted" id="tripUpdated" style="margin-left:8px"></span>
+        <select id="tripSel" class="input" style="min-width:260px"></select>
+        <button id="newTrip" class="btn">+ Nuevo</button>
+        <button id="dupTrip" class="btn">📄 Duplicar</button>
+        <span class="k" id="lastUpd"></span>
       </div>
       <div class="row">
-        <span class="muted">Vista:</span>
-        <button id="viewUSD" class="btn">USD</button>
+        <button id="viewUSD" class="btn primary">USD</button>
         <button id="viewCOP" class="btn">COP</button>
-        <button id="btnSync" class="btn">🔄 Sync</button>
+        <button id="btnSync" class="btn">⟳ Sync</button>
         <button id="btnTRM" class="btn">⇅ TRM (hoy)</button>
         <button id="btnHard" class="btn">⤳ Forzar recarga</button>
       </div>
@@ -62,25 +57,13 @@
 
   <!-- KPIs -->
   <div class="row" style="margin-top:8px">
-    <div class="card kpi">
-      <div class="k">BT (USD)</div><div class="v" id="kBT">—</div>
-      <div class="muted" id="kBTcop">—</div>
-    </div>
-    <div class="card kpi">
-      <div class="k">Overheads (USD)</div><div class="v" id="kOv">—</div>
-      <div class="muted" id="kOvCop">—</div>
-    </div>
-    <div class="card kpi">
-      <div class="k">rO = Overheads/BT</div><div class="v" id="kRO">—</div>
-      <div class="muted">Se usa en VSV</div>
-    </div>
-    <div class="card kpi">
-      <div class="k">TRM del día</div><div class="v" id="kTRM">—</div>
-      <div class="muted">Fijada por registro</div>
-    </div>
+    <div class="card" style="flex:1 1 260px"><div class="k">BT (USD)</div><div class="v" id="kBT">—</div><div class="k" id="kBTcop">—</div></div>
+    <div class="card" style="flex:1 1 260px"><div class="k">Overheads (USD)</div><div class="v" id="kOv">—</div><div class="k" id="kOvCop">—</div></div>
+    <div class="card" style="flex:1 1 260px"><div class="k">rO Overheads/BT</div><div class="v" id="kRO">—</div><div class="k">Se usa en VSV</div></div>
+    <div class="card" style="flex:1 1 260px"><div class="k">TRM UI</div><div class="v" id="kTRM">—</div><div class="k">Fijada por registro</div></div>
   </div>
 
-  <!-- Tabs -->
+  <!-- TABS -->
   <div class="tabs">
     <div class="tab active" data-tab="config">⚙️ Configuración</div>
     <div class="tab" data-tab="catalog">📚 Catálogo</div>
@@ -88,32 +71,32 @@
     <div class="tab" data-tab="reportes">📊 Reportes</div>
   </div>
 
-  <!-- PANEL: Config -->
+  <!-- CONFIG -->
   <div id="panel-config" class="card">
-    <div class="grid grid2">
+    <div class="grid g2">
       <div>
         <label class="k">BT (USD)</label>
         <input id="inpBT" class="input" type="number" step="0.01">
       </div>
       <div>
-        <label class="k">Margen objetivo GB% (sobre venta)</label>
+        <label class="k">Margen objetivo (GB%)</label>
         <input id="inpGB" class="input" type="number" step="1">
       </div>
       <div>
         <label class="k">TRM por defecto (UI)</label>
         <input id="inpTRM" class="input" type="number" step="1">
-        <div class="muted" style="margin-top:4px">Solo para UI. Cada registro guarda su TRM.</div>
+        <div class="k">Solo UI. Cada registro guarda su TRM.</div>
       </div>
       <div style="display:flex;align-items:end">
-        <button id="btnSaveSettings" class="btn success">💾 Guardar configuración</button>
+        <button id="saveCfg" class="btn success">💾 Guardar configuración</button>
       </div>
     </div>
   </div>
 
-  <!-- PANEL: Catálogo -->
+  <!-- CATALOGO -->
   <div id="panel-catalog" class="card" style="display:none">
     <div class="k">Alta manual</div>
-    <div class="grid grid4" style="margin-top:6px">
+    <div class="grid g4" style="margin-top:6px">
       <input id="cName" class="input" placeholder="Nombre / modelo">
       <input id="cBrand" class="input" placeholder="Marca (opcional)">
       <input id="cCat" class="input" placeholder="Categoría (opcional)">
@@ -125,22 +108,19 @@
 
     <hr style="border:0;border-top:1px solid #1f2937;margin:12px 0">
 
-    <div class="k">Carga masiva XLSX/CSV → vista previa → importar</div>
+    <div class="k">Carga masiva (XLSX/CSV) → vista previa → importar</div>
     <div class="row" style="margin-top:6px">
-      <input type="file" id="fileCat" accept=".xlsx,.xls,.csv" />
-      <button id="btnPreview" class="btn">Vista previa</button>
-      <button id="btnImport" class="btn primary" disabled>Importar (≥100)</button>
-      <span class="muted">Mapeo mínimo: <span class="chip">name</span> <span class="chip">ref_cop</span> · Opcionales: <span class="chip">brand</span> <span class="chip">cat</span></span>
+      <input type="file" id="fileCat" accept=".xlsx,.xls,.csv"/>
+      <button id="btnPrev" class="btn">Vista previa</button>
+      <button id="btnImp" class="btn primary" disabled>Importar</button>
+      <span class="k">Mínimo: <span class="badge">name</span> <span class="badge">ref_cop</span></span>
     </div>
 
-    <div style="max-height:300px;overflow:auto;margin-top:8px">
-      <table>
-        <thead><tr><th>#</th><th>Nombre</th><th>Marca</th><th>Cat</th><th class="right">VR COP</th><th>Fuente</th><th>Acción</th></tr></thead>
-        <tbody id="catPreview"></tbody>
-      </table>
+    <div style="max-height:260px;overflow:auto;margin-top:6px">
+      <table><thead><tr><th>#</th><th>Nombre</th><th>Marca</th><th>Cat</th><th class="right">VR COP</th><th>Ok</th></tr></thead><tbody id="catPrev"></tbody></table>
     </div>
 
-    <div style="max-height:320px;overflow:auto;margin-top:12px">
+    <div style="max-height:340px;overflow:auto;margin-top:10px">
       <table>
         <thead><tr><th>Fecha</th><th>Nombre</th><th>Marca/Cat</th><th class="right">VR COP</th><th>Fuente</th><th>Acciones</th></tr></thead>
         <tbody id="catBody"></tbody>
@@ -148,12 +128,12 @@
     </div>
   </div>
 
-  <!-- PANEL: Overheads -->
+  <!-- OVERHEADS -->
   <div id="panel-overheads" class="card" style="display:none">
-    <div class="k">Overheads (USD/COP). Se fija TRM por fecha y se guarda USD/COP determinístico.</div>
-    <div class="grid grid4" style="margin-top:6px">
+    <div class="k">TRM fijada por fecha; se guardan USD/COP determinísticos.</div>
+    <div class="grid g4" style="margin-top:6px">
       <input id="ohDesc" class="input" placeholder="Descripción (tiquetes, hotel, envío…)">
-      <input id="ohCat" class="input" placeholder="Categoría (Transporte/Envío/… )">
+      <input id="ohCat" class="input" placeholder="Categoría">
       <div class="row" style="gap:6px;flex:1">
         <select id="ohCur" class="input" style="flex:0 0 110px"><option>USD</option><option>COP</option></select>
         <input id="ohAmt" class="input" type="number" step="0.01" placeholder="Monto">
@@ -174,7 +154,7 @@
           <tr>
             <th></th><th>Fecha</th><th>Desc</th><th>Cat</th><th>Moneda</th>
             <th class="right">Monto</th><th class="right">TRM usada</th>
-            <th class="right">USD fijo</th><th class="right">COP fijo</th><th class="center">Acciones</th>
+            <th class="right">USD fijo</th><th class="right">COP fijo</th><th>Acciones</th>
           </tr>
         </thead>
         <tbody id="ohBody"></tbody>
@@ -182,13 +162,13 @@
     </div>
   </div>
 
-  <!-- PANEL: Reportes -->
+  <!-- REPORTES -->
   <div id="panel-reportes" class="card" style="display:none">
-    <div class="grid grid2">
+    <div class="grid g2">
       <div class="card">
-        <div class="k">Uso de BT (estimado)</div>
+        <div class="k">Uso de BT</div>
         <div class="progress" style="margin-top:6px"><div id="progBT"></div></div>
-        <div class="muted" id="progTxt" style="margin-top:6px">—</div>
+        <div class="k" id="progTxt" style="margin-top:6px">—</div>
       </div>
       <div class="card">
         <div class="k">Resumen</div>
@@ -199,330 +179,279 @@
 
 </div>
 
-<!-- LIBRERÍAS -->
+<!-- LIBS -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script>
-/*** ====== SUPABASE CONFIG ====== ***/
-const SUPABASE_URL  = 'https://ucrkhrehdedmubykzfzs.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcmtocmVoZGVkbXVieWt6ZnpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1OTc5MzgsImV4cCI6MjA3NzE3MzkzOH0.7CXUuyAPQlm_9RIKbaO9y8Kwjh9c6M7UJcu4xAIM7WA';
-const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+/* ===== Supabase ===== */
+const URL='https://ucrkhrehdedmubykzfzs.supabase.co';
+const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcmtocmVoZGVkbXVieWt6ZnpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1OTc5MzgsImV4cCI6MjA3NzE3MzkzOH0.7CXUuyAPQlm_9RIKbaO9y8Kwjh9c6M7UJcu4xAIM7WA';
+const sb = window.supabase.createClient(URL, KEY);
 
-/*** ====== ESTADO ====== ***/
-let activeTripId=null, trips=[], settings=null, TRM_UI=4200, VIEW='USD';
+/* ===== Estado ===== */
+let trips=[], activeTrip=null, settings=null, TRM_UI=4200, VIEW='USD';
 let OVERHEADS=[], CATALOG=[];
+const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+const fmtUSD=n=>"$"+Number(n||0).toFixed(2);
+const fmtCOP=n=>"$"+Math.round(Number(n||0)).toLocaleString("es-CO");
+const fmtDate=iso=>iso? new Date(iso).toLocaleDateString('es-CO'):'—';
+const esc=s=>(s??'').toString().replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
 
-/*** ====== HELPERS ====== ***/
-const $ = s=>document.querySelector(s);
-const $$ = s=>Array.from(document.querySelectorAll(s));
-const fmtUSD = n => "$"+Number(n||0).toFixed(2);
-const fmtCOP = n => "$"+Math.round(Number(n||0)).toLocaleString("es-CO");
-const esc = s => (s??'').toString().replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
-const fmtFecha = iso => (iso? new Date(iso).toLocaleDateString('es-CO'):'—');
-
+/* ===== Util ===== */
 function sumOverheadsUSD(){ return OVERHEADS.reduce((s,o)=>s+Number(o.amount_usd_fixed||0),0); }
-function aportePorDolar(){ const V=sumOverheadsUSD(); return (settings?.bt_usd>0)? (V/settings.bt_usd):0; }
+function aportePorDolar(){ const V=sumOverheadsUSD(); const BT=settings?.bt_usd||0; return BT>0? (V/BT):0; }
 function renderKPIs(){
-  const BT=settings?.bt_usd||0; const VUSD=sumOverheadsUSD();
-  $('#kBT').textContent = fmtUSD(BT);
-  $('#kBTcop').textContent = fmtCOP(BT*TRM_UI);
-  $('#kOv').textContent = fmtUSD(VUSD);
-  $('#kOvCop').textContent = fmtCOP(VUSD*TRM_UI);
-  $('#kRO').textContent = (aportePorDolar()).toFixed(3);
-  $('#kTRM').textContent = fmtCOP(TRM_UI)+" COP/USD";
-  // reportes
-  const pct = Math.max(0, Math.min(100, BT>0? (VUSD/BT)*100 : 0));
-  $('#progBT').style.width = pct.toFixed(1)+'%';
-  $('#progTxt').textContent = `Uso de BT: ${pct.toFixed(1)}% — ${fmtUSD(VUSD)} de ${fmtUSD(BT)}`;
-  $('#repBox').innerHTML = `
-    <div>Overheads USD: <b>${fmtUSD(VUSD)}</b></div>
-    <div>Overheads COP: <b>${fmtCOP(VUSD*TRM_UI)}</b></div>
-    <div>rO: <b>${(aportePorDolar()).toFixed(3)}</b></div>
-  `;
+  const BT=settings?.bt_usd||0, VUSD=sumOverheadsUSD();
+  $('#kBT').textContent=fmtUSD(BT); $('#kBTcop').textContent=fmtCOP(BT*TRM_UI);
+  $('#kOv').textContent=fmtUSD(VUSD); $('#kOvCop').textContent=fmtCOP(VUSD*TRM_UI);
+  $('#kRO').textContent=aportePorDolar().toFixed(3); $('#kTRM').textContent=fmtCOP(TRM_UI)+' COP/USD';
+  const pct=Math.max(0,Math.min(100,BT? (VUSD/BT)*100:0));
+  $('#progBT').style.width=pct.toFixed(1)+'%'; $('#progTxt').textContent=`Uso de BT: ${pct.toFixed(1)}% — ${fmtUSD(VUSD)} de ${fmtUSD(BT)}`;
+  $('#repBox').innerHTML=`<div>Overheads USD: <b>${fmtUSD(VUSD)}</b></div><div>Overheads COP: <b>${fmtCOP(VUSD*TRM_UI)}</b></div><div>rO: <b>${aportePorDolar().toFixed(3)}</b></div>`;
 }
-function setView(v){ VIEW=v; $('#viewUSD').classList.toggle('primary', v==='USD'); $('#viewCOP').classList.toggle('primary', v==='COP'); renderOH(); }
+function setView(v){ VIEW=v; $('#viewUSD').classList.toggle('primary',v==='USD'); $('#viewCOP').classList.toggle('primary',v==='COP'); renderOH(); }
 
-/*** ====== TRIPS ====== ***/
+/* ===== Trips ===== */
 async function loadTrips(){
-  const {data,error}=await supa.from('trips').select('id,name,created_at').order('created_at',{ascending:false});
-  if(error) throw error; trips=data||[];
-  const sel=$('#tripSelect'); sel.innerHTML="";
-  trips.forEach(t=>{ const opt=document.createElement('option'); opt.value=t.id; opt.textContent=`${t.name} (#${t.id})`; sel.appendChild(opt); });
-  if(!activeTripId && trips.length){ activeTripId=trips[0].id; }
-  if(activeTripId) sel.value=activeTripId;
+  try{
+    const {data,error}=await sb.from('trips').select('id,name,created_at').order('created_at',{ascending:false});
+    if(error) throw error;
+    trips=data||[];
+    const sel=$('#tripSel'); sel.innerHTML="";
+    trips.forEach(t=>{const o=document.createElement('option');o.value=t.id;o.textContent=`${t.name} (#${t.id})`;sel.appendChild(o);});
+    if(!activeTrip && trips.length) activeTrip=trips[0].id;
+    if(activeTrip) sel.value=activeTrip;
+  }catch(e){ console.error('loadTrips',e); alert('No se pudieron cargar viajes'); }
 }
 async function createTrip(){
   const name=prompt('Nombre del viaje/proyecto:','Orlando Nov 7 2025'); if(!name) return;
-  const {data,error}=await supa.from('trips').insert({name}).select().single();
-  if(error){ alert(error.message); return; }
-  await supa.from('trip_settings').insert({trip_id:data.id}).onConflict('trip_id').ignore();
-  activeTripId=data.id; await loadTrips(); await loadSettings(); await reloadAll();
+  try{
+    const {data,error}=await sb.from('trips').insert({name}).select().single(); if(error) throw error;
+    activeTrip=data.id;
+    await sb.from('trip_settings').insert({trip_id:activeTrip}).onConflict('trip_id').ignore();
+    await loadTrips(); await loadSettings(); await reloadAll();
+  }catch(e){ console.error(e); alert('No se pudo crear el viaje: '+e.message); }
 }
 async function duplicateTrip(){
-  const from = activeTripId; if(!from){ alert('Selecciona un viaje.'); return; }
-  const name=prompt('Nombre del nuevo viaje (duplicado de catálogo/overheads):','Copia de '+($('#tripSelect option:selected')?.textContent||from));
-  if(!name) return;
-  const {data:newTrip, error} = await supa.from('trips').insert({name}).select().single();
-  if(error){ alert(error.message); return; }
-  await supa.from('trip_settings').insert({trip_id:newTrip.id}).onConflict('trip_id').ignore();
-  // dup catalog & no dup sales
-  const catRows = (await supa.from('catalog').select('name,brand,cat,ref_cop,source').eq('trip_id',from)).data||[];
-  if(catRows.length){
-    const rows = catRows.map(r=>({trip_id:newTrip.id, ...r}));
-    await bulkUpsertCatalog(rows);
-  }
-  const ohRows = (await supa.from('overheads').select('description,cat,currency,amount_usd,amount_cop,trm_used,amount_usd_fixed,amount_cop_fixed').eq('trip_id',from)).data||[];
-  for(const o of ohRows){
-    await supa.from('overheads').insert({trip_id:newTrip.id, ...o});
-  }
-  activeTripId=newTrip.id; await loadTrips(); await loadSettings(); await reloadAll();
+  if(!activeTrip){ alert('Selecciona un viaje'); return; }
+  const name=prompt('Nombre del nuevo viaje (duplicado):','Copia'); if(!name) return;
+  try{
+    const {data:newTrip,error:e1}=await sb.from('trips').insert({name}).select().single(); if(e1) throw e1;
+    await sb.from('trip_settings').insert({trip_id:newTrip.id}).onConflict('trip_id').ignore();
+    // dup catálogo
+    const {data:rows}=await sb.from('catalog').select('name,brand,cat,ref_cop,source').eq('trip_id',activeTrip);
+    if(rows?.length){ for(let i=0;i<rows.length;i+=500){ const chunk=rows.slice(i,i+500).map(r=>({trip_id:newTrip.id,...r})); await sb.from('catalog').insert(chunk); } }
+    // dup overheads
+    const {data:ohs}=await sb.from('overheads').select('description,cat,currency,amount_usd,amount_cop,trm_used,amount_usd_fixed,amount_cop_fixed').eq('trip_id',activeTrip);
+    if(ohs?.length){ for(const o of ohs){ await sb.from('overheads').insert({trip_id:newTrip.id,...o}); } }
+    activeTrip=newTrip.id; await loadTrips(); await loadSettings(); await reloadAll();
+  }catch(e){ console.error(e); alert('No se pudo duplicar: '+e.message); }
 }
 
-/*** ====== SETTINGS ====== ***/
+/* ===== Settings ===== */
 async function loadSettings(){
-  if(!activeTripId) return;
-  // si no existe, crea por defecto
-  let {data,error}=await supa.from('trip_settings').select('*').eq('trip_id',activeTripId).single();
-  if(error && error.code==='PGRST116'){ // not found
-    await supa.from('trip_settings').insert({trip_id:activeTripId});
-    ({data,error}=await supa.from('trip_settings').select('*').eq('trip_id',activeTripId).single());
-  }
-  if(error) throw error;
-  settings=data; TRM_UI=settings.default_trm||4200;
-  $('#inpBT').value = settings.bt_usd||7000;
-  $('#inpGB').value = settings.gb_pct||30;
-  $('#inpTRM').value = TRM_UI;
-  $('#tripUpdated').textContent = 'Actualizado: '+new Date(settings.updated_at).toLocaleString('es-CO');
-  renderKPIs();
+  if(!activeTrip) return;
+  try{
+    let {data,error}=await sb.from('trip_settings').select('*').eq('trip_id',activeTrip).maybeSingle();
+    if(error) throw error;
+    if(!data){ await sb.from('trip_settings').insert({trip_id:activeTrip}); data=(await sb.from('trip_settings').select('*').eq('trip_id',activeTrip).single()).data; }
+    settings=data; TRM_UI=settings.default_trm||4200;
+    $('#inpBT').value=settings.bt_usd||7000; $('#inpGB').value=settings.gb_pct||30; $('#inpTRM').value=TRM_UI;
+    $('#lastUpd').textContent='Actualizado: '+new Date(settings.updated_at||Date.now()).toLocaleString('es-CO');
+    renderKPIs();
+  }catch(e){ console.error(e); alert('No se pudieron cargar ajustes'); }
 }
 async function saveSettings(){
-  const p = {
-    p_trip_id: activeTripId,
-    p_bt_usd: Number($('#inpBT').value||0),
-    p_gb_pct: Number($('#inpGB').value||0),
-    p_default_trm: Number($('#inpTRM').value||0)
-  };
-  const {error}=await supa.rpc('upsert_trip_settings', p);
-  if(error){ alert('No se pudo guardar: '+error.message); return; }
-  await loadSettings(); await reloadAll();
+  if(!activeTrip) return;
+  const obj={ bt_usd:Number($('#inpBT').value||0), gb_pct:Number($('#inpGB').value||0), default_trm:Number($('#inpTRM').value||0), updated_at:new Date().toISOString() };
+  try{
+    await sb.from('trip_settings').upsert({trip_id:activeTrip, ...obj}).select();
+    await loadSettings(); await reloadAll();
+  }catch(e){ console.error(e); alert('No se pudo guardar'); }
 }
 
-/*** ====== TRM (hoy) ====== ***/
+/* ===== TRM hoy ===== */
 async function fetchTRM(){
   try{
     const r=await fetch('https://open.er-api.com/v6/latest/USD'); const j=await r.json();
-    if(j?.rates?.COP){ TRM_UI = Number(j.rates.COP); $('#inpTRM').value=TRM_UI; renderKPIs(); }
+    if(j?.rates?.COP){ TRM_UI=Number(j.rates.COP); $('#inpTRM').value=TRM_UI; renderKPIs(); }
     else throw new Error('Sin rates');
   }catch(e){ alert('No se pudo obtener TRM. Ingresa manual.'); }
 }
 
-/*** ====== OVERHEADS ====== ***/
-function fmtMontoVista(o){
-  if(VIEW==='USD') return fmtUSD(o.amount_usd_fixed);
-  return fmtCOP(o.amount_cop_fixed);
-}
-async function loadOH(){
-  const {data,error}=await supa.from('overheads').select('*').eq('trip_id',activeTripId).order('created_at',{ascending:false});
-  if(error) throw error; OVERHEADS=data||[]; renderOH(); renderKPIs();
-}
+/* ===== Overheads (sin RPC) ===== */
 function renderOH(){
   const tb=$('#ohBody'); tb.innerHTML="";
   OVERHEADS.forEach(o=>{
     const tr=document.createElement('tr');
-    tr.innerHTML = `
-      <td><input type="checkbox" class="oh-check" value="${o.id}"></td>
-      <td>${fmtFecha(o.created_at)}</td>
+    const viewUSD = VIEW==='USD';
+    tr.innerHTML=`
+      <td><input type="checkbox" class="ohchk" value="${o.id}"></td>
+      <td>${fmtDate(o.created_at)}</td>
       <td>${esc(o.description||'')}</td>
       <td>${esc(o.cat||'')}</td>
       <td>${o.currency||'—'}</td>
-      <td class="right">${fmtMontoVista(o)}</td>
+      <td class="right">${viewUSD? fmtUSD(o.amount_usd_fixed) : fmtCOP(o.amount_cop_fixed)}</td>
       <td class="right">${fmtCOP(o.trm_used)} COP</td>
       <td class="right">${fmtUSD(o.amount_usd_fixed)}</td>
       <td class="right">${fmtCOP(o.amount_cop_fixed)}</td>
-      <td class="center"><button class="btn warn" data-del="${o.id}">🗑</button></td>
-    `;
+      <td><button class="btn warn" data-del="${o.id}">🗑</button></td>`;
     tb.appendChild(tr);
   });
-  tb.querySelectorAll('[data-del]').forEach(btn=>{
-    btn.onclick = async ()=>{
-      if(!confirm('¿Eliminar este gasto?')) return;
-      const {error}=await supa.from('overheads').delete().eq('id', btn.dataset.del);
-      if(error){ alert('No se pudo eliminar: '+error.message); return; }
-      await loadOH(); renderKPIs();
-    };
+  tb.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{
+    try{ await sb.from('overheads').delete().eq('id',b.dataset.del); await loadOH(); renderKPIs(); }catch(e){ alert('No se pudo eliminar'); }
   });
 }
+async function loadOH(){
+  if(!activeTrip) return;
+  try{
+    const {data,error}=await sb.from('overheads').select('*').eq('trip_id',activeTrip).order('created_at',{ascending:false});
+    if(error) throw error; OVERHEADS=data||[]; renderOH(); renderKPIs();
+  }catch(e){ console.error(e); alert('No se pudieron cargar overheads'); }
+}
+async function ensureTRM(dateISO, manualTRM){
+  const d=dateISO; if(!d) return TRM_UI;
+  try{
+    if(manualTRM){ await sb.from('trm_daily').upsert({d, trm:manualTRM}); return manualTRM; }
+    const row=(await sb.from('trm_daily').select('*').eq('d',d).maybeSingle()).data;
+    if(row) return Number(row.trm);
+    // si no existe, toma TRM_UI actual
+    await sb.from('trm_daily').insert({d, trm:TRM_UI});
+    return TRM_UI;
+  }catch(e){ console.error('ensureTRM',e); return TRM_UI; }
+}
 async function addOH(){
-  const desc=$('#ohDesc').value.trim();
-  const cat=$('#ohCat').value.trim();
-  const cur=$('#ohCur').value.trim();
-  const amt=Number($('#ohAmt').value||0);
-  const date=$('#ohDate').value ? new Date($('#ohDate').value+'T00:00:00') : new Date();
-  const trmMan=$('#ohTRM').value? Number($('#ohTRM').value) : null;
-  if(!desc || !amt || !cur){ alert('Completa descripción, moneda y monto.'); return; }
-  const payload={
-    p_trip_id: activeTripId, p_description: desc, p_cat: cat||null, p_currency: cur,
-    p_amount: amt, p_date: date.toISOString().slice(0,10), p_trm: trmMan
-  };
-  const {error}=await supa.rpc('add_overhead', payload);
-  if(error){ alert('Overhead: '+error.message); return; }
-  $('#ohDesc').value=''; $('#ohCat').value=''; $('#ohAmt').value=''; $('#ohTRM').value='';
-  await loadOH(); renderKPIs();
+  if(!activeTrip) return;
+  const desc=$('#ohDesc').value.trim(), cat=$('#ohCat').value.trim(), cur=$('#ohCur').value, amt=Number($('#ohAmt').value||0);
+  const dStr=$('#ohDate').value? $('#ohDate').value : (new Date()).toISOString().slice(0,10);
+  const trmMan=$('#ohTRM').value? Number($('#ohTRM').value):null;
+  if(!desc || !(amt>0)){ alert('Ingresa descripción y monto'); return; }
+  const trm = await ensureTRM(dStr, trmMan);
+  let amount_usd=null, amount_cop=null, usd_fixed=null, cop_fixed=null;
+  if(cur==='USD'){ amount_usd=amt; usd_fixed=amt; cop_fixed=amt*trm; }
+  else { amount_cop=amt; usd_fixed=amt/ (trm||1); cop_fixed=amt; }
+  try{
+    await sb.from('overheads').insert({
+      trip_id:activeTrip, description:desc, cat:cat||null, currency:cur,
+      amount_usd, amount_cop, trm_used:trm,
+      amount_usd_fixed:usd_fixed, amount_cop_fixed:cop_fixed
+    });
+    $('#ohDesc').value=''; $('#ohCat').value=''; $('#ohAmt').value=''; $('#ohTRM').value='';
+    await loadOH(); renderKPIs();
+  }catch(e){ console.error(e); alert('No se pudo agregar overhead'); }
 }
 async function delSelectedOH(){
-  const ids = $$('.oh-check:checked').map(x=>x.value);
-  if(!ids.length){ alert('Marca al menos un gasto.'); return; }
-  if(!confirm(`Eliminar ${ids.length} gastos seleccionados?`)) return;
-  const {error}=await supa.from('overheads').delete().in('id', ids);
-  if(error){ alert('No se pudo eliminar: '+error.message); return; }
-  await loadOH(); renderKPIs();
+  const ids=$$('.ohchk:checked').map(x=>x.value);
+  if(!ids.length){ alert('Marca al menos un gasto'); return; }
+  if(!confirm(`Eliminar ${ids.length} gastos?`)) return;
+  try{ await sb.from('overheads').delete().in('id',ids); await loadOH(); renderKPIs(); }catch(e){ alert('No se pudo eliminar'); }
 }
 
-/*** ====== CATALOGO ====== ***/
+/* ===== Catálogo ===== */
 async function loadCatalog(){
-  const {data,error}=await supa.from('catalog').select('*').eq('trip_id',activeTripId).order('created_at',{ascending:false});
-  if(error) throw error; CATALOG=data||[]; renderCatalog();
+  if(!activeTrip) return;
+  try{
+    const {data,error}=await sb.from('catalog').select('*').eq('trip_id',activeTrip).order('created_at',{ascending:false});
+    if(error) throw error; CATALOG=data||[]; renderCatalog();
+  }catch(e){ console.error(e); alert('No se pudo cargar catálogo'); }
 }
 function renderCatalog(){
   const tb=$('#catBody'); tb.innerHTML="";
   CATALOG.forEach(c=>{
     const tr=document.createElement('tr');
-    tr.innerHTML=`
-      <td>${fmtFecha(c.created_at)}</td>
-      <td>${esc(c.name)}</td>
-      <td>${esc(c.brand||'')}${c.cat?(' / '+esc(c.cat)) : ''}</td>
-      <td class="right">${fmtCOP(c.ref_cop)}</td>
-      <td>${esc(c.source||'manual')}</td>
-      <td class="center"><button class="btn warn" data-del="${c.id}">🗑</button></td>
-    `;
+    tr.innerHTML=`<td>${fmtDate(c.created_at)}</td>
+      <td>${esc(c.name)}</td><td>${esc(c.brand||'')}${c.cat?(' / '+esc(c.cat)) : ''}</td>
+      <td class="right">${fmtCOP(c.ref_cop||0)}</td><td>${esc(c.source||'manual')}</td>
+      <td><button class="btn warn" data-del="${c.id}">🗑</button></td>`;
     tb.appendChild(tr);
   });
-  tb.querySelectorAll('[data-del]').forEach(btn=>{
-    btn.onclick=async ()=>{
-      if(!confirm('¿Eliminar esta referencia?')) return;
-      const {error}=await supa.from('catalog').delete().eq('id',btn.dataset.del);
-      if(error){ alert(error.message); return; }
-      await loadCatalog();
-    };
+  tb.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{
+    try{ await sb.from('catalog').delete().eq('id',b.dataset.del); await loadCatalog(); }catch(e){ alert('No se pudo eliminar'); }
   });
 }
 async function addCatalogManual(){
-  const name=$('#cName').value.trim();
-  const brand=$('#cBrand').value.trim()||null;
-  const cat=$('#cCat').value.trim()||null;
-  const ref=Number($('#cRef').value||0);
-  if(!name || !ref){ alert('Ingresa nombre y VR COP'); return; }
-  const {error}=await supa.from('catalog').insert({trip_id:activeTripId,name,brand,cat,ref_cop:ref,source:'manual'});
-  if(error){ alert(error.message); return; }
-  $('#cName').value=''; $('#cBrand').value=''; $('#cCat').value=''; $('#cRef').value='';
-  await loadCatalog();
+  const name=$('#cName').value.trim(), brand=($('#cBrand').value||'').trim()||null, cat=($('#cCat').value||'').trim()||null, ref=Number($('#cRef').value||0);
+  if(!name||!(ref>0)){ alert('Nombre y VR COP'); return; }
+  try{
+    await sb.from('catalog').insert({trip_id:activeTrip,name,brand,cat,ref_cop:ref,source:'manual'});
+    $('#cName').value=''; $('#cBrand').value=''; $('#cCat').value=''; $('#cRef').value='';
+    await loadCatalog();
+  }catch(e){ console.error(e); alert('No se pudo agregar al catálogo'); }
 }
-
-/* ---- Carga masiva ---- */
+/* import xlsx */
 let previewRows=[];
-function parseExcel(file){
-  return new Promise((res,rej)=>{
-    const reader=new FileReader();
-    reader.onload = e=>{
-      try{
-        const data=new Uint8Array(e.target.result);
-        const wb=XLSX.read(data,{type:'array'});
-        const ws=wb.Sheets[wb.SheetNames[0]];
-        const rows=XLSX.utils.sheet_to_json(ws,{defval:'',raw:true});
-        res(rows);
-      }catch(err){ rej(err); }
-    };
-    reader.onerror=rej; reader.readAsArrayBuffer(file);
-  });
-}
-function validateMap(obj){
-  const name = (obj.name??obj.Nombre??obj.nombre??'').toString().trim();
-  const ref_raw = obj.ref_cop ?? obj.VR ?? obj['VR COP'] ?? obj['ref'] ?? obj['precio'] ?? '';
-  const ref_cop = Number((ref_raw??'').toString().replace(/[^\d.,]/g,'').replace(',','.'));
-  const brand = (obj.brand??obj.marca??'').toString().trim() || null;
-  const cat   = (obj.cat??obj.categoria??'').toString().trim() || null;
-  return { ok: !!(name && ref_cop>0), row:{trip_id:activeTripId, name, brand, cat, ref_cop, source:'manual'} };
+function mapRow(o){
+  const name=(o.name??o.Nombre??o.nombre??'').toString().trim();
+  const brand=(o.brand??o.Marca??o.marca??'').toString().trim()||null;
+  const cat  =(o.cat??o.Categoria??o.categoria??'').toString().trim()||null;
+  const refRaw=(o.ref_cop??o.VR??o['VR COP']??o.ref??o.precio??'').toString();
+  const ref=Number(refRaw.replace(/[^\d.,]/g,'').replace(',','.'));
+  return {ok: !!(name&&ref>0), row:{trip_id:activeTrip,name,brand,cat,ref_cop:ref,source:'manual'}};
 }
 function renderPreview(){
-  const tb=$('#catPreview'); tb.innerHTML="";
+  const tb=$('#catPrev'); tb.innerHTML="";
   previewRows.forEach((r,i)=>{
+    const bad=r.ok?'':' style="color:#fca5a5"';
     const tr=document.createElement('tr');
-    const cls = r.ok? '':' style="color:#fda4af"';
-    tr.innerHTML=`
-      <td${cls}>${i+1}</td>
-      <td${cls}>${esc(r.row.name||'')}</td>
-      <td${cls}>${esc(r.row.brand||'')}</td>
-      <td${cls}>${esc(r.row.cat||'')}</td>
-      <td class="right"${cls}>${r.row.ref_cop? fmtCOP(r.row.ref_cop):'—'}</td>
-      <td${cls}>manual</td>
-      <td${cls}>${r.ok? '✓' : 'Error'}</td>
-    `;
+    tr.innerHTML=`<td${bad}>${i+1}</td><td${bad}>${esc(r.row.name)}</td><td${bad}>${esc(r.row.brand||'')}</td><td${bad}>${esc(r.row.cat||'')}</td><td class="right"${bad}>${r.row.ref_cop?fmtCOP(r.row.ref_cop):'—'}</td><td${bad}>${r.ok?'✓':'Err'}</td>`;
     tb.appendChild(tr);
   });
-}
-async function bulkUpsertCatalog(rows){
-  // chunk en lotes de 500
-  for(let i=0;i<rows.length;i+=500){
-    const chunk = rows.slice(i,i+500);
-    const {error}=await supa.rpc('upsert_catalog_batch', { p_rows: chunk });
-    if(error) throw error;
-  }
+  $('#btnImp').disabled = previewRows.filter(x=>x.ok).length===0;
 }
 async function previewFile(){
-  const f=$('#fileCat').files[0]; if(!f){ alert('Selecciona archivo XLSX/CSV'); return; }
-  const raw=await parseExcel(f);
-  previewRows = raw.map(validateMap);
-  renderPreview();
-  const okCount = previewRows.filter(x=>x.ok).length;
-  $('#btnImport').disabled = okCount<1; // deja importar incluso si <100 para pruebas
-  if(okCount<1) alert('No hay filas válidas (requiere columnas name y ref_cop).');
+  const f=$('#fileCat').files[0]; if(!f){ alert('Selecciona archivo'); return; }
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=new Uint8Array(e.target.result); const wb=XLSX.read(data,{type:'array'}); const ws=wb.Sheets[wb.SheetNames[0]];
+      const rows=XLSX.utils.sheet_to_json(ws,{defval:'',raw:true});
+      previewRows=rows.map(mapRow); renderPreview();
+    }catch(err){ console.error(err); alert('No se pudo leer el archivo'); }
+  };
+  reader.readAsArrayBuffer(f);
 }
 async function importPreview(){
-  const toImport = previewRows.filter(x=>x.ok).map(x=>x.row);
-  if(!toImport.length){ alert('No hay filas válidas.'); return; }
+  const rows=previewRows.filter(x=>x.ok).map(x=>x.row);
+  if(!rows.length){ alert('Nada para importar'); return; }
   try{
-    await bulkUpsertCatalog(toImport);
-    alert('Importado.');
-    $('#catPreview').innerHTML='';
-    $('#btnImport').disabled=true; $('#fileCat').value='';
+    for(let i=0;i<rows.length;i+=500){ const chunk=rows.slice(i,i+500); const {error}=await sb.from('catalog').insert(chunk); if(error) throw error; }
+    alert('Importado'); $('#catPrev').innerHTML=''; $('#btnImp').disabled=true; $('#fileCat').value='';
     await loadCatalog();
-  }catch(e){
-    alert('Error importando: '+(e?.message||e));
-  }
+  }catch(e){ console.error(e); alert('Error importando: '+(e.message||e)); }
 }
 
-/*** ====== SYNC / RELOAD ====== ***/
-async function reloadAll(){ await Promise.all([loadOH(), loadCatalog()]); renderKPIs(); }
+/* ===== Sync & Tabs ===== */
+async function reloadAll(){ await Promise.all([loadOH(), loadCatalog()]).catch(e=>console.error('reloadAll',e)); renderKPIs(); }
+function switchTab(id){
+  $$('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===id));
+  ['config','catalog','overheads','reportes'].forEach(p=>$('#panel-'+p).style.display = (p===id?'block':'none'));
+}
 
-/*** ====== EVENTS ====== ***/
-$('#tripSelect').onchange = async ()=>{ activeTripId=Number($('#tripSelect').value); await loadSettings(); await reloadAll(); };
-$('#btnNewTrip').onclick = createTrip;
-$('#btnDupTrip').onclick = duplicateTrip;
-$('#btnSaveSettings').onclick = saveSettings;
-$('#btnTRM').onclick = fetchTRM;
-$('#btnSync').onclick = reloadAll;
-$('#btnHard').onclick = ()=>{ const u=new URL(location.href); u.searchParams.set('v', Date.now()); location.href=u.toString(); };
-$('#viewUSD').onclick = ()=>setView('USD');
-$('#viewCOP').onclick = ()=>setView('COP');
+/* ===== Events ===== */
+$('#tripSel').onchange=async()=>{ activeTrip=Number($('#tripSel').value); await loadSettings(); await reloadAll(); };
+$('#newTrip').onclick=createTrip;
+$('#dupTrip').onclick=duplicateTrip;
+$('#viewUSD').onclick=()=>setView('USD'); $('#viewCOP').onclick=()=>setView('COP');
+$('#btnSync').onclick=reloadAll;
+$('#btnTRM').onclick=fetchTRM;
+$('#btnHard').onclick=()=>{ const u=new URL(location.href); u.searchParams.set('v',Date.now()); location.href=u.toString(); };
+$('#saveCfg').onclick=saveSettings;
+$('#ohAdd').onclick=addOH; $('#ohDelSel').onclick=delSelectedOH;
+$('#cAdd').onclick=addCatalogManual; $('#btnPrev').onclick=previewFile; $('#btnImp').onclick=importPreview;
+$$('.tab').forEach(t=> t.onclick=()=>switchTab(t.dataset.tab));
 
-$('#ohAdd').onclick = addOH;
-$('#ohDelSel').onclick = delSelectedOH;
-
-$('#cAdd').onclick = addCatalogManual;
-$('#btnPreview').onclick = previewFile;
-$('#btnImport').onclick = importPreview;
-
-/*** ====== INIT ====== ***/
+/* ===== Init ===== */
 (async function init(){
   try{
     await loadTrips();
-    if(!activeTripId){ await createTrip(); return; }
+    if(!activeTrip){ await createTrip(); return; }
     await loadSettings();
     await reloadAll();
     setView('USD');
-  }catch(e){ alert('Error cargando: '+(e?.message||e)); }
+  }catch(e){ console.error(e); alert('Error inicializando'); }
 })();
 </script>
 </body>
 </html>
+
