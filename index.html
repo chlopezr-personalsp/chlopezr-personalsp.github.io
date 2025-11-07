@@ -1,454 +1,620 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>PS Arbitraje – estable</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Personal Shopper USA — estable</title>
 <style>
-:root{--bg:#0a0f1a;--panel:#0f172a;--line:#1f2937;--text:#e5e7eb;--muted:#94a3b8;--brand:#60a5fa}
-*{box-sizing:border-box} html,body{height:100%}
-body{margin:0;background:linear-gradient(120deg,#0a0f1a,#0d1422);color:var(--text);font-family:Inter,system-ui,Segoe UI,Roboto}
-.wrap{max-width:1280px;margin:0 auto;padding:12px}
-.card{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:12px;padding:12px}
-.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.k{font-size:12px;color:var(--muted)} .v{font-size:20px;font-weight:800}
-.btn{background:#0f172a;border:1px solid #334155;color:var(--text);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer}
-.btn:hover{background:#111827} .btn.primary{background:#1d4ed8;border-color:#1d4ed8} .btn.success{background:#059669;border-color:#059669} .btn.warn{background:#b45309;border-color:#b45309}
-.input,select{background:#0b1220;color:var(--text);border:1px solid #334155;border-radius:10px;padding:8px;width:100%}
-table{width:100%;border-collapse:collapse;font-size:13px} th,td{padding:8px 6px;border-bottom:1px solid #1f2937}
-thead th{position:sticky;top:0;background:#0b1220;z-index:1}
-.tabs{display:flex;gap:6px;margin:10px 0 6px} .tab{padding:6px 10px;border:1px solid #334155;border-radius:10px;background:#0f172a;cursor:pointer;font-size:13px}
-.tab.active{background:#1f2937;border-color:#475569}
-.grid{display:grid;gap:10px} .g2{grid-template-columns:1fr 1fr} .g4{grid-template-columns:repeat(4,1fr)}
-@media(max-width:900px){.g2{grid-template-columns:1fr}.g4{grid-template-columns:repeat(2,1fr)}}
-.progress{height:10px;background:#0b1220;border:1px solid #334155;border-radius:999px;overflow:hidden}
-.progress>div{height:100%;background:linear-gradient(90deg,#22d3ee,#60a5fa);width:0%}
-.logo{width:26px;height:26px;border-radius:8px;background:linear-gradient(145deg,#60a5fa,#22d3ee);display:inline-flex;align-items:center;justify-content:center;color:#0a0f1a;font-weight:900}
-.badge{display:inline-flex;gap:6px;align-items:center;padding:2px 8px;border-radius:999px;border:1px solid #334155;background:#0f172a;font-size:12px}
-.err{background:#7f1d1d;border:1px solid #fecaca;color:#ffe4e6;padding:8px;border-radius:8px}
-.right{text-align:right}
+  :root{
+    --bg:#0b1220; --panel:#111827; --muted:#94a3b8; --text:#e5e7eb;
+    --brand:#60a5fa; --ok:#10b981; --warn:#f59e0b; --bad:#ef4444; --chip:#1f2937;
+    --card:#0f172a; --accent:#1e293b; --line:#334155;
+  }
+  html,body{height:100%}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu;
+       background:linear-gradient(120deg,#0a0f1a,#101726,#0d1422); color:var(--text)}
+  .wrap{max-width:1200px;margin:0 auto;padding:14px}
+  .brand-row{display:flex;align-items:center;gap:10px;justify-content:space-between}
+  .app-title{display:flex;align-items:center;gap:10px}
+  .logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(145deg,#60a5fa,#22d3ee);
+        display:inline-flex;align-items:center;justify-content:center;color:#0b1220;font-weight:900}
+  .header-card{background:rgba(255,255,255,0.04);border:1px solid #1f2937;border-radius:14px;padding:12px 14px}
+  .toolbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .btn{display:inline-flex;align-items:center;gap:6px;background:#0f172a;color:var(--text);
+       border:1px solid #334155;border-radius:8px;padding:4px 8px;font-size:12px;line-height:1.1;cursor:pointer;white-space:nowrap}
+  .btn:hover{background:#111827} .btn.primary{background:#1d4ed8;border-color:#1d4ed8}
+  .btn.success{background:#059669;border-color:#059669} .btn.warn{background:#b45309;border-color:#b45309}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+  #btnSync,#btnFetchTRM,#btnManualTRM,#btnHardReload{padding:2px 6px!important;font-size:11px!important;line-height:1.05!important;border-radius:7px!important}
+  .grid{display:grid;gap:12px}
+  .cards{grid-template-columns:repeat(4,1fr)}
+  @media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:580px){.cards{grid-template-columns:1fr}}
+  .card{background:rgba(255,255,255,0.04);border:1px solid #1f2937;border-radius:14px;padding:14px}
+  .k{color:var(--muted);font-size:12px}
+  .v{font-size:20px;font-weight:700}
+  .sub{color:var(--muted);font-size:11px}
+  .tabs{display:flex;gap:6px;margin:10px 0 6px}
+  .tab{padding:6px 10px;border:1px solid #334155;border-radius:10px;background:#0f172a;cursor:pointer;font-size:13px}
+  .tab.active{background:#1f2937;color:#e5e7eb;border-color:#475569}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:900px){.row{grid-template-columns:1fr}}
+  .input, select{width:100%;background:#0b1220;color:var(--text);border:1px solid #334155;border-radius:10px;padding:10px;font-size:14px}
+  label{font-size:12px;color:var(--muted);display:block;margin:8px 0 6px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{border-bottom:1px solid #1f2937;padding:8px 6px;text-align:left}
+  thead th{position:sticky;top:0;background:#0b1220;z-index:1}
+  .chip{display:inline-flex;align-items:center;gap:6px;background:#0f172a;border:1px solid #334155;color:#cbd5e1;
+        border-radius:999px;padding:2px 8px;font-size:12px}
+  .chip.ok{background:rgba(16,185,129,0.12);border-color:#065f46;color:#a7f3d0}
+  .chip.warn{background:rgba(245,158,11,0.12);border-color:#78350f;color:#fde68a}
+  .chip.bad{background:rgba(239,68,68,0.12);border-color:#7f1d1d;color:#fecaca}
+  .progress{height:10px;background:#0b1220;border:1px solid #334155;border-radius:999px;overflow:hidden}
+  .progress>div{height:100%;background:linear-gradient(90deg,#22d3ee,#60a5fa);width:0%}
+  .muted{color:var(--muted)}
+  .right{text-align:right}
+  .hint{font-size:11px;color:#9ca3af;margin-top:4px}
+  .pill{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;border:1px solid #334155;background:#0f172a;font-size:12px;cursor:pointer}
+  .pill:hover{background:#111827}
+  .err{background:#7f1d1d33;border:1px solid #fca5a5;color:#ffe4e6;padding:8px;border-radius:8px;margin-top:8px;display:none}
 </style>
 </head>
 <body>
 <div class="wrap">
-
-  <!-- Error banner -->
-  <div id="errBox" class="err" style="display:none"></div>
-
-  <!-- HEADER -->
-  <div class="card">
-    <div class="row" style="justify-content:space-between">
-      <div class="row">
+  <!-- Header -->
+  <div class="header-card">
+    <div class="brand-row">
+      <div class="app-title">
         <div class="logo">PS</div>
-        <div style="margin-left:8px">
-          <div style="font-weight:800">PS Arbitraje – estable</div>
-          <div class="k">TRM fijada por registro · sin RPC · con autodiagnóstico</div>
+        <div>
+          <div style="font-weight:800;font-size:18px">Personal Shopper USA — estable</div>
+          <div class="muted" style="font-size:12px">Control de costos, inventario y viabilidad en tiempo real</div>
         </div>
       </div>
-      <div class="row">
-        <select id="tripSel" class="input" style="min-width:260px"></select>
-        <button id="btnNewTrip" class="btn">+ Nuevo</button>
-        <button id="btnDupTrip" class="btn">📄 Duplicar</button>
-        <span class="k" id="lastUpd"></span>
-      </div>
-      <div class="row">
-        <button id="viewUSD" class="btn primary">USD</button>
-        <button id="viewCOP" class="btn">COP</button>
-        <button id="btnSync" class="btn">⟳ Sync</button>
-        <button id="btnTRM" class="btn">⇅ TRM (hoy)</button>
-        <button id="btnHard" class="btn">⤳ Hard-reload</button>
+      <div class="toolbar">
+        <button id="btnSync" class="btn" title="Sincronizar con Supabase">⟳ Sync</button>
+        <button id="btnFetchTRM" class="btn" title="Actualizar TRM automáticamente">⇅ TRM</button>
+        <button id="btnManualTRM" class="btn" title="Ingresar TRM manual">✍ TRM</button>
+        <button id="btnHardReload" class="btn" title="Romper caché y recargar">⤳ Hard-reload</button>
       </div>
     </div>
+    <div id="errBox" class="err"></div>
   </div>
 
   <!-- KPIs -->
-  <div class="row" style="margin-top:8px">
-    <div class="card" style="flex:1 1 260px"><div class="k">BT (USD)</div><div class="v" id="kBT">—</div><div class="k" id="kBTcop">—</div></div>
-    <div class="card" style="flex:1 1 260px"><div class="k">Overheads (USD)</div><div class="v" id="kOv">—</div><div class="k" id="kOvCop">—</div></div>
-    <div class="card" style="flex:1 1 260px"><div class="k">rO Overheads/BT</div><div class="v" id="kRO">—</div><div class="k">Se usa en VSV</div></div>
-    <div class="card" style="flex:1 1 260px"><div class="k">TRM UI</div><div class="v" id="kTRM">—</div><div class="k">Fijada por registro</div></div>
+  <div class="grid cards" style="margin-top:12px">
+    <div class="card">
+      <div class="k">Presupuesto Estimado (BT) USD</div>
+      <div class="v" id="kpiBT">$7,000.00</div>
+      <div class="sub" id="kpiBTcop">—</div>
+    </div>
+    <div class="card">
+      <div class="k">Costos del viaje (Overheads) USD</div>
+      <div class="v" id="kpiV">—</div>
+      <div class="sub" id="kpiVcop">—</div>
+    </div>
+    <div class="card">
+      <div class="k">Aporte por dólar (V/BT)</div>
+      <div class="v" id="kpiRO">—</div>
+      <div class="sub muted">Se usa para VSV</div>
+    </div>
+    <div class="card">
+      <div class="k">TRM vigente</div>
+      <div class="v" id="kpiTRM">—</div>
+      <div class="sub">Histórico por día</div>
+    </div>
   </div>
 
-  <!-- TABS -->
+  <!-- KPIs Presupuesto Real -->
+  <div class="grid cards" style="margin-top:12px">
+    <div class="card">
+      <div class="k">Compras acumuladas (Costo USD)</div>
+      <div class="v" id="kpiComprasUSD">—</div>
+      <div class="sub" id="kpiComprasCOP">—</div>
+    </div>
+    <div class="card">
+      <div class="k">Presupuesto Real Acumulado = Overheads + Compras</div>
+      <div class="v" id="kpiRealUSD">—</div>
+      <div class="sub" id="kpiRealCOP">—</div>
+    </div>
+    <div class="card" style="grid-column: span 2">
+      <div class="k">Uso del presupuesto estimado (BT)</div>
+      <div class="progress" style="margin-top:6px"><div id="progBT" style="width:0%"></div></div>
+      <div class="sub" id="progBTText" style="margin-top:6px">—</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
   <div class="tabs">
-    <div class="tab active" data-tab="config">⚙️ Config</div>
-    <div class="tab" data-tab="catalog">📚 Catálogo</div>
+    <div class="tab active" data-tab="config">⚙️ Configuración</div>
+    <div class="tab" data-tab="catalog">📚 Catálogo referencia</div>
     <div class="tab" data-tab="overheads">💼 Overheads</div>
     <div class="tab" data-tab="reportes">📊 Reportes</div>
-    <div class="tab" data-tab="diag">🩺 Self-check</div>
   </div>
 
-  <!-- CONFIG -->
+  <!-- Panel Config -->
   <div id="panel-config" class="card">
-    <div class="grid g2">
-      <div><label class="k">BT (USD)</label><input id="inpBT" class="input" type="number" step="0.01"></div>
-      <div><label class="k">Margen objetivo (GB%)</label><input id="inpGB" class="input" type="number" step="1"></div>
-      <div><label class="k">TRM por defecto (UI)</label><input id="inpTRM" class="input" type="number" step="1"><div class="k">Solo UI. Cada registro guarda su TRM.</div></div>
-      <div style="display:flex;align-items:end"><button id="btnSaveCfg" class="btn success">💾 Guardar configuración</button></div>
+    <div class="row">
+      <div>
+        <label>Presupuesto total (BT) USD</label>
+        <input id="inpBT" class="input" type="number" step="0.01" value="7000">
+      </div>
+      <div>
+        <label>Margen objetivo GB% (sobre venta)</label>
+        <input id="inpGB" class="input" type="number" step="1" value="30">
+        <div class="hint">Al cambiar, se recalculan KPIs, semáforo, inventario estimado y reportes</div>
+      </div>
+      <div>
+        <label>TRM (COP/USD) – día de hoy (UI)</label>
+        <input id="inpTRM" class="input" type="number" step="1" placeholder="Ej: 4200">
+      </div>
+      <div>
+        <label>Notas</label>
+        <input id="inpNotes" class="input" placeholder="Opcional">
+      </div>
     </div>
   </div>
 
-  <!-- CATALOGO -->
+  <!-- Panel Catálogo -->
   <div id="panel-catalog" class="card" style="display:none">
-    <div class="k">Alta manual</div>
-    <div class="grid g4" style="margin-top:6px">
-      <input id="cName" class="input" placeholder="Nombre / modelo">
-      <input id="cBrand" class="input" placeholder="Marca (opcional)">
-      <input id="cCat" class="input" placeholder="Categoría (opcional)">
-      <div class="row" style="gap:6px">
-        <input id="cRef" class="input" type="number" step="100" placeholder="VR COP">
-        <button id="btnCatAdd" class="btn success">＋ Agregar</button>
+    <div class="k">Base de referencia (VR) en COP. Se usa para comparar en el semáforo.</div>
+    <div class="row">
+      <div>
+        <label>Descripción / SKU</label>
+        <input id="catName" class="input" placeholder="Ej: Nike Air Max 90">
+      </div>
+      <div>
+        <label>Marca / Categoría (opcional)</label>
+        <input id="catMeta" class="input" placeholder="Nike / Calzado">
+      </div>
+      <div>
+        <label>Precio referencia (COP)</label>
+        <input id="catCOP" class="input" type="number" step="100">
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:8px">
+        <button id="catAdd" class="btn success">＋ Agregar</button>
+        <button id="catSync" class="btn">⟳ Refrescar</button>
       </div>
     </div>
+
     <hr style="border:0;border-top:1px solid #1f2937;margin:12px 0">
-    <div class="k">Carga masiva (XLSX/CSV): vista previa → importar</div>
-    <div class="row" style="margin-top:6px">
-      <input type="file" id="fileCat" accept=".xlsx,.xls,.csv"/>
-      <button id="btnPrev" class="btn">Vista previa</button>
-      <button id="btnImp" class="btn primary" disabled>Importar</button>
-      <span class="k">Mínimo: <span class="badge">name</span> <span class="badge">ref_cop</span></span>
+
+    <div class="k">Carga masiva (XLSX/CSV). Mínimo: <b>name</b>, <b>ref_cop</b>. Opcionales: <b>brand</b>, <b>cat</b>.</div>
+    <div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <input type="file" id="catFile" accept=".xlsx,.xls,.csv"/>
+      <button id="catPrevBtn" class="btn">Vista previa</button>
+      <button id="catImpBtn" class="btn primary" disabled>Importar (lotes)</button>
     </div>
-    <div style="max-height:220px;overflow:auto;margin-top:6px">
-      <table><thead><tr><th>#</th><th>Nombre</th><th>Marca</th><th>Cat</th><th class="right">VR COP</th><th>Ok</th></tr></thead><tbody id="catPrev"></tbody></table>
-    </div>
-    <div style="max-height:340px;overflow:auto;margin-top:10px">
+    <div style="margin-top:8px;max-height:240px;overflow:auto">
       <table>
-        <thead><tr><th>Fecha</th><th>Nombre</th><th>Marca/Cat</th><th class="right">VR COP</th><th>Fuente</th><th>Acciones</th></tr></thead>
-        <tbody id="catBody"></tbody>
+        <thead><tr><th>#</th><th>name</th><th>brand</th><th>cat</th><th class="right">ref_cop</th><th>OK</th></tr></thead>
+        <tbody id="catPrevBody"></tbody>
+      </table>
+    </div>
+
+    <div style="margin-top:10px;max-height:300px;overflow:auto">
+      <table>
+        <thead><tr><th>Fecha</th><th>Descripción</th><th>Marca/Cat</th><th class="right">COP</th><th>Fuente</th><th>Acciones</th></tr></thead>
+        <tbody id="catTbody"></tbody>
       </table>
     </div>
   </div>
 
-  <!-- OVERHEADS -->
+  <!-- Panel Overheads -->
   <div id="panel-overheads" class="card" style="display:none">
-    <div class="k">TRM fijada por fecha; se guardan USD/COP determinísticos.</div>
-    <div class="grid g4" style="margin-top:6px">
-      <input id="ohDesc" class="input" placeholder="Descripción (tiquetes, hotel, envío…)">
-      <input id="ohCat" class="input" placeholder="Categoría">
-      <div class="row" style="gap:6px;flex:1">
-        <select id="ohCur" class="input" style="flex:0 0 110px"><option>USD</option><option>COP</option></select>
-        <input id="ohAmt" class="input" type="number" step="0.01" placeholder="Monto">
+    <div class="k">TRM fijada por fecha; se guardan USD/COP determinísticos. Compatible con esquema legado.</div>
+    <div class="row">
+      <div>
+        <label>Descripción</label>
+        <input id="ohDesc" class="input" placeholder="Tiquetes / Hospedaje / Envío...">
       </div>
-      <div class="row" style="gap:6px;flex:1">
-        <input id="ohDate" class="input" type="date" style="flex:1">
-        <input id="ohTRM" class="input" type="number" step="1" placeholder="TRM manual (opcional)" style="flex:1">
+      <div>
+        <label>Categoría</label>
+        <input id="ohCat" class="input" placeholder="Transporte / Envío / ...">
       </div>
-      <div style="grid-column:1/-1;display:flex;gap:8px">
-        <button id="btnOhAdd" class="btn success">＋ Agregar</button>
-        <button id="btnOhDelSel" class="btn warn">Eliminar seleccionados</button>
+      <div>
+        <label>Moneda y monto</label>
+        <div style="display:flex;gap:6px">
+          <select id="ohCur" class="input" style="max-width:110px"><option>USD</option><option>COP</option></select>
+          <input id="ohUsd" class="input" type="number" step="0.01" placeholder="Monto">
+        </div>
+      </div>
+      <div>
+        <label>Fecha y TRM manual (opcional)</label>
+        <div style="display:flex;gap:6px">
+          <input id="ohDate" class="input" type="date">
+          <input id="ohTRM" class="input" type="number" step="1" placeholder="TRM manual">
+        </div>
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:8px">
+        <button id="ohAdd" class="btn success">＋ Agregar costo</button>
+        <button id="ohDelSel" class="btn warn">Eliminar seleccionados</button>
       </div>
     </div>
-    <div style="max-height:340px;overflow:auto;margin-top:10px">
+
+    <div style="margin-top:8px;max-height:320px;overflow:auto">
       <table>
-        <thead>
-          <tr>
-            <th></th><th>Fecha</th><th>Desc</th><th>Cat</th><th>Moneda</th>
-            <th class="right">Vista</th><th class="right">TRM usada</th>
-            <th class="right">USD fijo</th><th class="right">COP fijo</th><th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="ohBody"></tbody>
+        <thead><tr>
+          <th></th><th>Fecha</th><th>Descripción</th><th>Cat</th><th>Moneda</th>
+          <th class="right">Vista</th><th class="right">TRM usada</th>
+          <th class="right">USD fijo</th><th class="right">COP fijo</th>
+          <th>Acciones</th>
+        </tr></thead>
+        <tbody id="ohTbody"></tbody>
       </table>
     </div>
   </div>
 
-  <!-- REPORTES -->
+  <!-- Panel Reportes -->
   <div id="panel-reportes" class="card" style="display:none">
-    <div class="grid g2">
+    <div class="grid" style="grid-template-columns:1fr 1fr;gap:12px">
       <div class="card">
-        <div class="k">Uso de BT</div>
-        <div class="progress" style="margin-top:6px"><div id="progBT"></div></div>
-        <div class="k" id="progTxt" style="margin-top:6px">—</div>
+        <div class="k">Reporte estimado (inventario)</div>
+        <div id="repEst">—</div>
       </div>
       <div class="card">
-        <div class="k">Resumen</div>
-        <div id="repBox">—</div>
+        <div class="k">Reporte realizado (ventas)</div>
+        <div id="repReal">—</div>
       </div>
     </div>
   </div>
-
-  <!-- DIAGNÓSTICO -->
-  <div id="panel-diag" class="card" style="display:none">
-    <div class="k">Self-check (conexión y tablas). Si algo falla se muestra aquí y en el banner rojo.</div>
-    <pre id="diagBox" style="white-space:pre-wrap;background:#0b1220;border:1px solid #334155;border-radius:8px;padding:8px;margin-top:8px;max-height:300px;overflow:auto">—</pre>
-  </div>
-
 </div>
 
-<!-- LIBS -->
+<!-- LIBRERÍAS: UMD para GitHub Pages -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script>
-/* ===== Config Supabase ===== */
-const URL='https://ucrkhrehdedmubykzfzs.supabase.co';
-const KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcmtocmVoZGVkbXVieWt6ZnpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1OTc5MzgsImV4cCI6MjA3NzE3MzkzOH0.7CXUuyAPQlm_9RIKbaO9y8Kwjh9c6M7UJcu4xAIM7WA';
-const sb = window.supabase.createClient(URL, KEY);
+/* ======= CONFIG SUPABASE ======= */
+const SUPABASE_URL = "https://ucrkhrehdedmubykzfzs.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcmtocmVoZGVkbXVieWt6ZnpzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1OTc5MzgsImV4cCI6MjA3NzE3MzkzOH0.7CXUuyAPQlm_9RIKbaO9y8Kwjh9c6M7UJcu4xAIM7WA";
+const supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-/* ===== Estado ===== */
-let trips=[], activeTrip=null, settings=null, TRM_UI=4200, VIEW='USD';
-let OVERHEADS=[], CATALOG=[];
-const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
-const fmtUSD=n=>"$"+Number(n||0).toFixed(2);
-const fmtCOP=n=>"$"+Math.round(Number(n||0)).toLocaleString("es-CO");
-const fmtDate=iso=>iso? new Date(iso).toLocaleDateString('es-CO'):'—';
-const esc=s=>(s??'').toString().replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+/* ======= ESTADO ======= */
+let BT = 7000;
+let GB = 30;
+let TRM = 4200;
+let OVERHEADS = [];
+let CATALOG = [];
+let INVENTORY = [];
+let SALES = [];
+let overheadsFixedSchema = null; // se detecta en runtime
+let catalogNeedsTrip = null;     // true si la fila trae trip_id en DB
+let lastTripId = null;
 
-/* ===== Manejo de errores visible ===== */
-function showErr(msg){ const b=$('#errBox'); b.textContent=msg; b.style.display='block'; }
-window.addEventListener('error',e=>showErr('JS error: '+(e?.message||e)));
-window.addEventListener('unhandledrejection',e=>showErr('Promise error: '+(e?.reason?.message||e?.reason||e)));
+/* ======= HELPERS ======= */
+const fmtUSD = n => "$" + (Number(n||0)).toFixed(2);
+const fmtCOP = n => "$" + (Math.round(Number(n||0))).toLocaleString("es-CO");
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+function showErr(msg){ const box=$('#errBox'); box.style.display='block'; box.textContent=msg; setTimeout(()=>{box.style.display='none'}, 7000); }
 
-/* ===== Util ===== */
-function sumOverheadsUSD(){ return OVERHEADS.reduce((s,o)=>s+Number(o.amount_usd_fixed||0),0); }
-function aportePorDolar(){ const V=sumOverheadsUSD(); const BT=settings?.bt_usd||0; return BT>0? (V/BT):0; }
+/* ======= TABS ======= */
+$$('.tab').forEach(t=>{
+  t.onclick=()=>{
+    $$('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    const tab = t.dataset.tab;
+    ['config','catalog','overheads','reportes'].forEach(id=>{
+      $('#panel-'+id).style.display = (id===tab?'block':'none');
+    });
+  };
+});
+
+/* ======= KPIs ======= */
 function renderKPIs(){
-  const BT=settings?.bt_usd||0, VUSD=sumOverheadsUSD();
-  $('#kBT').textContent=fmtUSD(BT); $('#kBTcop').textContent=fmtCOP(BT*TRM_UI);
-  $('#kOv').textContent=fmtUSD(VUSD); $('#kOvCop').textContent=fmtCOP(VUSD*TRM_UI);
-  $('#kRO').textContent=aportePorDolar().toFixed(3); $('#kTRM').textContent=fmtCOP(TRM_UI)+' COP/USD';
-  const pct=Math.max(0,Math.min(100,BT? (VUSD/BT)*100:0));
-  $('#progBT').style.width=pct.toFixed(1)+'%'; $('#progTxt').textContent=`Uso de BT: ${pct.toFixed(1)}% — ${fmtUSD(VUSD)} de ${fmtUSD(BT)}`;
-  $('#repBox').innerHTML=`<div>Overheads USD: <b>${fmtUSD(VUSD)}</b></div><div>Overheads COP: <b>${fmtCOP(VUSD*TRM_UI)}</b></div><div>rO: <b>${aportePorDolar().toFixed(3)}</b></div>`;
-}
-function setView(v){ VIEW=v; $('#viewUSD').classList.toggle('primary',v==='USD'); $('#viewCOP').classList.toggle('primary',v==='COP'); renderOH(); }
+  const VUSD = OVERHEADS.reduce((s,o)=> s + Number(o._usd_fixed||0), 0);
+  const comprasUSD = INVENTORY.reduce((s,p)=> s + (Number(p.unit_usd||0)*Number(p.qty||0)), 0);
+  const realUSD = VUSD + comprasUSD;
 
-/* ===== Trips ===== */
-async function loadTrips(){
-  const {data,error}=await sb.from('trips').select('id,name,created_at').order('created_at',{ascending:false});
-  if(error){ showErr('loadTrips: '+error.message); return; }
-  trips=data||[];
-  const sel=$('#tripSel'); sel.innerHTML="";
-  trips.forEach(t=>{const o=document.createElement('option');o.value=t.id;o.textContent=`${t.name} (#${t.id})`;sel.appendChild(o);});
-  if(!activeTrip && trips.length) activeTrip=trips[0].id;
-  if(activeTrip) sel.value=activeTrip;
-}
-async function createTrip(){
-  const name=prompt('Nombre del viaje/proyecto:','Orlando Nov 7 2025'); if(!name) return;
-  const {data,error}=await sb.from('trips').insert({name}).select().single();
-  if(error){ showErr('createTrip: '+error.message); return; }
-  activeTrip=data.id;
-  await sb.from('trip_settings').insert({trip_id:activeTrip}).onConflict('trip_id').ignore();
-  await loadTrips(); await loadSettings(); await reloadAll();
-}
-async function duplicateTrip(){
-  if(!activeTrip){ alert('Selecciona un viaje'); return; }
-  const name=prompt('Nombre del nuevo viaje (duplicado):','Copia'); if(!name) return;
-  const r=await sb.from('trips').insert({name}).select().single(); if(r.error){ showErr('dupTrip: '+r.error.message); return; }
-  const newId=r.data.id;
-  await sb.from('trip_settings').insert({trip_id:newId}).onConflict('trip_id').ignore();
-  const cat=await sb.from('catalog').select('name,brand,cat,ref_cop,source').eq('trip_id',activeTrip);
-  if(!cat.error && cat.data?.length){ for(let i=0;i<cat.data.length;i+=500){ await sb.from('catalog').insert(cat.data.slice(i,i+500).map(x=>({trip_id:newId,...x}))); } }
-  const oh=await sb.from('overheads').select('description,cat,currency,amount_usd,amount_cop,trm_used,amount_usd_fixed,amount_cop_fixed').eq('trip_id',activeTrip);
-  if(!oh.error && oh.data?.length){ for(const o of oh.data){ await sb.from('overheads').insert({trip_id:newId,...o}); } }
-  activeTrip=newId; await loadTrips(); await loadSettings(); await reloadAll();
+  $('#kpiBT').textContent = fmtUSD(BT);
+  $('#kpiBTcop').textContent = fmtCOP(BT*TRM);
+  $('#kpiV').textContent = fmtUSD(VUSD);
+  $('#kpiVcop').textContent = fmtCOP(VUSD*TRM);
+  $('#kpiRO').textContent = (BT>0 ? (VUSD/BT) : 0).toFixed(3);
+  $('#kpiTRM').textContent = fmtCOP(TRM) + " COP/USD";
+
+  $('#kpiComprasUSD').textContent = fmtUSD(comprasUSD);
+  $('#kpiComprasCOP').textContent = fmtCOP(comprasUSD*TRM);
+  $('#kpiRealUSD').textContent = fmtUSD(realUSD);
+  $('#kpiRealCOP').textContent = fmtCOP(realUSD*TRM);
+
+  const pct = Math.max(0, Math.min(100, BT>0 ? (realUSD/BT)*100 : 0));
+  $('#progBT').style.width = pct.toFixed(1)+"%";
+  $('#progBTText').textContent = `Uso de BT: ${pct.toFixed(1)}% — Real: ${fmtUSD(realUSD)} de ${fmtUSD(BT)}`;
 }
 
-/* ===== Settings ===== */
-async function loadSettings(){
-  if(!activeTrip) return;
-  let r=await sb.from('trip_settings').select('*').eq('trip_id',activeTrip).maybeSingle();
-  if(r.error){ showErr('loadSettings: '+r.error.message); return; }
-  if(!r.data){ await sb.from('trip_settings').insert({trip_id:activeTrip}); r=await sb.from('trip_settings').select('*').eq('trip_id',activeTrip).single(); }
-  settings=r.data; TRM_UI=settings.default_trm||4200;
-  $('#inpBT').value=settings.bt_usd||7000; $('#inpGB').value=settings.gb_pct||30; $('#inpTRM').value=TRM_UI;
-  $('#lastUpd').textContent='Actualizado: '+new Date(settings.updated_at||Date.now()).toLocaleString('es-CO');
+/* ======= SCHEMA DETECTION ======= */
+async function detectSchemas(){
+  try{
+    const r = await supa.from('overheads').select('*').limit(1);
+    if(!r.error){
+      const row = (r.data||[])[0] || {};
+      overheadsFixedSchema = ('amount_usd_fixed' in row) || ('trm_used' in row);
+    }
+  }catch(e){}
+  try{
+    const r = await supa.from('catalog').select('*').limit(1);
+    if(!r.error){
+      const row = (r.data||[])[0] || {};
+      catalogNeedsTrip = ('trip_id' in row);
+    }
+  }catch(e){}
+  try{
+    const tr = await supa.from('trips').select('id').order('created_at',{ascending:false}).limit(1);
+    if(!tr.error && tr.data && tr.data.length){ lastTripId = tr.data[0].id; }
+  }catch(e){}
+}
+
+/* ======= OVERHEADS ======= */
+async function loadOverheads(){
+  const {data,error} = await supa.from('overheads').select('*').order('created_at',{ascending:false});
+  if(error){ showErr('loadOverheads: '+error.message); return; }
+  OVERHEADS = (data||[]).map(o=>{
+    // mapa tolerante: soporta esquema nuevo o legado
+    const usdFixed = (o.amount_usd_fixed!=null) ? Number(o.amount_usd_fixed)
+                   : (o.usd!=null) ? Number(o.usd)
+                   : (o.amount_usd!=null && o.trm_used) ? Number(o.amount_usd)
+                   : 0;
+    const copFixed = (o.amount_cop_fixed!=null) ? Number(o.amount_cop_fixed)
+                   : (o.usd!=null && TRM) ? Number(o.usd)*TRM
+                   : (o.amount_cop!=null) ? Number(o.amount_cop)
+                   : 0;
+    return {...o, _usd_fixed:usdFixed, _cop_fixed:copFixed};
+  });
+  renderOverheads();
   renderKPIs();
 }
-async function saveSettings(){
-  if(!activeTrip) return;
-  const obj={ bt_usd:Number($('#inpBT').value||0), gb_pct:Number($('#inpGB').value||0), default_trm:Number($('#inpTRM').value||0), updated_at:new Date().toISOString() };
-  const r=await sb.from('trip_settings').upsert({trip_id:activeTrip, ...obj}).select();
-  if(r.error){ showErr('saveSettings: '+r.error.message); return; }
-  await loadSettings(); await reloadAll();
-}
 
-/* ===== TRM ===== */
-async function fetchTRM(){
-  try{
-    const r=await fetch('https://open.er-api.com/v6/latest/USD'); const j=await r.json();
-    if(j?.rates?.COP){ TRM_UI=Number(j.rates.COP); $('#inpTRM').value=TRM_UI; renderKPIs(); }
-    else throw new Error('Sin rates');
-  }catch(e){ showErr('TRM: '+e.message); }
-}
-
-/* ===== Overheads ===== */
-function renderOH(){
-  const tb=$('#ohBody'); tb.innerHTML="";
+function renderOverheads(){
+  const tb = $('#ohTbody'); tb.innerHTML="";
   OVERHEADS.forEach(o=>{
-    const viewUSD = VIEW==='USD';
     const tr=document.createElement('tr');
-    tr.innerHTML=`
+    tr.innerHTML = `
       <td><input type="checkbox" class="ohchk" value="${o.id}"></td>
-      <td>${fmtDate(o.created_at)}</td>
-      <td>${esc(o.description||'')}</td>
-      <td>${esc(o.cat||'')}</td>
-      <td>${o.currency||'—'}</td>
-      <td class="right">${viewUSD? fmtUSD(o.amount_usd_fixed) : fmtCOP(o.amount_cop_fixed)}</td>
-      <td class="right">${fmtCOP(o.trm_used)} COP</td>
-      <td class="right">${fmtUSD(o.amount_usd_fixed)}</td>
-      <td class="right">${fmtCOP(o.amount_cop_fixed)}</td>
-      <td><button class="btn warn" data-del="${o.id}">🗑</button></td>`;
+      <td>${new Date(o.created_at).toLocaleString('es-CO')}</td>
+      <td>${o.description||''}</td>
+      <td>${o.cat||''}</td>
+      <td>${o.currency|| (overheadsFixedSchema?'—':'USD')}</td>
+      <td class="right">${fmtUSD(o._usd_fixed)}</td>
+      <td class="right">${fmtCOP(o.trm_used || TRM)}</td>
+      <td class="right">${fmtUSD(o._usd_fixed)}</td>
+      <td class="right">${fmtCOP(o._cop_fixed)}</td>
+      <td class="center"><button class="btn" data-del="${o.id}">🗑</button></td>
+    `;
     tb.appendChild(tr);
   });
-  tb.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{
-    const r=await sb.from('overheads').delete().eq('id',b.dataset.del);
-    if(r.error){ showErr('del OH: '+r.error.message); return; }
-    await loadOH(); renderKPIs();
+  // delete 1
+  tb.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.onclick = async ()=>{
+      const r = await supa.from('overheads').delete().eq('id', btn.dataset.del);
+      if(r.error){ showErr('Eliminar overhead: '+r.error.message); return; }
+      await loadOverheads();
+    };
   });
 }
-async function loadOH(){
-  if(!activeTrip) return;
-  const r=await sb.from('overheads').select('*').eq('trip_id',activeTrip).order('created_at',{ascending:false});
-  if(r.error){ showErr('loadOH: '+r.error.message); return; }
-  OVERHEADS=r.data||[]; renderOH(); renderKPIs();
-}
-async function ensureTRM(dateISO, manualTRM){
-  const d=dateISO; if(!d) return TRM_UI;
-  if(manualTRM){ await sb.from('trm_daily').upsert({d, trm:manualTRM}); return manualTRM; }
-  const row=(await sb.from('trm_daily').select('*').eq('d',d).maybeSingle()).data;
-  if(row) return Number(row.trm);
-  await sb.from('trm_daily').insert({d, trm:TRM_UI});
-  return TRM_UI;
-}
-async function addOH(){
-  if(!activeTrip) return;
-  const desc=$('#ohDesc').value.trim(), cat=$('#ohCat').value.trim(), cur=$('#ohCur').value, amt=Number($('#ohAmt').value||0);
-  const dStr=$('#ohDate').value? $('#ohDate').value : (new Date()).toISOString().slice(0,10);
-  const trmMan=$('#ohTRM').value? Number($('#ohTRM').value):null;
+
+// insertar compatible
+async function addOverhead(){
+  const desc = $('#ohDesc').value.trim();
+  const cat = $('#ohCat').value.trim();
+  const cur = $('#ohCur').value;
+  const amt = Number($('#ohUsd').value||0);
+  const dateStr = $('#ohDate').value ? $('#ohDate').value : (new Date()).toISOString().slice(0,10);
+  const trmManual = Number($('#ohTRM').value||0) || null;
   if(!desc || !(amt>0)){ alert('Ingresa descripción y monto'); return; }
-  const trm = await ensureTRM(dStr, trmMan);
-  let amount_usd=null, amount_cop=null, usd_fixed=null, cop_fixed=null;
-  if(cur==='USD'){ amount_usd=amt; usd_fixed=amt; cop_fixed=amt*trm; }
-  else { amount_cop=amt; usd_fixed=amt/(trm||1); cop_fixed=amt; }
-  const r=await sb.from('overheads').insert({
-    trip_id:activeTrip, description:desc, cat:cat||null, currency:cur,
-    amount_usd, amount_cop, trm_used:trm, amount_usd_fixed:usd_fixed, amount_cop_fixed:cop_fixed
-  });
-  if(r.error){ showErr('addOH: '+r.error.message); return; }
-  $('#ohDesc').value=''; $('#ohCat').value=''; $('#ohAmt').value=''; $('#ohTRM').value='';
-  await loadOH(); renderKPIs();
+
+  // Asegura TRM del día en tabla trm_daily si existe la columna en backend (si no, solo UI)
+  let trmToUse = trmManual || TRM;
+  try{
+    const existing = await supa.from('trm_daily').select('*').eq('d', dateStr).maybeSingle();
+    if(existing?.data?.trm) trmToUse = Number(existing.data.trm);
+    else if(!trmManual){
+      // inserta registro trm_daily con TRM UI (no es obligatorio si no existe tabla)
+      await supa.from('trm_daily').insert({d:dateStr,trm:TRM}).catch(()=>{});
+      trmToUse = TRM;
+    }
+  }catch(e){}
+
+  // intenta esquema nuevo
+  let ins = {
+    description:desc, cat:cat||null, currency:cur,
+    trm_used: trmToUse
+  };
+  if(cur==='USD'){
+    ins.amount_usd = amt;
+    ins.amount_usd_fixed = amt;
+    ins.amount_cop_fixed = Math.round(amt*trmToUse);
+  }else{
+    ins.amount_cop = amt;
+    ins.amount_cop_fixed = Math.round(amt);
+    ins.amount_usd_fixed = amt/(trmToUse||1);
+  }
+  try{
+    const r = await supa.from('overheads').insert(ins);
+    if(r.error) throw r.error;
+  }catch(e){
+    // fallback a esquema legado { usd }
+    try{
+      const r2 = await supa.from('overheads').insert({description:desc,cat,usd:(cur==='USD'?amt:amt/TRM)});
+      if(r2.error) throw r2.error;
+    }catch(e2){
+      showErr('addOverhead: '+(e2.message||e2)); return;
+    }
+  }
+  // limpiar UI
+  $('#ohDesc').value=''; $('#ohCat').value=''; $('#ohUsd').value=''; $('#ohTRM').value=''; $('#ohDate').value='';
+  await loadOverheads();
 }
-async function delSelectedOH(){
-  const ids=$$('.ohchk:checked').map(x=>x.value);
+
+// delete por lote
+async function deleteSelectedOverheads(){
+  const ids = $$('.ohchk:checked').map(x=>x.value);
   if(!ids.length){ alert('Marca al menos un gasto'); return; }
   if(!confirm(`Eliminar ${ids.length} gastos?`)) return;
-  const r=await sb.from('overheads').delete().in('id',ids);
-  if(r.error){ showErr('delSelectedOH: '+r.error.message); return; }
-  await loadOH(); renderKPIs();
+  const r = await supa.from('overheads').delete().in('id', ids);
+  if(r.error){ showErr('Eliminar seleccionados: '+r.error.message); return; }
+  await loadOverheads();
 }
 
-/* ===== Catalog ===== */
+/* ======= CATÁLOGO ======= */
 async function loadCatalog(){
-  if(!activeTrip) return;
-  const r=await sb.from('catalog').select('*').eq('trip_id',activeTrip).order('created_at',{ascending:false});
-  if(r.error){ showErr('loadCatalog: '+r.error.message); return; }
-  CATALOG=r.data||[]; renderCatalog();
+  const select = catalogNeedsTrip ? 'id,created_at,name,brand,cat,ref_cop,source,trip_id' : '*';
+  const {data,error} = await supa.from('catalog').select(select).order('created_at',{ascending:false});
+  if(error){ showErr('loadCatalog: '+error.message); return; }
+  CATALOG = data||[];
+  renderCatalog();
 }
 function renderCatalog(){
-  const tb=$('#catBody'); tb.innerHTML="";
+  const tb = $('#catTbody'); tb.innerHTML="";
   CATALOG.forEach(c=>{
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${fmtDate(c.created_at)}</td>
-      <td>${esc(c.name)}</td><td>${esc(c.brand||'')}${c.cat?(' / '+esc(c.cat)) : ''}</td>
-      <td class="right">${fmtCOP(c.ref_cop||0)}</td><td>${esc(c.source||'manual')}</td>
-      <td><button class="btn warn" data-del="${c.id}">🗑</button></td>`;
+    tr.innerHTML=`
+      <td>${new Date(c.created_at).toLocaleString('es-CO')}</td>
+      <td>${c.name||''}</td>
+      <td>${(c.brand||'')}${c.cat?(' / '+c.cat):''}</td>
+      <td class="right">${fmtCOP(c.ref_cop||0)}</td>
+      <td>${c.source||'manual'}</td>
+      <td class="center"><button class="btn" data-del="${c.id}">🗑</button></td>
+    `;
     tb.appendChild(tr);
   });
-  tb.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{
-    const r=await sb.from('catalog').delete().eq('id',b.dataset.del);
-    if(r.error){ showErr('del catalog: '+r.error.message); return; }
-    await loadCatalog();
+  tb.querySelectorAll('[data-del]').forEach(btn=>{
+    btn.onclick=async ()=>{
+      await supa.from('catalog').delete().eq('id', btn.dataset.del);
+      await loadCatalog();
+    };
   });
 }
-async function addCatalogManual(){
-  const name=$('#cName').value.trim(), brand=($('#cBrand').value||'').trim()||null, cat=($('#cCat').value||'').trim()||null, ref=Number($('#cRef').value||0);
-  if(!name||!(ref>0)){ alert('Nombre y VR COP'); return; }
-  const r=await sb.from('catalog').insert({trip_id:activeTrip,name,brand,cat,ref_cop:ref,source:'manual'});
-  if(r.error){ showErr('add catalog: '+r.error.message); return; }
-  $('#cName').value=''; $('#cBrand').value=''; $('#cCat').value=''; $('#cRef').value='';
+$('#catAdd').onclick=async ()=>{
+  const name=$('#catName').value.trim();
+  const meta=$('#catMeta').value.trim();
+  const cop=Number($('#catCOP').value||0);
+  if(!name||!cop){ alert('Ingresa descripción y COP'); return; }
+  let brand=null, cat=null;
+  if(meta){ const p=meta.split('/').map(s=>s.trim()); brand=p[0]||null; cat=p[1]||null; }
+  const row = {name,brand,cat,ref_cop:Math.round(cop),source:'manual'};
+  const payload = (catalogNeedsTrip && lastTripId)? {...row, trip_id:lastTripId } : row;
+  const r = await supa.from('catalog').insert(payload);
+  if(r.error){ showErr('catAdd: '+r.error.message); return; }
+  $('#catName').value=''; $('#catMeta').value=''; $('#catCOP').value='';
   await loadCatalog();
-}
+};
+$('#catSync').onclick = loadCatalog;
 
-/* ===== Import XLSX ===== */
-let previewRows=[];
-function mapRow(o){
-  const name=(o.name??o.Nombre??o.nombre??'').toString().trim();
-  const brand=(o.brand??o.Marca??o.marca??'').toString().trim()||null;
-  const cat  =(o.cat??o.Categoria??o.categoria??'').toString().trim()||null;
-  const refRaw=(o.ref_cop??o.VR??o['VR COP']??o.ref??o.precio??'').toString();
-  const ref=Number(refRaw.replace(/[^\d.,]/g,'').replace(',','.'));
-  return {ok: !!(name&&ref>0), row:{trip_id:activeTrip,name,brand,cat,ref_cop:ref,source:'manual'}};
+/* ======= IMPORTAR CATÁLOGO XLSX ======= */
+let CAT_PREVIEW = [];
+function normRef(v){
+  if(v==null) return NaN;
+  const s = String(v).replace(/[^\d,.,,]/g,'').trim();
+  if(!s) return NaN;
+  // 1.234.567,89  /  1234567.89
+  const comma=(s.match(/,/g)||[]).length, dot=(s.match(/\./g)||[]).length;
+  let t=s;
+  if(comma && dot){ t=s.replace(/\./g,'').replace(',', '.'); }
+  return Number(t);
 }
-function renderPreview(){
-  const tb=$('#catPrev'); tb.innerHTML="";
-  previewRows.forEach((r,i)=>{
-    const bad=r.ok?'':' style="color:#fca5a5"';
+function mapRow(o){
+  const name =(o.name??o.Nombre??o.NOMBRE??'').toString().trim();
+  const brand=(o.brand??o.Marca??'').toString().trim()||null;
+  const cat  =(o.cat??o.Categoria??'').toString().trim()||null;
+  const ref  = normRef(o.ref_cop??o['VR COP']??o.VR??o.ref??o.precio);
+  return { ok: !!(name && ref>0), row:{ name, brand, cat, ref_cop: Math.round(ref), source:'manual' } };
+}
+function renderCatPreview(){
+  const tb = $('#catPrevBody'); tb.innerHTML='';
+  CAT_PREVIEW.forEach((r,i)=>{
+    const bad = r.ok?'':' style="color:#fca5a5"';
     const tr=document.createElement('tr');
-    tr.innerHTML=`<td${bad}>${i+1}</td><td${bad}>${esc(r.row.name)}</td><td${bad}>${esc(r.row.brand||'')}</td><td${bad}>${esc(r.row.cat||'')}</td><td class="right"${bad}>${r.row.ref_cop?fmtCOP(r.row.ref_cop):'—'}</td><td${bad}>${r.ok?'✓':'Err'}</td>`;
+    tr.innerHTML = `<td${bad}>${i+1}</td><td${bad}>${r.row.name}</td><td${bad}>${r.row.brand||''}</td><td${bad}>${r.row.cat||''}</td><td class="right"${bad}>${fmtCOP(r.row.ref_cop||0)}</td><td${bad}>${r.ok?'✓':'Err'}</td>`;
     tb.appendChild(tr);
   });
-  $('#btnImp').disabled = previewRows.filter(x=>x.ok).length===0;
+  $('#catImpBtn').disabled = CAT_PREVIEW.filter(x=>x.ok).length===0;
 }
-async function previewFile(){
-  const f=$('#fileCat').files[0]; if(!f){ alert('Selecciona archivo'); return; }
+$('#catPrevBtn').onclick = ()=>{
+  const f = $('#catFile').files[0];
+  if(!f){ alert('Selecciona archivo XLSX/CSV'); return; }
   const reader=new FileReader();
-  reader.onload=e=>{
+  reader.onload = e=>{
     try{
-      const data=new Uint8Array(e.target.result); const wb=XLSX.read(data,{type:'array'}); const ws=wb.Sheets[wb.SheetNames[0]];
-      const rows=XLSX.utils.sheet_to_json(ws,{defval:'',raw:true});
-      previewRows=rows.map(mapRow); renderPreview();
-    }catch(err){ showErr('preview XLSX: '+err.message); }
+      const wb = XLSX.read(new Uint8Array(e.target.result), {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws,{defval:'',raw:true});
+      CAT_PREVIEW = rows.map(mapRow);
+      renderCatPreview();
+    }catch(err){ showErr('Vista previa: '+err.message); }
   };
   reader.readAsArrayBuffer(f);
-}
-async function importPreview(){
-  const rows=previewRows.filter(x=>x.ok).map(x=>x.row);
-  if(!rows.length){ alert('Nada para importar'); return; }
+};
+$('#catImpBtn').onclick = async ()=>{
+  const ok = CAT_PREVIEW.filter(x=>x.ok).map(x=>x.row);
+  if(!ok.length){ alert('Nada para importar'); return; }
+  // aplica trip_id si es requerido
+  const payload = (catalogNeedsTrip && lastTripId) ? ok.map(r=>({...r,trip_id:lastTripId})) : ok;
   try{
-    for(let i=0;i<rows.length;i+=500){ const chunk=rows.slice(i,i+500); const r=await sb.from('catalog').insert(chunk); if(r.error) throw r.error; }
-    alert('Importado'); $('#catPrev').innerHTML=''; $('#btnImp').disabled=true; $('#fileCat').value='';
+    for(let i=0;i<payload.length;i+=500){
+      const chunk = payload.slice(i,i+500);
+      const ins = await supa.from('catalog').insert(chunk);
+      if(ins.error) throw ins.error;
+    }
+    alert('Catálogo importado');
+    $('#catPrevBody').innerHTML=''; $('#catImpBtn').disabled=true; $('#catFile').value='';
     await loadCatalog();
-  }catch(e){ showErr('import XLSX: '+(e.message||e)); }
+  }catch(e){ showErr('Importar catálogo: '+(e.message||e)); }
+};
+
+/* ======= TRM ======= */
+async function fetchTRM(){
+  try{
+    const r = await fetch('https://open.er-api.com/v6/latest/USD');
+    const j = await r.json();
+    if(j && j.rates && j.rates.COP){
+      TRM = Number(j.rates.COP);
+      $('#inpTRM').value = TRM;
+      renderKPIs();
+      alert('TRM actualizada');
+    }else throw new Error('Sin rates');
+  }catch(e){ showErr('TRM: '+e.message); }
 }
+$('#btnFetchTRM').onclick=fetchTRM;
+$('#btnManualTRM').onclick=()=>{
+  const v=prompt('TRM (COP/USD):', String(TRM));
+  if(v){ TRM=Number(v); $('#inpTRM').value=TRM; renderKPIs(); }
+};
+$('#inpTRM').onchange=()=>{ const v=Number($('#inpTRM').value||0); if(v>0){ TRM=v; renderKPIs(); } };
 
-/* ===== Sync, Tabs y Diag ===== */
-async function reloadAll(){ await Promise.all([loadOH(), loadCatalog()]).catch(e=>showErr('reloadAll: '+e.message)); renderKPIs(); }
-function switchTab(id){ $$('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===id)); ['config','catalog','overheads','reportes','diag'].forEach(p=>$('#panel-'+p).style.display = (p===id?'block':'none')); }
-async function runDiag(){
-  const out=[];
-  async function log(title, fn){
-    try{ const r=await fn(); out.push(`✔ ${title}: OK (${(r.data||[]).length} filas)`); }
-    catch(e){ out.push(`✖ ${title}: ${e.message||e}`); showErr(`${title}: ${e.message||e}`); }
-  }
-  await log('trips', ()=>sb.from('trips').select('id').limit(3));
-  await log('trip_settings', ()=>sb.from('trip_settings').select('trip_id').limit(3));
-  await log('trm_daily', ()=>sb.from('trm_daily').select('d,trm').limit(3));
-  await log('overheads', ()=>sb.from('overheads').select('id').limit(3));
-  await log('catalog', ()=>sb.from('catalog').select('id').limit(3));
-  $('#diagBox').textContent=out.join('\n');
+/* ======= SYNC ======= */
+async function syncAll(){
+  await detectSchemas();
+  await Promise.all([loadOverheads(), loadCatalog()]).catch(e=>showErr('sync: '+e.message));
+  renderKPIs();
 }
+$('#btnSync').onclick = syncAll;
 
-/* ===== Eventos ===== */
-$('#tripSel').onchange=async()=>{ activeTrip=Number($('#tripSel').value); await loadSettings(); await reloadAll(); };
-$('#btnNewTrip').onclick=createTrip;
-$('#btnDupTrip').onclick=duplicateTrip;
-$('#viewUSD').onclick=()=>setView('USD'); $('#viewCOP').onclick=()=>setView('COP');
-$('#btnSync').onclick=reloadAll;
-$('#btnTRM').onclick=fetchTRM;
-$('#btnHard').onclick=()=>{ const u=new URL(location.href); u.searchParams.set('v',Date.now()); location.href=u.toString(); };
-$('#btnSaveCfg').onclick=saveSettings;
-$('#btnOhAdd').onclick=addOH; $('#btnOhDelSel').onclick=delSelectedOH;
-$('#btnCatAdd').onclick=addCatalogManual; $('#btnPrev').onclick=previewFile; $('#btnImp').onclick=importPreview;
-$$('.tab').forEach(t=> t.onclick=()=>{ switchTab(t.dataset.tab); if(t.dataset.tab==='diag') runDiag(); });
+/* ======= CONFIG LISTENERS ======= */
+$('#inpBT').onchange=()=>{ BT = Number($('#inpBT').value||7000); renderKPIs(); };
+$('#inpGB').onchange=()=>{ GB = Number($('#inpGB').value||30); renderKPIs(); };
 
-/* ===== Init ===== */
+/* ======= OVERHEADS eventos ======= */
+$('#ohAdd').onclick = addOverhead;
+$('#ohDelSel').onclick = deleteSelectedOverheads;
+
+/* ======= HARD RELOAD ======= */
+$('#btnHardReload').onclick = ()=>{
+  const u = new URL(location.href);
+  u.searchParams.set('v', Date.now());
+  location.href = u.toString();
+};
+
+/* ======= INIT ======= */
 (async function init(){
-  await loadTrips();
-  if(!activeTrip && trips.length===0){ await createTrip(); return; }
-  await loadSettings();
-  await reloadAll();
-  setView('USD');
+  try{
+    $('#inpBT').value = BT;
+    $('#inpGB').value = GB;
+    $('#inpTRM').value = TRM;
+    await syncAll();
+  }catch(e){ showErr('init: '+(e.message||e)); }
 })();
 </script>
 </body>
