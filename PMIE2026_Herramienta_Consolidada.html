@@ -847,8 +847,23 @@ function _getCostosH3(comunaStr) {
 }
 
 // ── Helper: costo adecuación de un espacio ────────────────────────────────────
+// Interpolación lineal del factor según calificación (1-4):
+//   cal 1.0 → 100% · cal 2.0 → 75% · cal 3.0 → 50% · cal 4.0 → 25%
+// Para valores fraccionarios (común en BASE CONSOLIDADA: cal=2.6454) interpola.
+// cal=0 (sin dato): factor 1.0 (peor caso conservador).
+function _factorCalif(cal) {
+  const c = parseFloat(cal);
+  if (!isFinite(c) || c <= 0) return 1.0;       // sin dato → peor caso
+  if (c <= 1) return 1.00;                       // cal ≤ 1 → 100 %
+  if (c >= 4) return 0.25;                       // cal ≥ 4 → 25 %
+  // Interpolación lineal entre puntos discretos del PMIE
+  if (c <= 2) return 1.00 - 0.25 * (c - 1);      // 1→1.00, 2→0.75
+  if (c <= 3) return 0.75 - 0.25 * (c - 2);      // 2→0.75, 3→0.50
+  return 0.50 - 0.25 * (c - 3);                  // 3→0.50, 4→0.25
+}
+
 function _costAdeqH3(key, area, cal, costs, fd) {
-  const factor = (CALIF_FACTOR_H3[cal] !== undefined) ? CALIF_FACTOR_H3[cal] : 1.0;
+  const factor = _factorCalif(cal);
   const group  = SPACE_GROUPS_H3[key] || 'arquitectonico';
   const vr     = costs[group] || costs.arquitectonico || 0;
   return area * vr * factor * fd * IPC_H3 * ADEQ_SOFT_H3;
@@ -2577,7 +2592,17 @@ async function _buildExcel() {
           // P8 → reconstrucción agregada (sin desglose por espacio: cubre todo)
           if (hasBFD && window._bfDetalle[s2.dane] && ['P1','P3','P4','P7'].includes(prog)) {
             const espData = window._bfDetalle[s2.dane];
-            const CAL_FACT_TXT = {1:'100%',2:'75%',3:'50%',4:'25%'};
+            // Factor de intervención según calificación (interpolación lineal):
+            //   1.0→100%, 2.0→75%, 3.0→50%, 4.0→25% — para cal=2.6 da 59%
+            const _calFact = (c) => {
+              const x = parseFloat(c);
+              if (!isFinite(x) || x <= 0) return 1.00;
+              if (x <= 1) return 1.00;
+              if (x >= 4) return 0.25;
+              if (x <= 2) return 1.00 - 0.25 * (x - 1);
+              if (x <= 3) return 0.75 - 0.25 * (x - 2);
+              return 0.50 - 0.25 * (x - 3);
+            };
             ESP_TIPOS.forEach(tipo => {
               const esp = espData[tipo];
               if (!esp) return;
@@ -2598,8 +2623,10 @@ async function _buildExcel() {
                                 : 0;
 
               // Etiqueta de intervención según el programa
+              const calNum = parseFloat(esp.cal) || 3;
+              const factorPct = Math.round(_calFact(calNum)*100);
               const intervLbl = (prog==='P3' || prog==='P7')
-                ? `Adecuación ${tipo} (Cal ${esp.cal||3} → ${CAL_FACT_TXT[esp.cal||3]||'50%'})`
+                ? `Adecuación ${tipo} (Cal ${calNum.toFixed(2)} → ${factorPct}%)`
                 : (prog==='P4')
                 ? `Ampliación ${tipo} (m² nuevos en sitio propio)`
                 : (prog==='P1')
