@@ -1272,10 +1272,14 @@ function runTree() {
     const esEspecial = esCasoEspecial(s.sede);
 
     // Identificar riesgo estructural significativo (criterio N5)
-    // CRÍTICA y MUY ALTA: requieren intervención por riesgo (vía N5-SÍ → P2 + P3)
-    // ALTA, MEDIA, BAJA: BE se absorbe en P3 (vía N5-NO)
-    const _urg = (s.urgencia || '').toUpperCase();
-    const tieneRiesgoEst = _urg === 'CRÍTICA' || _urg === 'CRITICA' || _urg === 'MUY ALTA';
+    // 1) Urgencia texto: CRÍTICA o MUY ALTA → N5-SÍ
+    // 2) Fallback (sin urgencia texto): BE/recon ≥ 0.40 → N5-SÍ
+    // 3) ALTA / MEDIA / BAJA y BE/recon < 0.40 → N5-NO (BE absorbida en P3)
+    const _urg = (s.urgencia || '').toUpperCase().trim();
+    const _ratioBeRecon = reconUse > 0 ? (s.be || 0) / reconUse : 0;
+    const tieneRiesgoEst =
+      _urg === 'CRÍTICA' || _urg === 'CRITICA' || _urg === 'MUY ALTA' ||
+      (!_urg && _ratioBeRecon >= 0.40);
 
     let prog_final = [], nodo = '', nota = '';
 
@@ -1392,10 +1396,13 @@ function runTree() {
           prog_final = ['P6'];
           nodo = 'N4a-SÍ';
           nota = 'Q3-Q5 no principal · Cierre + Redistribución → P6';
+          // Si hay riesgo estructural alto, agregar P2 antes del cierre
+          if (tieneRiesgoEst) prog_final.unshift('P2');
         } else {
-          prog_final = ['P7'];
+          // Sede continúa operando: agregar P2 si hay riesgo estructural
+          prog_final = tieneRiesgoEst ? ['P2','P7'] : ['P7'];
           nodo = 'N4a-NO';
-          nota = 'Q3-Q5 no principal · Sin redistribución → P7';
+          nota = `Q3-Q5 no principal · Sin redistribución → P7${tieneRiesgoEst?' + P2 (riesgo estructural)':''}`;
         }
       }
       if (esEspecial) nota += ' | ⭐ CASO ESPECIAL';
@@ -4971,17 +4978,43 @@ function _parsearEstructural(file, statusEl, badgeEl) {
       const rows = XLSX.utils.sheet_to_json(xb.Sheets[hoja], {header:1, defval:''});
       const parsV = v => parseFloat(String(v||'').replace(/\$|\.|,| /g,'')) || 0;
       const estMap = {};
+      // Las categorías válidas de urgencia (texto)
+      const _URG_VALIDAS = new Set(['CRÍTICA','CRITICA','MUY ALTA','ALTA','MEDIA','BAJA']);
+      // Detectar columna de "Urgencia" robustamente: revisar las primeras 5 filas para encontrar el header
+      let _colUrg = 10;  // default por estructura típica del archivo
+      let _colBeDis = 7; // Brecha Sismo Diseño COP
+      let _colBeLim = 6; // Brecha Seg. Limitada COP
+      let _colVR    = 5; // VR Reemplazo COP
+      for (let _r = 0; _r < Math.min(5, rows.length); _r++) {
+        const _row = rows[_r] || [];
+        _row.forEach((c, ci) => {
+          const _t = String(c||'').toUpperCase().trim();
+          if (_t === 'URGENCIA') _colUrg = ci;
+          if (/SISMO\s*DISE/i.test(_t)) _colBeDis = ci;
+          if (/SEG\.?\s*LIMIT/i.test(_t)) _colBeLim = ci;
+          if (/VR\s*REEMPL/i.test(_t)) _colVR = ci;
+        });
+      }
       rows.slice(1).forEach(row => {
         const sede = String(row[0]||'').trim();
         if (!sede) return;
+        // Urgencia: solo aceptar valores texto válidos (CRÍTICA/MUY ALTA/ALTA/MEDIA/BAJA)
+        let _urgRaw = String(row[_colUrg]||'').trim();
+        if (!_URG_VALIDAS.has(_urgRaw.toUpperCase())) {
+          // Buscar en otras columnas vecinas por si el header detectado se desplazó
+          for (let _ci = Math.max(0,_colUrg-2); _ci < Math.min(row.length, _colUrg+3); _ci++) {
+            const _v = String(row[_ci]||'').trim();
+            if (_URG_VALIDAS.has(_v.toUpperCase())) { _urgRaw = _v; break; }
+          }
+        }
         estMap[sede] = {
-          vr:       parsV(row[4]),
-          beLim:    parsV(row[5]),
-          beDis:    parsV(row[6]),
-          ratioLim: parseFloat(row[7])||0,
-          ratioDis: parseFloat(row[8])||0,
-          urgencia: String(row[9]||row[10]||'').trim(),
-          be:       parsV(row[6]), // Sismo Diseño como BE primaria
+          vr:       parsV(row[_colVR]),
+          beLim:    parsV(row[_colBeLim]),
+          beDis:    parsV(row[_colBeDis]),
+          ratioLim: parseFloat(row[_colBeLim+2])||0,
+          ratioDis: parseFloat(row[_colBeDis+2])||0,
+          urgencia: _urgRaw,
+          be:       parsV(row[_colBeDis]), // BE primaria = Brecha Sismo Diseño
         };
       });
       window._estDetalle = estMap;
