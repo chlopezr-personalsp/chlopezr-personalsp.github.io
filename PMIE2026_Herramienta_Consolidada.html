@@ -1156,6 +1156,23 @@ function runTree() {
 
   // PASO 1: Obtener base y aplicar +14% de costos de contratación (interventoría + estudios)
   let _base = getBaseActiva();
+
+  // PASO 1a: Re-aplicar la matrícula proyectada (si está cargada en window._matBaseProyectada)
+  // Esto garantiza que el orden de carga de archivos no afecte los valores de matrícula
+  // que usan H3 (Brecha Funcional) y el árbol.
+  if (window._matBaseProyectada && window._matBaseProyectada.mapOfic) {
+    const _mp = window._matBaseProyectada.mapOfic;
+    let _reapply = 0;
+    _base.forEach(s => {
+      const k = String(s.dane || '').trim();
+      if (_mp[k] !== undefined) {
+        s.mat = Math.max(0, Math.round(_mp[k]));
+        _reapply++;
+      }
+    });
+    if (_reapply > 0) console.log(`[runTree] Matrícula proyectada re-aplicada a ${_reapply} sedes (año ${window._matBaseProyectada.añoObj})`);
+  }
+
   console.log('[runTree] _base=' + _base.length + ' sedes, override=' + !!window._sedesOverride + ', first.bf=' + (_base[0]?.bf || 0) + ', first.mat=' + (_base[0]?.mat || 0) + ', first.dane=' + (_base[0]?.dane || '?'));
 
   // PASO 1a: Agregar sedes NO OFICIALES (P1 - Construcción nueva)
@@ -4244,18 +4261,52 @@ function _parsearMatricula(file, statusEl, badgeEl) {
   reader.onload = ev => {
     try {
       const xb = XLSX.read(ev.target.result, {type:'binary'});
-      const hoja = xb.SheetNames.find(h => h.toUpperCase().includes('POR SEDE'))
-                || xb.SheetNames.find(h => h.toUpperCase().includes('MATRICULA'))
-                || xb.SheetNames[0];
+      // Detectar formato del archivo:
+      //   - "BASE HERRAMIENTA" / "BASE PLAN": formato nuevo (col 2=SECTOR, col 7=TOTAL)
+      //   - "POR SEDE": formato legacy (col 0=DANE, col 4=TOTAL)
+      const hojaNueva = xb.SheetNames.find(h => /BASE\s*(HERRAMIENTA|PLAN)/i.test(h));
+      const hojaLegacy = xb.SheetNames.find(h => /POR\s*SEDE/i.test(h))
+                      || xb.SheetNames.find(h => /MATRICULA/i.test(h));
+      const isFormatoNuevo = !!hojaNueva;
+      const hoja = hojaNueva || hojaLegacy || xb.SheetNames[0];
       const rows = XLSX.utils.sheet_to_json(xb.Sheets[hoja], {header:1, defval:''});
-      // Aggregate Total (col 4) by CODIGO (col 0)
+
+      // Detectar año desde nombre archivo
+      const yearMatch = file.name.match(/\b(20\d{2})\b/);
+      const año = yearMatch ? parseInt(yearMatch[1]) : null;
+
+      // Aggregate Total por DANE (formato nuevo: col 7 + sector col 2; legacy: col 4)
       const matMap = {};
+      const oficial = [], noOficial = [];
       rows.slice(1).forEach(row => {
         const dane = String(row[0]||'').trim().replace(/\.0$/, '');
-        const total = parseFloat(row[4]) || 0;
-        if (dane) matMap[dane] = (matMap[dane]||0) + total;
+        if (!dane) return;
+        if (isFormatoNuevo) {
+          const sector = String(row[2]||'').trim().toUpperCase();
+          const nombre = String(row[1]||'').trim();
+          const total = parseFloat(row[7]) || 0;
+          if (!total) return;
+          matMap[dane] = (matMap[dane]||0) + total;
+          const obj = { dane, nombre, total };
+          if (sector.includes('NO')) noOficial.push(obj); else oficial.push(obj);
+        } else {
+          const total = parseFloat(row[4]) || 0;
+          if (!total) return;
+          matMap[dane] = (matMap[dane]||0) + total;
+        }
       });
       window._matDetalle = matMap;
+
+      // Si es formato nuevo: poblar también _matBaseData (slot 1 si está vacío, slot 2 si slot 1 ya está)
+      if (isFormatoNuevo && (oficial.length + noOficial.length) > 0) {
+        const a = año || (window._matBaseData?.a1?.año ? 2026 : 2024);
+        const slot = (!window._matBaseData?.a1) ? 1
+                   : (window._matBaseData.a1.año === a) ? 1
+                   : 2;
+        window._matBaseData['a'+slot] = { año: a, oficial, noOficial, fileName: file.name };
+        // Disparar render del panel proyección y auto-aplicar
+        if (typeof _renderPanelMatBase === 'function') _renderPanelMatBase();
+      }
       // Apply to active base
       (getBaseActiva()||[]).forEach(s => {
         const key = String(s.dane||'').trim();
@@ -4425,8 +4476,20 @@ function _renderPanelMatBase() {
   // Guardar para uso en aplicarMatriculaBase()
   window._matBaseProyectada = { mapOfic: mapOficProyect, mapNoOfic: mapNoOficProyect, añoObj };
 
+  // ── AUTO-APLICAR la matrícula proyectada al árbol ──
+  // Antes era manual (botón "▶ Aplicar al árbol"). Ahora se aplica automáticamente
+  // al cargarse cualquiera de los archivos de matrícula, para evitar que la sede
+  // se quede con matrícula base 2024 y la BF / runTree usen valores desactualizados.
+  try {
+    if (typeof aplicarMatriculaBase === 'function') {
+      aplicarMatriculaBase({ silent: true });
+    }
+  } catch (e) {
+    console.warn('Auto-aplicar matrícula falló:', e);
+  }
+
   if (badge) {
-    badge.textContent = `Año ${d1.año}${tieneProyeccion ? '→'+d2.año : ''} · proyecta ${añoObj}`;
+    badge.textContent = `Año ${d1.año}${tieneProyeccion ? '→'+d2.año : ''} · proyecta ${añoObj} (auto-aplicado)`;
     badge.style.background = 'rgba(26,107,60,.4)';
   }
 
@@ -4473,9 +4536,13 @@ function _renderPanelMatBase() {
     </div>`;
 }
 
-function aplicarMatriculaBase() {
+function aplicarMatriculaBase(opts) {
+  opts = opts || {};
   const data = window._matBaseProyectada;
-  if (!data) { alert('Cargue al menos el archivo Año 1 primero.'); return; }
+  if (!data) {
+    if (!opts.silent) alert('Cargue al menos el archivo Año 1 primero.');
+    return;
+  }
 
   const { mapOfic, mapNoOfic, añoObj } = data;
   const base = getBaseActiva() || [];
@@ -4485,7 +4552,8 @@ function aplicarMatriculaBase() {
   base.forEach(s => {
     const key = String(s.dane || '').trim();
     if (mapOfic[key] !== undefined) {
-      s.mat = Math.max(1, Math.round(mapOfic[key]));
+      // Permitir mat=0 si la proyección lo da (sede sin matrícula → SIN_MAT)
+      s.mat = Math.max(0, Math.round(mapOfic[key]));
       actualizadas++;
     }
   });
@@ -4494,22 +4562,27 @@ function aplicarMatriculaBase() {
   window._matNoOficial = mapNoOfic;
   const totNoOfic = Object.values(mapNoOfic).reduce((a, v) => a + v, 0);
 
-  logMsg(`✅ Mat. proyectada ${añoObj} aplicada: ${actualizadas} sedes OFICIAL actualizadas · ${Math.round(totNoOfic).toLocaleString('es-CO')} est. NO OFICIAL guardados`, 'ok');
+  if (typeof logMsg === 'function') {
+    logMsg(`✅ Mat. proyectada ${añoObj} aplicada: ${actualizadas} sedes OFICIAL · ${Math.round(totNoOfic).toLocaleString('es-CO')} est. NO OFICIAL`, 'ok');
+  }
 
   const badgeEl = document.getElementById('badgeInsMatB');
   if (badgeEl) { badgeEl.textContent = `✓ Aplicado año ${añoObj}`; badgeEl.style.background = 'rgba(26,107,60,.6)'; }
 
-  runTree();
-  renderKPIs();
-  renderMain();
+  // Recalcular árbol — runTree internamente llama renderAll (KPIs + dist + flow + tabla)
+  if (typeof runTree === 'function') {
+    runTree();
+  }
 
-  // Mostrar alert con resumen
-  const stEl1 = document.getElementById('statusMatB1');
-  if (stEl1) {
-    const extra = document.createElement('div');
-    extra.style.cssText = 'margin-top:6px;padding:6px 10px;background:#e3f2fd;border-radius:5px;font-size:10px';
-    extra.innerHTML = `✅ Aplicado → Árbol recalculado · ${actualizadas} sedes OFICIAL · NO OFICIAL (${Math.round(totNoOfic).toLocaleString('es-CO')} est.) en <code>window._matNoOficial</code>`;
-    stEl1.appendChild(extra);
+  // Mensaje informativo (solo en modo manual; auto-aplicado no agrega el bloque DOM)
+  if (!opts.silent) {
+    const stEl1 = document.getElementById('statusMatB1');
+    if (stEl1) {
+      const extra = document.createElement('div');
+      extra.style.cssText = 'margin-top:6px;padding:6px 10px;background:#e3f2fd;border-radius:5px;font-size:10px';
+      extra.innerHTML = `✅ Aplicado → Árbol recalculado · ${actualizadas} sedes OFICIAL · NO OFICIAL (${Math.round(totNoOfic).toLocaleString('es-CO')} est.)`;
+      stEl1.appendChild(extra);
+    }
   }
 }
 
