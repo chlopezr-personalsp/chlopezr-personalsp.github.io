@@ -1055,37 +1055,61 @@ function _calcularCoberturaNOOficial() {
 
   const año_obj = parseInt(document.getElementById('paramAnoProyeccion')?.value) || 2039;
 
-  // Mapear matrícula NO OFICIAL proyectada por DANE
+  // Mapear matrícula NO OFICIAL proyectada por DANE y conservar la comuna del archivo
+  // Si el archivo trae la columna COMUNA, esa es la fuente autoritativa de localización
+  // (las sedes NO OFICIALES no están en SEDES_BASE — no se pueden buscar por DANE allí)
   let mapMatProy = {};
+  const mapComuna = {};
   if (window._matBaseData?.a1?.noOficial) {
-    window._matBaseData.a1.noOficial.forEach(s => { mapMatProy[s.dane] = s.total; });
+    window._matBaseData.a1.noOficial.forEach(s => {
+      mapMatProy[s.dane] = s.total;
+      if (s.comuna) mapComuna[s.dane] = s.comuna;
+    });
   }
 
   // Aplicar proyección lineal si hay segundo año
   if (window._matBaseData?.a2?.noOficial) {
     const mapNoOfic2 = {};
-    window._matBaseData.a2.noOficial.forEach(s => { mapNoOfic2[s.dane] = s.total; });
+    window._matBaseData.a2.noOficial.forEach(s => {
+      mapNoOfic2[s.dane] = s.total;
+      if (s.comuna && !mapComuna[s.dane]) mapComuna[s.dane] = s.comuna;
+    });
+    // Sumar danes presentes en a2 pero no en a1
+    Object.keys(mapNoOfic2).forEach(dane => {
+      if (mapMatProy[dane] === undefined) mapMatProy[dane] = mapNoOfic2[dane];
+    });
     Object.keys(mapMatProy).forEach(dane => {
       if (mapNoOfic2[dane] !== undefined) {
         const v1 = mapMatProy[dane];
         const v2 = mapNoOfic2[dane];
-        const a1 = window._matBaseData.a1.año;
+        const a1 = window._matBaseData.a1?.año || 2024;
         const a2 = window._matBaseData.a2.año;
-        const tasa = (v2 - v1) / (a2 - a1);
+        const tasa = a2 !== a1 ? (v2 - v1) / (a2 - a1) : 0;
         mapMatProy[dane] = Math.max(0, v1 + tasa * (año_obj - a1));
       }
     });
   }
 
   // Sumar matrícula y calcular costos por COMUNA
+  //   - Prioridad 1: comuna del archivo de matrícula (mapComuna)
+  //   - Prioridad 2: comuna de SEDES_BASE si la sede oficial existe (matching DANE)
+  //   - Fallback: 'SIN COMUNA' (mostrar como agregado)
   const byCom = {};
+  let _missingComuna = 0;
   Object.entries(mapMatProy).forEach(([dane, mat]) => {
     if (mat <= 0) return;
-    const sedeOfi = SEDES_BASE.find(s => String(s.dane) === String(dane));
-    const com = sedeOfi?.comuna || 'DESCONOCIDA';
+    let com = mapComuna[dane];
+    if (!com) {
+      const sedeOfi = SEDES_BASE.find(s => String(s.dane) === String(dane));
+      com = sedeOfi?.comuna;
+    }
+    if (!com) { _missingComuna++; com = 'SIN COMUNA'; }
+    // Normalizar: extraer número de comuna si viene en forma "COMUNA 11" o "11"
+    com = String(com).trim();
     if (!byCom[com]) byCom[com] = 0;
     byCom[com] += mat;
   });
+  if (_missingComuna > 0) console.warn(`[NO OFICIAL] ${_missingComuna} sedes sin comuna identificable → agrupadas en 'SIN COMUNA'`);
 
   // Calcular total y área compuesta (NTC 4595: 5.36 m²/estudiante para sede nueva)
   let totalMat = 0;
@@ -2396,8 +2420,8 @@ async function _buildExcel() {
       // ── Fila especial: Matrícula en Cobertura (NO OFICIAL) ──
       if (coberNOOfi) {
         rAlt = !rAlt;
-        const bgC = '#4CAF50'; // verde para cobertura
-        const lgC = '#E8F5E9';
+        const bgC = 'FF4CAF50'; // verde para cobertura
+        const lgC = 'FFE8F5E9';
         const rb = rAlt ? lgC : C.WHITE;
         const pct = totalPlan>0 ? (coberNOOfi.costP1/totalPlan*100).toFixed(1)+'%' : '0%';
         const row = wsR.addRow([
@@ -2616,7 +2640,7 @@ async function _buildExcel() {
           hdRow.height = 18;
           ws.mergeCells(hdRow.number,3,hdRow.number,COL_BASE.length);
           const ttCell = hdRow.getCell(3);
-          fill(ttCell, '#4CAF50'); font(ttCell, C.WHITE, 10, true);
+          fill(ttCell, 'FF4CAF50'); font(ttCell, C.WHITE, 10, true);
           align(ttCell, 'left','middle');
           // sub-header
           const subRow = ws.addRow([]);
@@ -2630,7 +2654,7 @@ async function _buildExcel() {
           subRow.getCell(14).value = 'Tipo';
           [3,6,8,9,10,11,13,14].forEach(ci => {
             const c = subRow.getCell(ci);
-            fill(c, '#A5D6A7'); font(c, C.BLACK, 9, true); align(c,'center','middle'); border(c,'#4CAF50');
+            fill(c, 'FFA5D6A7'); font(c, C.BLACK, 9, true); align(c,'center','middle'); border(c,'FF4CAF50');
           });
           subRow.height = 18;
           // data rows
@@ -2644,12 +2668,12 @@ async function _buildExcel() {
             dr.getCell(11).value = toMM(dc.costPredio);
             dr.getCell(13).value = dc.areaPredio;
             dr.getCell(14).value = 'Sede nueva (cobertura)';
-            const bg = idx%2 ? '#E8F5E9' : C.WHITE;
+            const bg = idx%2 ? 'FFE8F5E9' : C.WHITE;
             [3,6,8,9,10,11,13,14].forEach(ci => {
               const c = dr.getCell(ci);
               fill(c, bg); font(c, C.BLACK, 9, false);
               align(c, ci===3||ci===14?'left':'right', 'middle');
-              border(c, '#C8E6C9');
+              border(c, 'FFC8E6C9');
             });
             dr.getCell(6).numFmt = '#,##0';
             [8,13].forEach(ci => { dr.getCell(ci).numFmt = '#,##0.0'; });
@@ -2674,7 +2698,7 @@ async function _buildExcel() {
           trR.getCell(14).value = '5.36 m²/est. (NTC 4595)';
           [3,6,8,9,10,11,13,14].forEach(ci => {
             const c = trR.getCell(ci);
-            fill(c, '#4CAF50'); font(c, C.WHITE, 9, true); align(c, ci===3||ci===14?'left':'right','middle'); border(c, '#4CAF50');
+            fill(c, 'FF4CAF50'); font(c, C.WHITE, 9, true); align(c, ci===3||ci===14?'left':'right','middle'); border(c, 'FF4CAF50');
           });
           trR.getCell(6).numFmt = '#,##0';
           [8,13].forEach(ci => { trR.getCell(ci).numFmt = '#,##0.0'; });
@@ -4269,8 +4293,8 @@ function _parsearMatricula(file, statusEl, badgeEl) {
       const rows = XLSX.utils.sheet_to_json(xb.Sheets[hoja], {header:1, defval:''});
 
       // ── Detección dinámica de columnas por encabezado ──
-      // Busca en las primeras 5 filas las columnas: DANE, SECTOR, TOTAL, NOMBRE
-      let colDane = 0, colSector = -1, colTotal = -1, colNombre = 1;
+      // Busca en las primeras 5 filas las columnas: DANE, SECTOR, TOTAL, NOMBRE, COMUNA
+      let colDane = 0, colSector = -1, colTotal = -1, colNombre = 1, colComuna = -1;
       let headerRow = 0;
       for (let r = 0; r < Math.min(5, rows.length); r++) {
         const row = rows[r] || [];
@@ -4281,6 +4305,7 @@ function _parsearMatricula(file, statusEl, badgeEl) {
           else if (/^SECTOR$/.test(t)) { colSector = ci; found++; }
           else if (/^(TOTAL|MATRICULA\s*TOTAL|TOTAL\s*ESTUDIANTES)$/.test(t)) { colTotal = ci; found++; }
           else if (/^(NOMBRE|SEDE|INSTITUC)/.test(t)) { colNombre = ci; }
+          else if (/^(COMUNA|MUNICIPIO|LOCALIDAD|UBICACI)/.test(t)) { colComuna = ci; }
         });
         if (found >= 2) { headerRow = r; break; }
       }
@@ -4309,7 +4334,8 @@ function _parsearMatricula(file, statusEl, badgeEl) {
         if (isFormatoNuevo) {
           const sector = String(row[colSector]||'').trim().toUpperCase();
           const nombre = String(row[colNombre]||'').trim();
-          const obj = { dane, nombre, total };
+          const comuna = colComuna >= 0 ? String(row[colComuna]||'').trim() : '';
+          const obj = { dane, nombre, total, comuna };
           // SECTOR contiene "NO" / "NO OFICIAL" / "NO_OFICIAL" / "PRIVADA" / "PRIV"
           if (/(^|\b)(NO|PRIV)/.test(sector)) noOficial.push(obj);
           else oficial.push(obj);
@@ -4423,7 +4449,7 @@ function _procesarMatBase(file, slot) {
       const año = yearMatch ? parseInt(yearMatch[1]) : (slot === 1 ? 2024 : 2026);
 
       // ── Detección dinámica de columnas por encabezado ──
-      let colDane = 0, colSector = 2, colTotal = 7, colNombre = 1, headerRow = 0;
+      let colDane = 0, colSector = 2, colTotal = 7, colNombre = 1, colComuna = -1, headerRow = 0;
       for (let r = 0; r < Math.min(5, rows.length); r++) {
         const row = rows[r] || [];
         let hits = 0;
@@ -4433,6 +4459,7 @@ function _procesarMatBase(file, slot) {
           else if (/^SECTOR$/.test(t)) { colSector = ci; hits++; }
           else if (/^(TOTAL|MATRICULA\s*TOTAL|TOTAL\s*ESTUDIANTES)$/.test(t)) { colTotal = ci; hits++; }
           else if (/^(NOMBRE|SEDE|INSTITUC)/.test(t)) { colNombre = ci; }
+          else if (/^(COMUNA|MUNICIPIO|LOCALIDAD|UBICACI)/.test(t)) { colComuna = ci; }
         });
         if (hits >= 2) { headerRow = r; break; }
       }
@@ -4442,9 +4469,10 @@ function _procesarMatBase(file, slot) {
         const dane   = String(row[colDane] || '').trim().replace(/\.0$/, '');
         const nombre = String(row[colNombre] || '').trim();
         const sector = String(row[colSector] || '').trim().toUpperCase();
+        const comuna = colComuna >= 0 ? String(row[colComuna]||'').trim() : '';
         const total  = parseFloat(row[colTotal]) || 0;
         if (!dane || !total) return;
-        const obj = { dane, nombre, total };
+        const obj = { dane, nombre, total, comuna };
         // SECTOR puede ser: "NO OFICIAL" / "NO_OFICIAL" / "NO" / "PRIVADO" / "PRIVADA" / "PRIV"
         if (/(^|\b)(NO|PRIV)/.test(sector)) noOficial.push(obj);
         else oficial.push(obj);
