@@ -4261,51 +4261,79 @@ function _parsearMatricula(file, statusEl, badgeEl) {
   reader.onload = ev => {
     try {
       const xb = XLSX.read(ev.target.result, {type:'binary'});
-      // Detectar formato del archivo:
-      //   - "BASE HERRAMIENTA" / "BASE PLAN": formato nuevo (col 2=SECTOR, col 7=TOTAL)
-      //   - "POR SEDE": formato legacy (col 0=DANE, col 4=TOTAL)
-      const hojaNueva = xb.SheetNames.find(h => /BASE\s*(HERRAMIENTA|PLAN)/i.test(h));
-      const hojaLegacy = xb.SheetNames.find(h => /POR\s*SEDE/i.test(h))
-                      || xb.SheetNames.find(h => /MATRICULA/i.test(h));
-      const isFormatoNuevo = !!hojaNueva;
-      const hoja = hojaNueva || hojaLegacy || xb.SheetNames[0];
+      // Detectar hoja preferida
+      const hoja = xb.SheetNames.find(h => /BASE\s*(HERRAMIENTA|PLAN)/i.test(h))
+                || xb.SheetNames.find(h => /POR\s*SEDE/i.test(h))
+                || xb.SheetNames.find(h => /MATRICULA/i.test(h))
+                || xb.SheetNames[0];
       const rows = XLSX.utils.sheet_to_json(xb.Sheets[hoja], {header:1, defval:''});
+
+      // ── Detección dinámica de columnas por encabezado ──
+      // Busca en las primeras 5 filas las columnas: DANE, SECTOR, TOTAL, NOMBRE
+      let colDane = 0, colSector = -1, colTotal = -1, colNombre = 1;
+      let headerRow = 0;
+      for (let r = 0; r < Math.min(5, rows.length); r++) {
+        const row = rows[r] || [];
+        let found = 0;
+        row.forEach((c, ci) => {
+          const t = String(c||'').toUpperCase().trim();
+          if (/^(CODIGO\s*DANE|COD\.?\s*DANE|DANE)$/.test(t)) { colDane = ci; found++; }
+          else if (/^SECTOR$/.test(t)) { colSector = ci; found++; }
+          else if (/^(TOTAL|MATRICULA\s*TOTAL|TOTAL\s*ESTUDIANTES)$/.test(t)) { colTotal = ci; found++; }
+          else if (/^(NOMBRE|SEDE|INSTITUC)/.test(t)) { colNombre = ci; }
+        });
+        if (found >= 2) { headerRow = r; break; }
+      }
+      // Defaults si no se encontraron headers
+      if (colTotal < 0) colTotal = 7;       // formato nuevo MATRICULA BASE PLAN
+      if (colSector < 0) {
+        // fallback: probar col 4 (legacy)
+        const _t4 = String(rows[headerRow]?.[4]||'').toUpperCase();
+        if (/TOTAL|MATRICULA/.test(_t4)) colTotal = 4;
+      }
+      const isFormatoNuevo = colSector >= 0;
 
       // Detectar año desde nombre archivo
       const yearMatch = file.name.match(/\b(20\d{2})\b/);
       const año = yearMatch ? parseInt(yearMatch[1]) : null;
 
-      // Aggregate Total por DANE (formato nuevo: col 7 + sector col 2; legacy: col 4)
+      // Agregar Total por DANE
       const matMap = {};
       const oficial = [], noOficial = [];
-      rows.slice(1).forEach(row => {
-        const dane = String(row[0]||'').trim().replace(/\.0$/, '');
+      rows.slice(headerRow + 1).forEach(row => {
+        const dane = String(row[colDane]||'').trim().replace(/\.0$/, '');
         if (!dane) return;
+        const total = parseFloat(row[colTotal]) || 0;
+        if (!total) return;
+        matMap[dane] = (matMap[dane]||0) + total;
         if (isFormatoNuevo) {
-          const sector = String(row[2]||'').trim().toUpperCase();
-          const nombre = String(row[1]||'').trim();
-          const total = parseFloat(row[7]) || 0;
-          if (!total) return;
-          matMap[dane] = (matMap[dane]||0) + total;
+          const sector = String(row[colSector]||'').trim().toUpperCase();
+          const nombre = String(row[colNombre]||'').trim();
           const obj = { dane, nombre, total };
-          if (sector.includes('NO')) noOficial.push(obj); else oficial.push(obj);
-        } else {
-          const total = parseFloat(row[4]) || 0;
-          if (!total) return;
-          matMap[dane] = (matMap[dane]||0) + total;
+          // SECTOR contiene "NO" / "NO OFICIAL" / "NO_OFICIAL" / "PRIVADA" / "PRIV"
+          if (/(^|\b)(NO|PRIV)/.test(sector)) noOficial.push(obj);
+          else oficial.push(obj);
         }
       });
       window._matDetalle = matMap;
 
-      // Si es formato nuevo: poblar también _matBaseData (slot 1 si está vacío, slot 2 si slot 1 ya está)
+      // Si es formato nuevo con sector → poblar _matBaseData y disparar proyección
       if (isFormatoNuevo && (oficial.length + noOficial.length) > 0) {
         const a = año || (window._matBaseData?.a1?.año ? 2026 : 2024);
+        // Asignar al slot adecuado
         const slot = (!window._matBaseData?.a1) ? 1
                    : (window._matBaseData.a1.año === a) ? 1
                    : 2;
         window._matBaseData['a'+slot] = { año: a, oficial, noOficial, fileName: file.name };
-        // Disparar render del panel proyección y auto-aplicar
+        console.log(`[Matrícula] formato nuevo detectado · slot ${slot} año ${a} · OFICIAL=${oficial.length} · NO OFICIAL=${noOficial.length}`);
         if (typeof _renderPanelMatBase === 'function') _renderPanelMatBase();
+      } else {
+        // Diagnóstico para entender por qué no se detectó NO OFICIAL
+        const headersFirst = (rows[0]||[]).map(c=>String(c||'')).join(' | ');
+        console.warn(`[Matrícula] ⚠ No se detectó columna SECTOR — NO OFICIAL no se procesará.\n` +
+          `Hoja: "${hoja}" · ${xb.SheetNames.length} hojas: ${xb.SheetNames.join(', ')}\n` +
+          `Primera fila: ${headersFirst.substring(0,200)}\n` +
+          `Asegúrese que la hoja se llame "BASE HERRAMIENTA" o "BASE PLAN" y tenga columna SECTOR (con valores OFICIAL/NO OFICIAL).`);
       }
       // Apply to active base
       (getBaseActiva()||[]).forEach(s => {
@@ -4385,6 +4413,7 @@ function _procesarMatBase(file, slot) {
     try {
       const xb = XLSX.read(ev.target.result, { type: 'binary' });
       const hoja = xb.SheetNames.find(h => /BASE\s*HERRAMIENTA/i.test(h))
+                || xb.SheetNames.find(h => /BASE\s*PLAN/i.test(h))
                 || xb.SheetNames.find(h => /HERRAMIENTA/i.test(h))
                 || xb.SheetNames[0];
       const rows = XLSX.utils.sheet_to_json(xb.Sheets[hoja], { header: 1, defval: '' });
@@ -4393,16 +4422,32 @@ function _procesarMatBase(file, slot) {
       const yearMatch = file.name.match(/\b(20\d{2})\b/);
       const año = yearMatch ? parseInt(yearMatch[1]) : (slot === 1 ? 2024 : 2026);
 
+      // ── Detección dinámica de columnas por encabezado ──
+      let colDane = 0, colSector = 2, colTotal = 7, colNombre = 1, headerRow = 0;
+      for (let r = 0; r < Math.min(5, rows.length); r++) {
+        const row = rows[r] || [];
+        let hits = 0;
+        row.forEach((c, ci) => {
+          const t = String(c||'').toUpperCase().trim();
+          if (/^(CODIGO\s*DANE|COD\.?\s*DANE|DANE)$/.test(t)) { colDane = ci; hits++; }
+          else if (/^SECTOR$/.test(t)) { colSector = ci; hits++; }
+          else if (/^(TOTAL|MATRICULA\s*TOTAL|TOTAL\s*ESTUDIANTES)$/.test(t)) { colTotal = ci; hits++; }
+          else if (/^(NOMBRE|SEDE|INSTITUC)/.test(t)) { colNombre = ci; }
+        });
+        if (hits >= 2) { headerRow = r; break; }
+      }
+
       const oficial = [], noOficial = [];
-      rows.slice(1).forEach(row => {
-        const dane   = String(row[0] || '').trim().replace(/\.0$/, '');
-        const nombre = String(row[1] || '').trim();
-        const sector = String(row[2] || '').trim().toUpperCase();
-        const total  = parseFloat(row[7]) || 0;
+      rows.slice(headerRow + 1).forEach(row => {
+        const dane   = String(row[colDane] || '').trim().replace(/\.0$/, '');
+        const nombre = String(row[colNombre] || '').trim();
+        const sector = String(row[colSector] || '').trim().toUpperCase();
+        const total  = parseFloat(row[colTotal]) || 0;
         if (!dane || !total) return;
         const obj = { dane, nombre, total };
-        if (sector.includes('NO')) noOficial.push(obj);
-        else                       oficial.push(obj);
+        // SECTOR puede ser: "NO OFICIAL" / "NO_OFICIAL" / "NO" / "PRIVADO" / "PRIVADA" / "PRIV"
+        if (/(^|\b)(NO|PRIV)/.test(sector)) noOficial.push(obj);
+        else oficial.push(obj);
       });
 
       window._matBaseData['a' + slot] = { año, oficial, noOficial, fileName: file.name };
