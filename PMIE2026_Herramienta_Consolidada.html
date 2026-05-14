@@ -714,23 +714,42 @@ const VR_PREDIO_M2_G = 1797977;
 const P6_VALOR_G     = 1800196000000;
 
 function _getVf(s) {
+  // Costo TOTAL del Plan para esta sede = suma de costos de TODOS sus programas
+  // (cada programa con su propio valor independiente, según el árbol oficial)
   const progArr = Array.isArray(s.prog_array)
     ? s.prog_array
     : (s.prog_final || '').split(' + ').map(p => p.trim()).filter(Boolean);
-  // P2 es overlay NSR-10 — el programa funcional primario es el siguiente en el array
-  const primary = progArr.filter(p => p !== 'P2')[0] || progArr[0] || '';
   const tieneP2 = progArr.includes('P2');
+  const tieneP8 = progArr.includes('P8');
   const beAj   = Math.round((s.be || 0) * 1.14);
+  const reconV = s.recon_dyn || s.recon || 0;
+  const nd = s.nodo || '';
+  const _esN4b_NO = nd === 'N1a-SÍ-N3b-NO-N4b-NO';
+  const _esN3b_SI = nd === 'N1a-SÍ-N3b-SÍ';
+  // Estimar reposición completa cuando aplique (P1 vía N4b-NO o P4 vía N3b-SI)
+  // En estas vías la H3 no calculó esos valores, así que se proyectan acá con la BC ajustada
+  // como aproximación (refinado en _buildExcel con costos de comuna).
+  const _reconFull = reconV;
+  const _predioFull = Math.round(reconV * 0.15); // ~15% adicional aproximado por predio
 
-  if (primary === 'P1') return (s.bfAmpOtro || 0) + (s.bfPredio || 0);
-  if (primary === 'P3') return (s.bfAdec || s.bf || 0) + (tieneP2 ? 0 : beAj);
-  if (primary === 'P4') return s.bfAmpSede || 0;
-  if (primary === 'P5') return 0;           // redistribución sin costo en sede
-  if (primary === 'P6') return 0;           // cierre sin costo directo
-  if (primary === 'P7') return Math.round((s.bfAdec || s.bf || 0) * 0.5) + (tieneP2 ? 0 : beAj);
-  if (primary === 'P8') return s.recon_dyn || s.recon || 0;
-  if (primary === 'SIN_MAT') return 0;
-  return s.bf || 0;
+  let total = 0;
+  progArr.forEach(p => {
+    if (p === 'P1') {
+      total += _esN4b_NO ? (_reconFull + _predioFull) : ((s.bfAmpOtro||0) + (s.bfPredio||0));
+    } else if (p === 'P2') {
+      total += beAj;
+    } else if (p === 'P3') {
+      if (!tieneP8) total += (s.bfAdec || s.bf || 0) + (tieneP2 ? 0 : beAj);
+    } else if (p === 'P4') {
+      total += _esN3b_SI ? _reconFull : (s.bfAmpSede || 0);
+    } else if (p === 'P7') {
+      total += Math.round((s.bfAdec || s.bf || 0) * 0.5) + (tieneP2 ? 0 : beAj);
+    } else if (p === 'P8') {
+      total += reconV;
+    }
+    // P5, P6, SIN_MAT no suman
+  });
+  return total;
 }
 function _getVp5(s) {
   // P2 = Reforzamiento Estructural Prioritario → costo = BE × 14%
@@ -1068,18 +1087,19 @@ function _calcularCoberturaNOOficial() {
     byCom[com] += mat;
   });
 
-  // Calcular total y área compuesta (suma de factores NTC × matrícula)
+  // Calcular total y área compuesta (NTC 4595: 5.36 m²/estudiante para sede nueva)
   let totalMat = 0;
   let totalArea = 0;
   let totalCosto = 0;
 
-  const factorSumaTotal = (TYPOLOGIES_H3 || []).reduce((a, t) => a + (t.factor || 0), 0);
+  // NTC 4595: 5.36 m²/estudiante (incluye todos los espacios necesarios)
+  const M2_POR_ESTUDIANTE = 5.36;
 
   Object.entries(byCom).forEach(([com, mat]) => {
     totalMat += mat;
 
-    // Área = matrícula × (suma de factores NTC) = matrícula × m²/estudiante
-    const areaCompuesta = mat * factorSumaTotal;
+    // Área = matrícula × 5.36 m²/estudiante (norma NTC 4595)
+    const areaCompuesta = mat * M2_POR_ESTUDIANTE;
     totalArea += areaCompuesta;
 
     // Obtener costos de la comuna
@@ -1241,20 +1261,38 @@ function runTree() {
     let prog_final = [], nodo = '', nota = '';
 
     // ════════════════════════════════════════════════════════════════════════════════
-    // ÁRBOL DE DECISIÓN — 8 PROGRAMAS OFICIALES PMIE 2026
-    // P1 = Construcción Nueva Infraestructura  → costo: bfAmpOtro + bfPredio
-    // P2 = Reforzamiento Estructural Prioritario → costo: be (overlay NSR-10 CRÍTICA)
-    // P3 = Adecuación y Reforzamiento           → costo: bfAdec (base en casi todos)
-    // P4 = Ampliación en Sitio Propio           → costo: bfAmpSede
-    // P5 = Redistribución de Matrícula          → costo: 0
-    // P6 = Cierre de Sede y Redistribución      → costo: 0
-    // P7 = Adecuación Parcial                   → costo: bfAdec × 0.5
-    // P8 = Reconstrucción en Sitio Propio       → costo: recon (VR reposición)
+    // ÁRBOL DE DECISIÓN OFICIAL PMIE 2026 (Arbol de decisión.docx)
+    //   N1  : ¿Q1 o Q2?  SI → N1a   NO → N2
+    //   N1a : ¿BC > 70% Vr Reconstrucción?  SI → N3b   NO → N3
+    //   N2  : ¿Rural?    SI → N1a (re-entra)   NO → N2a
+    //   N2a : ¿Principal?  SI → N1a (re-entra)   NO → N4a (P6 si SI, P7 si NO)
+    //   N3  : ¿Requiere ampliación?   SI → N3a   NO → N5
+    //   N3a : ¿Capacidad ampliación?  SI → N5 + P4   NO → N5 + N4
+    //   N3b : ¿Misma área o menor?    SI → P4 + P3   NO → N4b
+    //   N4  : ¿Redistribución posible?   SI → P5   NO → P1
+    //   N4a : ¿Redistribución posible?   SI → P6   NO → P7
+    //   N4b : ¿Redistribución (alta brecha)?  SI → P5 + P8   NO → P5 + P1
+    //   N5  : ¿Intervención por Riesgo Estructural?  SI → P2 + P3   NO → P3
+    //
+    // Una sede puede caer en MÚLTIPLES programas — el costo de cada programa es
+    // independiente (no agregado).
     // ════════════════════════════════════════════════════════════════════════════════
 
     // Condiciones auxiliares
     const necesitaAmpliacion = (s.bfAmpSede || 0) > 0 || (s.bfAmpOtro || 0) > 0;
     const tieneCapacidadSitio = (s.bfAmpSede || 0) > 0 || (s.areaSede || 0) > 0;
+
+    // ── Helper N5 (Riesgo Estructural) ──
+    // Si hay BE significativa o urgencia CRÍTICA → N5-SI → P2 + P3
+    // Si no → N5-NO → P3 (BE absorbida en P3)
+    function _evalN5(progArr, path) {
+      if (tieneRiesgoEst) {
+        progArr.push('P2', 'P3');
+        return path + '-N5-SÍ';
+      }
+      progArr.push('P3');
+      return path + '-N5-NO';
+    }
 
     if (overrides[s.dane]) {
       prog_final = [overrides[s.dane].prog];
@@ -1268,13 +1306,8 @@ function runTree() {
 
     } else {
       const esRural = s.rural === true;
-      // N1: Q1/Q2 eficientes | N2: Rural | N2a: Sede Principal/Única → misma lógica N1a
       const aplicaN1a = (q <= qCorte) || esRural || esPrinc || esUnica;
-      // Rama de evaluación (para conteos no solapados en el árbol visual):
-      //   'Q12-N1a'        → Q1/Q2 entran directo a N1a
-      //   'Q345-rural-N1a' → Q3-Q5 rurales re-entran a N1a (vía N2)
-      //   'Q345-princ-N1a' → Q3-Q5 principal/única re-entran a N1a (vía N2a)
-      //   'Q345-N4a'       → Q3-Q5 urbana, no principal → evaluación directa N4a
+      // Rama de evaluación (no solapada): origen por el que la sede llega a N1a o N4a
       let rama = 'Q345-N4a';
       if (q <= qCorte) rama = 'Q12-N1a';
       else if (esRural) rama = 'Q345-rural-N1a';
@@ -1282,89 +1315,69 @@ function runTree() {
       s._rama = rama;
 
       if (aplicaN1a) {
-        // N1a: ¿BC > umbral × VR Reconstrucción?
+        // N1a: ¿BC ≥ umbral × VR Reconstrucción?
         if (ratio_bc_vr >= umbral) {
-          // N3b: ¿Puede reconstruir en sitio propio (igual o menor área)?
-          if (tieneCapacidadSitio) {
-            // P8 (reconstruir sitio) + P3 (adecuar) [+ P2 si riesgo NSR-10]
-            prog_final = [];
-            if (tieneRiesgoEst) prog_final.push('P2');
-            prog_final.push('P8', 'P3');
+          // → N3b: ¿Reconstrucción misma área o menor?
+          // Heurística: si tiene capacidad de sitio (ó no requiere más área que la actual) → SI
+          if (tieneCapacidadSitio || !necesitaAmpliacion) {
+            // N3b-SI → P4 + P3 (reconstrucción en sitio, P4 reconstruye área, P3 calidad)
+            prog_final = ['P4', 'P3'];
             nodo = 'N1a-SÍ-N3b-SÍ';
-            nota = `BC/VR=${(ratio_bc_vr*100).toFixed(0)}%≥umbral: Reconstrucción en sitio → P8+P3`;
+            nota = `BC/VR=${(ratio_bc_vr*100).toFixed(0)}% ≥ ${(umbral*100).toFixed(0)}%: Reconstrucción sitio propio → P4 + P3`;
           } else {
-            // N4b: ¿Redistribución de matrícula posible en la comuna?
+            // N3b-NO → N4b: ¿Redistribución posible para alta brecha?
             if (redisPosible) {
-              // P5 (redistribuir) + P8 (reconstruir) [+ P2 si riesgo]
-              prog_final = [];
-              if (tieneRiesgoEst) prog_final.push('P2');
-              prog_final.push('P5', 'P8');
+              prog_final = ['P5', 'P8'];
               nodo = 'N1a-SÍ-N3b-NO-N4b-SÍ';
-              nota = `BC/VR=${(ratio_bc_vr*100).toFixed(0)}%: Sin cap.sitio + redistribución → P5+P8`;
+              nota = `BC/VR=${(ratio_bc_vr*100).toFixed(0)}%, sin cap. sitio + redis → P5 + P8`;
             } else {
-              // P5 (redistribución parcial) + P1 (construir en otro predio) [+ P2 si riesgo]
-              prog_final = [];
-              if (tieneRiesgoEst) prog_final.push('P2');
-              prog_final.push('P5', 'P1');
+              prog_final = ['P5', 'P1'];
               nodo = 'N1a-SÍ-N3b-NO-N4b-NO';
-              nota = `BC/VR=${(ratio_bc_vr*100).toFixed(0)}%: Sin cap.sitio, sin redistribución → P5+P1`;
+              nota = `BC/VR=${(ratio_bc_vr*100).toFixed(0)}%, sin cap. sitio, sin redis → P5 + P1`;
             }
           }
         } else {
-          // BC dentro del umbral — evaluar ampliación
-          // N3: ¿Requiere ampliación (déficit de área)?
+          // N1a-NO → N3: ¿Requiere ampliación?
           if (necesitaAmpliacion) {
-            // N3a: ¿Tiene capacidad de ampliación en sitio propio?
+            // → N3a: ¿Capacidad de ampliación?
             if (tieneCapacidadSitio) {
-              // P3 (adecuar) + P4 (ampliar en sitio) [+ P2 si riesgo]
-              prog_final = [];
-              if (tieneRiesgoEst) prog_final.push('P2');
-              prog_final.push('P3', 'P4');
-              nodo = 'N1a-NO-N3-SÍ-N3a-SÍ';
-              nota = `BC/VR<umbral, déficit área, POT posible → P3+P4`;
+              // N3a-SI → P4 + N5
+              prog_final = ['P4'];
+              nodo = _evalN5(prog_final, 'N1a-NO-N3-SÍ-N3a-SÍ');
+              nota = `Déficit área · POT posible → P4 + (N5 ${tieneRiesgoEst?'SI: P2+P3':'NO: P3'})`;
             } else {
-              // N4: ¿Redistribución posible? (sin espacio en sitio)
+              // N3a-NO → N4 (para ampliación) + N5 (para existente)
               if (redisPosible) {
-                // P3 (adecuar) + P5 (redistribuir) [+ P2 si riesgo]
-                prog_final = [];
-                if (tieneRiesgoEst) prog_final.push('P2');
-                prog_final.push('P3', 'P5');
-                nodo = 'N1a-NO-N3-SÍ-N3a-NO-N4-SÍ';
-                nota = `Sin cap.sitio + redistribución posible → P3+P5`;
+                prog_final = ['P5'];
+                nodo = _evalN5(prog_final, 'N1a-NO-N3-SÍ-N3a-NO-N4-SÍ');
+                nota = `Sin cap. sitio + redis posible → P5 + (N5 ${tieneRiesgoEst?'SI: P2+P3':'NO: P3'})`;
               } else {
-                // P3 (adecuar) + P1 (construir en nuevo predio) [+ P2 si riesgo]
-                prog_final = [];
-                if (tieneRiesgoEst) prog_final.push('P2');
-                prog_final.push('P3', 'P1');
-                nodo = 'N1a-NO-N3-SÍ-N3a-NO-N4-NO';
-                nota = `Sin cap.sitio, sin redistribución → P3+P1`;
+                prog_final = ['P1'];
+                nodo = _evalN5(prog_final, 'N1a-NO-N3-SÍ-N3a-NO-N4-NO');
+                nota = `Sin cap. sitio, sin redis → P1 + (N5 ${tieneRiesgoEst?'SI: P2+P3':'NO: P3'})`;
               }
             }
           } else {
-            // N3 NO: no requiere ampliación → solo adecuación [+ P2 si riesgo]
+            // N3-NO → solo N5
             prog_final = [];
-            if (tieneRiesgoEst) prog_final.push('P2');
-            prog_final.push('P3');
-            nodo = 'N1a-NO-N3-NO';
-            nota = `Sin déficit de área → P3${tieneRiesgoEst?' + P2 refuerzo':''}`;
+            nodo = _evalN5(prog_final, 'N1a-NO-N3-NO');
+            nota = `Sin déficit área → (N5 ${tieneRiesgoEst?'SI: P2+P3':'NO: P3'})`;
           }
         }
-        if (esRural) nota = '[Rural] ' + nota;
-        if ((esPrinc || esUnica) && q > qCorte) nota = '[Principal/Única] ' + nota;
+        if (esRural) nota = '[Rural ↻N1a] ' + nota;
+        if ((esPrinc || esUnica) && q > qCorte) nota = '[Principal/Única ↻N1a] ' + nota;
 
       } else {
-        // Q3-Q5 urbana, no principal, no única
-        // N2a NO → N4a: ¿Redistribución posible en la comuna?
+        // N2a-NO (Q3-Q5 urbana no principal/única) → N4a
         if (redisPosible) {
           prog_final = ['P6'];
           nodo = 'N4a-SÍ';
-          nota = 'Q3-Q5 no principal: Cierre + Redistribución → P6';
+          nota = 'Q3-Q5 no principal · Cierre + Redistribución → P6';
         } else {
           prog_final = ['P7'];
           nodo = 'N4a-NO';
-          nota = 'Q3-Q5 no principal: Sin redistribución → P7 Adecuación Parcial';
+          nota = 'Q3-Q5 no principal · Sin redistribución → P7';
         }
-        if (tieneRiesgoEst) prog_final.push('P2');
       }
       if (esEspecial) nota += ' | ⭐ CASO ESPECIAL';
     }
@@ -1373,11 +1386,12 @@ function runTree() {
     // Calcular matrícula ajustada por jornada única
     const mat_ajustada = s.mat * (1 - pctJornada/2);
 
-    // Programa principal para el dashboard: el último programa no-P2 (el más significativo)
-    // Orden de push: [P2?] → P3/P4/P1/P5/P6/P7/P8 — el último no-P2 es la intervención dominante
-    const funcArr = Array.isArray(prog_final) ? prog_final.filter(p => p !== 'P2') : [prog_final];
-    const prog_primary = funcArr[funcArr.length - 1] || prog_final[0] || 'SIN_MAT';
-    const hasP2overlay = Array.isArray(prog_final) && prog_final.includes('P2');
+    // Programa principal para el dashboard: prioridad reconstrucción > construcción > ampliación > adecuación
+    const _arr = Array.isArray(prog_final) ? prog_final : [prog_final];
+    const _orderPrim = ['P8','P1','P4','P3','P7','P6','P5','P2','SIN_MAT'];
+    let prog_primary = 'SIN_MAT';
+    for (const _p of _orderPrim) { if (_arr.includes(_p)) { prog_primary = _p; break; } }
+    const hasP2overlay = _arr.includes('P2');
 
     const sede = {
       ...s,
@@ -1405,11 +1419,12 @@ function runTree() {
       rama: s._rama || (s.mat === 0 ? 'SIN_MAT' : (q <= qCorte ? 'Q12-N1a' : 'Q345-N4a'))
     };
 
-    // Calcular valores de programas
+    // Calcular valores de programas — vf agrega el costo TOTAL del Plan de la sede
     sede.vf = _getVf(sede);
-    sede.hasP2 = hasP2overlay;   // P2 = overlay NSR-10 estructural
-    sede.hasP5 = hasP2overlay;   // alias para compatibilidad con export Excel
-    sede.vp5 = hasP2overlay ? _getVp5(s) : 0;
+    sede.hasP2 = _arr.includes('P2');           // P2 explícito (vía N5-SÍ)
+    sede.hasP5 = _arr.includes('P2');           // alias compatibilidad
+    sede.vp5 = 0;                                // P2 ya contabilizado dentro de _getVf
+    sede.vt  = sede.vf;
 
     // Flag de alerta: Q1/Q2 con BC/Recon >= umbral
     sede.alerta70 = (q <= qCorte && s.mat > 0 && ratio_bc_vr >= umbral);
@@ -1488,10 +1503,16 @@ function renderKPIs(){
     }
   }
 
-  // Valor del plan (se recalcula con cada cambio de parámetros)
+  // Valor del plan (cada sede aporta su vf — suma de costos de TODOS sus programas)
   const vf_total   = vis.reduce((a,s)=>a+(s.vf||0), 0);
-  const vp5_total  = vis.filter(s=>s.hasP5).reduce((a,s)=>a+(s.vp5||0), 0);
-  const valor_plan = vf_total + vp5_total + P6_VALOR_G;
+  const vp5_total  = 0;   // P2 ya está dentro de vf
+  // Cobertura matrícula NO OFICIAL (P1 agregado por comuna)
+  let cober_total = 0;
+  try {
+    const _cobd = (typeof _calcularCoberturaNOOficial === 'function') ? _calcularCoberturaNOOficial() : null;
+    if (_cobd) cober_total = _cobd.costP1 || 0;
+  } catch(e) {}
+  const valor_plan = vf_total + P6_VALOR_G + cober_total;
 
   // Indicador de jornada: diferencia BF base vs ajustada
   const jornada_pct = pctJornadaKpi > 0
@@ -1548,8 +1569,8 @@ function renderKPIs(){
     <div class="kpi" style="border-top-color:var(--gold);border-width:4px">
       <div class="kpi-label" style="color:var(--gold);font-size:11px;font-weight:800">VALOR TOTAL DEL PLAN</div>
       <div class="kpi-val" style="font-size:22px;color:var(--navy)">$${(valor_plan/1e12).toFixed(2)}B</div>
-      <div class="kpi-sub">P1–P8 · Billones COP 2026</div>
-      <div style="font-size:9px;color:var(--mgrey);margin-top:3px">Func: $${(vf_total/1e12).toFixed(2)}B + Estr: $${(vp5_total/1e12).toFixed(2)}B + Cierre: $${(P6_VALOR_G/1e12).toFixed(2)}B</div>
+      <div class="kpi-sub">P1–P8 + Cierre + Cobertura · Billones COP 2026</div>
+      <div style="font-size:9px;color:var(--mgrey);margin-top:3px">Sedes: $${(vf_total/1e12).toFixed(2)}B + Cierre P6: $${(P6_VALOR_G/1e12).toFixed(2)}B${cober_total>0?' + NO OFICIAL: $'+(cober_total/1e12).toFixed(2)+'B':''}</div>
     </div>
     <div class="kpi" style="border-top-color:var(--pru)">
       <div class="kpi-label">Sedes en P3+P4 / P4+P3</div>
@@ -1642,41 +1663,50 @@ function renderTable(){
 
 function renderFlow(){
   const vis = filtered();
-  const counts = p => vis.filter(s=>s.prog_final===p).length;
+  const counts = p => vis.filter(s => (s.prog_array||[]).includes(p)).length;
   const cn    = nodo => vis.filter(s=>s.nodo===nodo).length;
   const cg    = prefix => vis.filter(s=>s.nodo&&s.nodo.startsWith(prefix)).length;
   const cnRama = (rama, nodo) => vis.filter(s => s.rama===rama && s.nodo===nodo).length;
+  // cgRama: por rama, nodo que empieza con prefix (para N5-SÍ / N5-NO terminales)
+  const cgRama = (rama, prefix) => vis.filter(s => s.rama===rama && s.nodo && s.nodo.startsWith(prefix)).length;
   const qCorte = parseInt(document.getElementById('paramQCorte').value);
   const umbral = parseFloat(document.getElementById('paramUmbral').value);
   const total_q12  = vis.filter(s=>s.q>0 && s.q<=qCorte).length;
   const total_q345 = vis.filter(s=>s.q>qCorte && s.q>0).length;
+  const sinMat_n   = vis.filter(s => s.nodo === 'SIN_MAT' || s.mat === 0).length;
+  const manual_n   = vis.filter(s => s.nodo === 'MANUAL').length;
   const alerta70_n = vis.filter(s=>s.alerta70).length;
 
   // ── Conteos por rama (no solapados) ──────────────────────
-  // Helpers por rama: rep/amp/nopot/sol según nodo dentro de la rama
+  // Para el árbol oficial los nodos terminales se cuentan por prefijo
   const conteoRama = rama => ({
-    rep:   cnRama(rama,'N1a-SÍ-N3b-SÍ') + cnRama(rama,'N1a-SÍ-N3b-NO-N4b-SÍ') + cnRama(rama,'N1a-SÍ-N3b-NO-N4b-NO'),
-    amp:   cnRama(rama,'N1a-NO-N3-SÍ-N3a-SÍ'),
-    nopot: cnRama(rama,'N1a-NO-N3-SÍ-N3a-NO-N4-SÍ') + cnRama(rama,'N1a-NO-N3-SÍ-N3a-NO-N4-NO'),
-    sol:   cnRama(rama,'N1a-NO-N3-NO'),
+    n3bSI:    cgRama(rama,'N1a-SÍ-N3b-SÍ'),
+    n4bSI:    cgRama(rama,'N1a-SÍ-N3b-NO-N4b-SÍ'),
+    n4bNO:    cgRama(rama,'N1a-SÍ-N3b-NO-N4b-NO'),
+    n3aSI:    cgRama(rama,'N1a-NO-N3-SÍ-N3a-SÍ'),
+    n3aNO_SI: cgRama(rama,'N1a-NO-N3-SÍ-N3a-NO-N4-SÍ'),
+    n3aNO_NO: cgRama(rama,'N1a-NO-N3-SÍ-N3a-NO-N4-NO'),
+    n3NO:     cgRama(rama,'N1a-NO-N3-NO'),
   });
   const Q12   = conteoRama('Q12-N1a');
   const Q3R   = conteoRama('Q345-rural-N1a');
   const Q3P   = conteoRama('Q345-princ-N1a');
 
-  const rep_q12   = Q12.rep;
-  const amp_q12   = Q12.amp;
-  const nopot_q12 = Q12.nopot;
-  const sol_q12   = Q12.sol;
+  // Conteos Q1-Q{qCorte}
+  const rep_q12   = Q12.n3bSI + Q12.n4bSI + Q12.n4bNO;
+  const amp_q12   = Q12.n3aSI;
+  const nopot_q12 = Q12.n3aNO_SI + Q12.n3aNO_NO;
+  const sol_q12   = Q12.n3NO;
 
-  // Q3-Q5: Rural y Principal/Única re-entran a N1a (visualmente segregados)
-  const rural_n   = Q3R.rep + Q3R.amp + Q3R.nopot + Q3R.sol;
-  const princ_n   = Q3P.rep + Q3P.amp + Q3P.nopot + Q3P.sol;
+  // Q3-Q5: Rural y Principal/Única re-entran a N1a (no se solapan con Q12)
+  const _sumRama = r => r.n3bSI + r.n4bSI + r.n4bNO + r.n3aSI + r.n3aNO_SI + r.n3aNO_NO + r.n3NO;
+  const rural_n   = _sumRama(Q3R);
+  const princ_n   = _sumRama(Q3P);
   // Q3-Q5: Cierre y parcial (sedes urbanas no principal/única: rama Q345-N4a)
   const p6_n      = vis.filter(s => s.rama==='Q345-N4a' && s.nodo === 'N4a-SÍ').length;
   const p7_n      = vis.filter(s => s.rama==='Q345-N4a' && s.nodo === 'N4a-NO').length;
-  // Total sin asignar (SIN_MAT / MANUAL)
-  const especial_n = vis.filter(s=>s.nodo==='MANUAL'||s.nodo==='SIN_MAT').length;
+  // Sin matrícula y ajustes manuales
+  const especial_n = sinMat_n + manual_n;
 
   // ── D3 Interactive Tree ─────────────────────────────────
   const svg = document.getElementById('d3TreeSvg');
@@ -1684,59 +1714,96 @@ function renderFlow(){
     // Fallback to static HTML if D3 not loaded yet
     const fb = document.getElementById('flowDiagram');
     if (!fb) return;
+    // Conteos por PROGRAMA (cada sede aparece en cada programa de su prog_array)
+    const cP1 = counts('P1'), cP2 = counts('P2'), cP3 = counts('P3');
+    const cP4 = counts('P4'), cP5 = counts('P5'), cP6 = counts('P6');
+    const cP7 = counts('P7'), cP8 = counts('P8');
     fb.innerHTML = `
 <div style="font-size:11px;overflow-x:auto;padding:8px">
-  <div style="font-weight:700;font-size:13px;margin-bottom:10px;color:var(--navy)">🌳 Árbol de Decisión — ${vis.length} sedes</div>
-  <table style="border-collapse:collapse;min-width:700px;font-size:10px">
+  <div style="font-weight:700;font-size:13px;margin-bottom:10px;color:var(--navy)">🌳 Árbol de Decisión PMIE 2026 — ${vis.length} sedes</div>
+  <table style="border-collapse:collapse;min-width:760px;font-size:10px">
     <tr style="background:var(--navy);color:#fff">
-      <th style="padding:5px 8px;text-align:left">Nodo</th>
+      <th style="padding:5px 8px;text-align:left">Nodo / Rama</th>
       <th style="padding:5px 8px;text-align:left">Criterio</th>
-      <th style="padding:5px 8px;text-align:left">Programa</th>
+      <th style="padding:5px 8px;text-align:left">Salida</th>
       <th style="padding:5px 8px;text-align:center">Sedes</th>
     </tr>
-    <tr style="background:#EBF5FB"><td colspan="4" style="padding:4px 8px;font-weight:700;color:var(--blue)">▶ Q1-Q${qCorte} — SEDES EFICIENTES (${total_q12} sedes)</td></tr>
-    <tr><td style="padding:3px 8px;padding-left:24px;color:var(--red)">N1a SÍ</td><td>BC &gt; ${umbral}% Recon</td><td><b>P4 + P3</b> Reposición predio propio + adecuación</td><td style="text-align:center">${rep_q12}</td></tr>
-    <tr style="background:#F9F9F9"><td style="padding:3px 8px;padding-left:24px;color:var(--green)">N3a SÍ</td><td>Requiere amp · POT disponible</td><td><b>P3 + P4</b> Ampliación en predio (o P2+P3+P4 con riesgo)</td><td style="text-align:center">${amp_q12}</td></tr>
-    <tr><td style="padding:3px 8px;padding-left:24px">N3a NO</td><td>Requiere amp · Sin POT</td><td><b>P3 + P5</b> / <b>P3 + P1</b> Redistribución o Construcción</td><td style="text-align:center">${nopot_q12}</td></tr>
-    <tr style="background:#F9F9F9"><td style="padding:3px 8px;padding-left:24px;color:var(--green)">N3 NO</td><td>Sin brecha funcional</td><td><b>P3</b> Solo adecuación (o P2+P3 con riesgo)</td><td style="text-align:center">${sol_q12}</td></tr>
+    <tr style="background:#EBF5FB"><td colspan="4" style="padding:4px 8px;font-weight:700;color:var(--blue)">▶ Q1-Q${qCorte} — SEDES EFICIENTES (${total_q12} sedes) · entran a N1a</td></tr>
+    <tr><td style="padding:3px 8px;padding-left:24px;color:var(--red)">N3b SÍ</td><td>BC ≥ ${umbral*100}% Recon · misma área o menor</td><td>P4 (reconstrucción) + P3 (calidad)</td><td style="text-align:center">${Q12.n3bSI}</td></tr>
+    <tr style="background:#F9F9F9"><td style="padding:3px 8px;padding-left:24px">N4b SÍ</td><td>BC alta · sin sitio · redis posible</td><td>P5 + P8</td><td style="text-align:center">${Q12.n4bSI}</td></tr>
+    <tr><td style="padding:3px 8px;padding-left:24px">N4b NO</td><td>BC alta · sin sitio · sin redis</td><td>P5 + P1 (sede nueva completa)</td><td style="text-align:center">${Q12.n4bNO}</td></tr>
+    <tr style="background:#F9F9F9"><td style="padding:3px 8px;padding-left:24px;color:var(--green)">N3a SÍ</td><td>Requiere ampliación · POT posible</td><td>P4 + N5 (P3 o P2+P3)</td><td style="text-align:center">${Q12.n3aSI}</td></tr>
+    <tr><td style="padding:3px 8px;padding-left:24px">N3a NO + N4 SÍ</td><td>Requiere ampliación · sin POT · redis</td><td>P5 + N5 (P3 o P2+P3)</td><td style="text-align:center">${Q12.n3aNO_SI}</td></tr>
+    <tr style="background:#F9F9F9"><td style="padding:3px 8px;padding-left:24px">N3a NO + N4 NO</td><td>Requiere ampliación · sin POT · sin redis</td><td>P1 (ampliación otro predio) + N5</td><td style="text-align:center">${Q12.n3aNO_NO}</td></tr>
+    <tr><td style="padding:3px 8px;padding-left:24px;color:var(--green)">N3 NO</td><td>Sin déficit área</td><td>N5 (P3 o P2+P3)</td><td style="text-align:center">${Q12.n3NO}</td></tr>
     <tr style="background:#EBF5FB"><td colspan="4" style="padding:4px 8px;font-weight:700;color:var(--blue)">▶ Q${qCorte+1}-Q5 — SEDES MENOS EFICIENTES (${total_q345} sedes)</td></tr>
-    <tr><td style="padding:3px 8px;padding-left:24px">N2 Rural</td><td>Sede rural → re-evaluada en N1a</td><td><b>P8+P3 / P3+P4 / P3+P5/P1 / P3</b> según BC y POT</td><td style="text-align:center">${rural_n}</td></tr>
-    <tr style="background:#F9F9F9"><td style="padding:3px 8px;padding-left:24px">N2a Principal/Única</td><td>Sede principal o única en su comuna → re-evaluada en N1a</td><td><b>P8+P3 / P3+P4 / P3+P5/P1 / P3</b> según BC y POT</td><td style="text-align:center">${princ_n}</td></tr>
-    <tr><td style="padding:3px 8px;padding-left:24px;color:var(--red)">N4a SÍ</td><td>Urbana no-principal · Redis posible (≥ ${document.getElementById('paramMinQ12')?.value||2} sedes Q1-Q${qCorte} en comuna)</td><td><b>P6</b> Cierre + Redistribución matrícula</td><td style="text-align:center">${p6_n}</td></tr>
-    <tr style="background:#F9F9F9"><td style="padding:3px 8px;padding-left:24px">N4a NO</td><td>Urbana no-principal · Sin redis posible</td><td><b>P7</b> Adecuación parcial</td><td style="text-align:center">${p7_n}</td></tr>
-    <tr style="background:#FFF3CD"><td style="padding:3px 8px;padding-left:24px">Especiales</td><td>Sin matrícula / Override manual</td><td>—</td><td style="text-align:center">${especial_n}</td></tr>
+    <tr><td style="padding:3px 8px;padding-left:24px">N2 Rural → N1a</td><td>Sede rural · re-evaluada en N1a</td><td>Aplica misma lógica N1a (todos los nodos)</td><td style="text-align:center">${rural_n}</td></tr>
+    <tr style="background:#F9F9F9"><td style="padding:3px 8px;padding-left:24px">N2a Principal/Única → N1a</td><td>Sede principal o única · re-evaluada en N1a</td><td>Aplica misma lógica N1a (todos los nodos)</td><td style="text-align:center">${princ_n}</td></tr>
+    <tr><td style="padding:3px 8px;padding-left:24px;color:var(--red)">N4a SÍ</td><td>Urbana no-principal · Redis posible (≥ ${document.getElementById('paramMinQ12')?.value||2} Q1-Q${qCorte})</td><td>P6 (Cierre y Redistribución)</td><td style="text-align:center">${p6_n}</td></tr>
+    <tr style="background:#F9F9F9"><td style="padding:3px 8px;padding-left:24px">N4a NO</td><td>Urbana no-principal · Sin redis</td><td>P7 (Adecuación Parcial)</td><td style="text-align:center">${p7_n}</td></tr>
+    <tr style="background:#FFF3CD"><td style="padding:3px 8px;padding-left:24px">Sin matrícula / Manual</td><td>SIN_MAT: ${sinMat_n} · Override: ${manual_n}</td><td>—</td><td style="text-align:center">${especial_n}</td></tr>
     <tr style="background:var(--navy);color:#fff;font-weight:700">
-      <td colspan="3" style="padding:5px 8px">TOTAL</td>
+      <td colspan="3" style="padding:5px 8px">TOTAL SEDES</td>
       <td style="text-align:center;padding:5px 8px">${vis.length}</td>
     </tr>
+    <tr style="background:#F2F2F2;font-weight:700">
+      <td colspan="4" style="padding:6px 8px;color:var(--navy)">📊 Conteo por PROGRAMA (cada sede cuenta en cada programa de su asignación)</td>
+    </tr>
+    <tr><td colspan="2" style="padding:3px 8px;padding-left:24px"><b>P1</b> Construcción Nueva Infraestructura</td><td>Costo: bfAmpOtro + bfPredio (o recon completo si N4b-NO)</td><td style="text-align:center">${cP1}</td></tr>
+    <tr style="background:#F9F9F9"><td colspan="2" style="padding:3px 8px;padding-left:24px"><b>P2</b> Reforzamiento Estructural Prioritario</td><td>Costo: BE × 1.14 (vía N5-SÍ)</td><td style="text-align:center">${cP2}</td></tr>
+    <tr><td colspan="2" style="padding:3px 8px;padding-left:24px"><b>P3</b> Adecuación y Reforzamiento</td><td>Costo: bfAdec (+ BE si N5-NO)</td><td style="text-align:center">${cP3}</td></tr>
+    <tr style="background:#F9F9F9"><td colspan="2" style="padding:3px 8px;padding-left:24px"><b>P4</b> Ampliación en Sitio Propio</td><td>Costo: bfAmpSede (o recon si N3b-SÍ)</td><td style="text-align:center">${cP4}</td></tr>
+    <tr><td colspan="2" style="padding:3px 8px;padding-left:24px"><b>P5</b> Redistribución de Matrícula</td><td>Sin costo directo</td><td style="text-align:center">${cP5}</td></tr>
+    <tr style="background:#F9F9F9"><td colspan="2" style="padding:3px 8px;padding-left:24px"><b>P6</b> Cierre de sede y Redistribución</td><td>Sin costo directo (capturado en P6 global)</td><td style="text-align:center">${cP6}</td></tr>
+    <tr><td colspan="2" style="padding:3px 8px;padding-left:24px"><b>P7</b> Adecuación Parcial</td><td>Costo: 50% bfAdec (+ BE si N5-NO)</td><td style="text-align:center">${cP7}</td></tr>
+    <tr style="background:#F9F9F9"><td colspan="2" style="padding:3px 8px;padding-left:24px"><b>P8</b> Reconstrucción en Sitio Propio</td><td>Costo: VR Reconstrucción (área actual × constr. × 1.14)</td><td style="text-align:center">${cP8}</td></tr>
   </table>
   <div style="margin-top:8px;font-size:9px;color:#888">⚡ Vista de tabla (D3 no disponible). Recarga la página para la vista gráfica interactiva.</div>
 </div>`;
     return; // exit fallback path
   }
 
-  // ── D3 tree data ── ÁRBOL NUEVO v3.1 ─────────────────────
+  // ── D3 tree data ── ÁRBOL OFICIAL PMIE 2026 ────────────────
+  // Nodos terminales = programas individuales (P1, P2, ..., P8)
+  // Cada hoja muestra el conteo de sedes que cuentan con ESE programa en su prog_array
+  const cP1 = counts('P1'), cP2 = counts('P2'), cP3 = counts('P3');
+  const cP4 = counts('P4'), cP5 = counts('P5'), cP6 = counts('P6');
+  const cP7 = counts('P7'), cP8 = counts('P8');
   const treeData = {
     id:'start', label:'SEDES', sub:`${vis.length} sedes`, type:'start', color:'#1F3864',
     children:[{
       id:'N1', label:`N1: ¿Q ≤ Q${qCorte}?`, sub:'Criterio eficiencia', type:'decision', color:'#1F3864',
       children:[
         /* ── Rama SÍ: Q1-Q{qCorte} ────────────────── */
-        { id:'Q12', label:`Q1-Q${qCorte}`, sub:`${total_q12} sedes eficientes`, type:'decision', color:'#2E75B6',
+        { id:'Q12', label:`Q1-Q${qCorte}`, sub:`${total_q12} sedes\nentran a N1a`, type:'decision', color:'#2E75B6',
           children:[
-            { id:'N1a', label:`N1a: ¿BC>${umbral}%\nRecon?`, sub:'Umbral reposición', type:'decision', color:'#ED7D31',
+            { id:'N1a', label:`N1a: ¿BC>${umbral*100}%\nRecon?`, sub:'Umbral reposición', type:'decision', color:'#ED7D31',
               children:[
-                { id:'REP', label:'P8 + P3', sub:`${rep_q12} sedes
-Reconstrucción sitio`, type:'prog', color:'#C00000', children:[] },
-                { id:'N3', label:'N3: ¿Requiere\nampliación?', sub:`${amp_q12+nopot_q12+sol_q12} sedes`, type:'decision', color:'#ED7D31',
+                { id:'N3b', label:'N3b: ¿Misma área\no menor?', sub:`${Q12.n3bSI+Q12.n4bSI+Q12.n4bNO} sedes`, type:'decision', color:'#C00000',
                   children:[
-                    { id:'N3a', label:'N3a: ¿POT\ndisponible?', sub:`${amp_q12+nopot_q12} sedes`, type:'decision', color:'#375623',
+                    { id:'N3bSI', label:'P4 + P3', sub:`${Q12.n3bSI} sedes\nReconstrucción sitio`, type:'prog', color:'#C00000', children:[] },
+                    { id:'N4b', label:'N4b: ¿Redis\nposible?', sub:`${Q12.n4bSI+Q12.n4bNO} sedes`, type:'decision', color:'#C55A11',
                       children:[
-                        { id:'AMP', label:'P3 + P4', sub:`${amp_q12} sedes\nAmpliación predio`, type:'prog', color:'#1F6B2A', children:[] },
-                        { id:'NOPOT', label:'P3 + P5/P1', sub:`${nopot_q12} sedes\nRedistrib/Construcción`, type:'prog', color:'#7B2FBE', children:[] },
+                        { id:'N4bSI', label:'P5 + P8', sub:`${Q12.n4bSI} sedes`, type:'prog', color:'#7B2FBE', children:[] },
+                        { id:'N4bNO', label:'P5 + P1', sub:`${Q12.n4bNO} sedes\nSede completa nueva`, type:'prog', color:'#C00000', children:[] },
                       ]
                     },
-                    { id:'SOL', label:'P3', sub:`${sol_q12} sedes\nSolo adecuación`, type:'prog', color:'#1A5276', children:[] },
+                  ]
+                },
+                { id:'N3', label:'N3: ¿Requiere\nampliación?', sub:`${Q12.n3aSI+Q12.n3aNO_SI+Q12.n3aNO_NO+Q12.n3NO} sedes`, type:'decision', color:'#ED7D31',
+                  children:[
+                    { id:'N3a', label:'N3a: ¿POT\ndisponible?', sub:`${Q12.n3aSI+Q12.n3aNO_SI+Q12.n3aNO_NO} sedes`, type:'decision', color:'#375623',
+                      children:[
+                        { id:'N3aSI', label:'P4 + N5', sub:`${Q12.n3aSI} sedes\nAmpliación sitio`, type:'prog', color:'#1F6B2A', children:[] },
+                        { id:'N4', label:'N4: ¿Redis\nposible?', sub:`${Q12.n3aNO_SI+Q12.n3aNO_NO} sedes`, type:'decision', color:'#C55A11',
+                          children:[
+                            { id:'N4SI', label:'P5 + N5', sub:`${Q12.n3aNO_SI} sedes\nRedistribución`, type:'prog', color:'#7B2FBE', children:[] },
+                            { id:'N4NO', label:'P1 + N5', sub:`${Q12.n3aNO_NO} sedes\nAmpliación nuevo predio`, type:'prog', color:'#C00000', children:[] },
+                          ]
+                        },
+                      ]
+                    },
+                    { id:'N3NO', label:'N5', sub:`${Q12.n3NO} sedes\nSolo adecuación`, type:'prog', color:'#1A5276', children:[] },
                   ]
                 },
               ]
@@ -1746,16 +1813,16 @@ Reconstrucción sitio`, type:'prog', color:'#C00000', children:[] },
         /* ── Rama NO: Q3-Q5 ────────────────────────── */
         { id:'Q345', label:`Q${qCorte+1}-Q5`, sub:`${total_q345} sedes`, type:'decision', color:'#595959',
           children:[
-            { id:'N2', label:'N2: ¿Rural?', sub:`Q3-Q5`, type:'decision', color:'#375623',
+            { id:'N2', label:'N2: ¿Rural?', sub:'', type:'decision', color:'#375623',
               children:[
-                { id:'RURAL_N1a', label:'Rural →\nre-evalúa N1a', sub:`${rural_n} sedes\nP8+P3/P3+P4/P3+P5,P1/P3`, type:'prog', color:'#375623', children:[] },
-                { id:'N2a', label:'N2a: ¿Principal\no Única?', sub:`Urbanas Q3-Q5`, type:'decision', color:'#1F3864',
+                { id:'RURAL_N1a', label:'Rural ↻N1a', sub:`${rural_n} sedes\nre-evalúa N1a`, type:'prog', color:'#375623', children:[] },
+                { id:'N2a', label:'N2a: ¿Principal\no Única?', sub:'', type:'decision', color:'#1F3864',
                   children:[
-                    { id:'PRINC_N1a', label:'Principal/Única →\nre-evalúa N1a', sub:`${princ_n} sedes\nP8+P3/P3+P4/P3+P5,P1/P3`, type:'prog', color:'#2E75B6', children:[] },
+                    { id:'PRINC_N1a', label:'Principal/Única\n↻N1a', sub:`${princ_n} sedes\nre-evalúa N1a`, type:'prog', color:'#2E75B6', children:[] },
                     { id:'N4a', label:'N4a: ¿Redis\nposible?', sub:`${p6_n+p7_n} sedes`, type:'decision', color:'#C55A11',
                       children:[
-                        { id:'P6', label:'P6 — Cierre', sub:`${p6_n} sedes\nRedistrib matrícula`, type:'close', color:'#595959', children:[] },
-                        { id:'P7', label:'P7 — Parcial', sub:`${p7_n} sedes\nAdecuación parcial`, type:'prog', color:'#7F7F7F', children:[] },
+                        { id:'P6', label:'P6 — Cierre', sub:`${p6_n} sedes`, type:'close', color:'#595959', children:[] },
+                        { id:'P7', label:'P7 — Parcial', sub:`${p7_n} sedes`, type:'prog', color:'#7F7F7F', children:[] },
                       ]
                     },
                   ]
@@ -1765,6 +1832,9 @@ Reconstrucción sitio`, type:'prog', color:'#C00000', children:[] },
           ]
         },
       ]
+    }, {
+      id:'esp', label:'Sin matrícula /\nManual', sub:`${especial_n} sedes`, type:'close', color:'#999999',
+      children:[]
     }]
   };
 
@@ -2126,36 +2196,62 @@ async function _buildExcel() {
         PROG_ORDER_BASE.forEach(p => costByProg[p] = 0); // inicializar
         costByProg['SIN_MAT'] = 0;
 
-        // Asignar costos SOLO para programas reales en prog_array
-        // BF ya incluye 14% (ADEQ_SOFT_H3, AMP_SOFT_H3)
-        // BE viene en valor base — se le aplica el 14% acá
-        // Cuando NO hay overlay P2, la BE se incorpora al programa de adecuación (P3 / P7 / P8)
-        const beAj = Math.round((s2.be || 0) * OVERHEAD_PROGRAM);
+        // Asignar costos siguiendo el árbol oficial PMIE 2026
+        //   BF ya incluye 14% (ADEQ_SOFT_H3, AMP_SOFT_H3); BE recibe 14% acá
+        //   P2 solo aparece via N5-SI (no overlay automático)
+        //   N5-NO ⇒ BE se absorbe en P3 / P7
+        //   P8 cubre reconstrucción total (incluye BE — no se suma a P3)
+        //   P1 vía N4b-NO ⇒ sede completa nueva (recon + predio); vía N4-NO ⇒ solo ampliación
+        const beAj   = Math.round((s2.be || 0) * OVERHEAD_PROGRAM);
+        const reconV = s2.recon_dyn || s2.recon || 0;
         const tieneP2 = (progArr||[]).includes('P2');
+        const tieneP8 = (progArr||[]).includes('P8');
+        const nd = s2.nodo || '';
+        const _esN4b_NO = nd === 'N1a-SÍ-N3b-NO-N4b-NO';   // P1 = sede completa nueva
+        const _esN3b_SI = nd === 'N1a-SÍ-N3b-SÍ';          // P4 = reconstrucción área actual
+        // Estimar área a usar para P1 / P4 cuando es reposición completa
+        const _areaActual = s2.areac || s2.arear || 0;
+        const _costs = (typeof _getCostosH3 === 'function') ? _getCostosH3(s2.comuna) : null;
+        const _vrCons = _costs ? (_costs.areaNuevaIEO || 0) : 0;
+        const _vrPred = _costs ? (_costs.predio || 0)       : 0;
+        const _fd     = _costs ? (_costs.fd || 1.0)         : 1.0;
+        const _IPC    = (typeof IPC_H3 !== 'undefined') ? IPC_H3 : 1.04;
+        const _reconAreaActual = _areaActual * _vrCons * _fd * _IPC * 1.14;
+        const _predioAreaActual = (_areaActual / 0.60) * _vrPred * _fd * _IPC;
+
         (progArr||[]).forEach(p => {
           if (p === 'P1') {
-            // Construcción nueva en otro predio: ampliación + predio
-            costByProg['P1'] = (s2.bfAmpOtro || 0) + (s2.bfPredio || 0);
+            // Caso A: N4b-NO → sede completa nueva en otra ubicación (recon + predio)
+            // Caso B: N4-NO  → solo la porción de ampliación (bfAmpOtro + bfPredio)
+            if (_esN4b_NO) {
+              costByProg['P1'] = Math.round(_reconAreaActual + _predioAreaActual);
+            } else {
+              costByProg['P1'] = (s2.bfAmpOtro || 0) + (s2.bfPredio || 0);
+            }
           }
           else if (p === 'P2') {
-            // Reforzamiento estructural NSR-10 (overlay): BE × 1.14
             costByProg['P2'] = beAj;
           }
           else if (p === 'P3') {
-            // Adecuación: bfAdec (+ BE si no hay overlay P2)
-            costByProg['P3'] = (s2.bfAdec || 0) + (tieneP2 ? 0 : beAj);
+            // Si la sede va también a P8 (reconstrucción), el costo de adecuación
+            // queda subsumido por P8 → P3 no suma (evita doble conteo).
+            if (tieneP8) { costByProg['P3'] = 0; }
+            else { costByProg['P3'] = (s2.bfAdec || 0) + (tieneP2 ? 0 : beAj); }
           }
           else if (p === 'P4') {
-            // Ampliación en predio propio
-            costByProg['P4'] = s2.bfAmpSede || 0;
+            // N3b-SI (reconstrucción misma área o menor) ⇒ P4 = costo de reconstrucción
+            // de la sede en área actual (reposición). En otros nodos ⇒ ampliación en sitio.
+            if (_esN3b_SI) {
+              costByProg['P4'] = Math.round(_reconAreaActual);
+            } else {
+              costByProg['P4'] = s2.bfAmpSede || 0;
+            }
           }
           else if (p === 'P7') {
-            // Adecuación parcial: 50% de bfAdec (+ BE si no hay overlay P2)
             costByProg['P7'] = Math.round((s2.bfAdec || 0) * 0.5) + (tieneP2 ? 0 : beAj);
           }
           else if (p === 'P8') {
-            // Reconstrucción: recon dinámico (área actual × construcción × 1.14)
-            costByProg['P8'] = s2.recon_dyn || s2.recon || 0;
+            costByProg['P8'] = reconV;
           }
           // P5, P6, SIN_MAT quedan en 0
         });
@@ -2191,6 +2287,11 @@ async function _buildExcel() {
 
       // ── Matrícula en Cobertura (NO OFICIAL agregado) ──
       const coberNOOfi = _calcularCoberturaNOOficial();
+      // P6 cost (cierre + redistribución) — costo de absorber matrícula redistribuida
+      // por construcción de nuevas sedes en comunas receptoras (valor fijo del plan PMIE)
+      const P6_COST_PLAN = (typeof P6_VALOR_G !== 'undefined') ? P6_VALOR_G : 0;
+      // Forzar el valor de P6 en la tabla resumen
+      if (sumByProg['P6']) sumByProg['P6'].valor = P6_COST_PLAN;
       let totalPlan = PROG_ORDER_BASE.reduce((a,p)=>a+(sumByProg[p]?.valor||0),0);
       if (coberNOOfi) {
         totalPlan += coberNOOfi.costP1; // sumar costo de cobertura al total
@@ -3842,10 +3943,15 @@ async function _exportMatProyeccion() {
     // Tasa por sede si hay ambos años, else tasa municipal
     let tasa = TASA_PROM, origen = 'Tasa muni.';
     if (matB != null && matA > 0 && (ANIO_BASE_B - ANIO_BASE_A) > 0) {
-      tasa = Math.pow(matB/Math.max(matA,1), 1/(ANIO_BASE_B - ANIO_BASE_A)) - 1;
-      origen = 'Tasa sede';
+      const cagr = Math.pow(matB/Math.max(matA,1), 1/(ANIO_BASE_B - ANIO_BASE_A)) - 1;
+      // Si la CAGR es despreciable (sede estable), aplicamos tendencia municipal
+      if (Math.abs(cagr) < 0.002) {
+        tasa = TASA_PROM; origen = 'Tasa muni.';
+      } else {
+        tasa = cagr; origen = 'Tasa sede';
+      }
     } else if (matA === 0 && matB && matB > 0) {
-      tasa = 0; origen = 'Solo nuevo';
+      tasa = TASA_PROM; origen = 'Tasa muni.';
     }
     const matInicial = (matB != null) ? matB : matA;
     const proys = ANIOS_PROY.map((y,i)=>{
