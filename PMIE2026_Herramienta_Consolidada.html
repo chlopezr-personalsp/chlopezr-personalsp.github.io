@@ -2421,52 +2421,33 @@ async function _buildExcel() {
         const [bgC,lgC] = getProgColor(prog);
         rAlt = !rAlt;
         const rb = rAlt ? lgC : C.WHITE;
-        const pct = totalPlan>0 ? (pd.valor/totalPlan*100).toFixed(1)+'%' : '0%';
-        const row = wsR.addRow([getProgLabel(prog), getProgType(prog), pd.n, pd.mat>0?pd.mat:'', 0, pct, 0, getProgDesc(prog)]);
+
+        // Para P1: incluir cobertura NO OFICIAL en sedes/matrícula/valor
+        let sedesNum = pd.n, matNum = pd.mat, valorNum = pd.valor;
+        let descExtra = '';
+        if (prog === 'P1' && coberNOOfi) {
+          const comN = (coberNOOfi.detalleComunas||[]).length;
+          sedesNum = pd.n + comN;           // suma comunas de cobertura como "sedes nuevas"
+          matNum   = pd.mat + (coberNOOfi.matEnCobertura || 0);
+          valorNum = pd.valor + (coberNOOfi.costP1 || 0);
+          descExtra = ` · INCLUYE COBERTURA: ${comN} comunas, ${Math.round(coberNOOfi.matEnCobertura).toLocaleString('es-CO')} est. NO OFICIAL → $${toMM(coberNOOfi.costP1).toLocaleString('es-CO',{maximumFractionDigits:0})} MM`;
+        }
+
+        const pct = totalPlan>0 ? (valorNum/totalPlan*100).toFixed(1)+'%' : '0%';
+        const row = wsR.addRow([getProgLabel(prog), getProgType(prog), sedesNum, matNum>0?matNum:'', 0, pct, 0, getProgDesc(prog) + descExtra]);
         row.height = 17;
         data(row.getCell(1), bgC, C.WHITE, 'left', true);
         data(row.getCell(2), rb, bgC, 'left', false);
         data(row.getCell(3), rb, bgC, 'center', true);
         data(row.getCell(4), rb, bgC, 'right');
-        const vc = row.getCell(5); vc.value = toMM(pd.valor);
+        const vc = row.getCell(5); vc.value = toMM(valorNum);
         data(vc, rb, bgC, 'right', true, '#,##0.0');
         data(row.getCell(6), rb, bgC, 'center');
-        const bc2 = row.getCell(7); bc2.value = Math.round(pd.valor/1e12*1000)/1000;
+        const bc2 = row.getCell(7); bc2.value = Math.round(valorNum/1e12*1000)/1000;
         data(bc2, rb, bgC, 'right', false, '0.000');
         data(row.getCell(8), rb, C.BLACK, 'left', false);
         row.getCell(8).alignment = { horizontal:'left', vertical:'middle', wrapText:true };
       });
-
-      // ── Fila especial: Matrícula en Cobertura (NO OFICIAL) ──
-      if (coberNOOfi) {
-        rAlt = !rAlt;
-        const bgC = 'FF4CAF50'; // verde para cobertura
-        const lgC = 'FFE8F5E9';
-        const rb = rAlt ? lgC : C.WHITE;
-        const pct = totalPlan>0 ? (coberNOOfi.costP1/totalPlan*100).toFixed(1)+'%' : '0%';
-        const row = wsR.addRow([
-          'COBERTURA',
-          'Construcción nueva — Escuelas NO OFICIALES',
-          '—',
-          coberNOOfi.matEnCobertura,
-          0,
-          pct,
-          0,
-          `${coberNOOfi.desc}`
-        ]);
-        row.height = 17;
-        data(row.getCell(1), bgC, C.WHITE, 'left', true);
-        data(row.getCell(2), rb, bgC, 'left', false);
-        data(row.getCell(3), rb, bgC, 'center', false);
-        data(row.getCell(4), rb, bgC, 'right');
-        const vc = row.getCell(5); vc.value = toMM(coberNOOfi.costP1);
-        data(vc, rb, bgC, 'right', true, '#,##0.0');
-        data(row.getCell(6), rb, bgC, 'center');
-        const bc2 = row.getCell(7); bc2.value = Math.round(coberNOOfi.costP1/1e12*1000)/1000;
-        data(bc2, rb, bgC, 'right', false, '0.000');
-        data(row.getCell(8), rb, C.BLACK, 'left', false);
-        row.getCell(8).alignment = { horizontal:'left', vertical:'middle', wrapText:true };
-      }
 
       const gT = wsR.addRow(['TOTAL DEL PLAN — PMIE 2026', '',
         enriched.length,
