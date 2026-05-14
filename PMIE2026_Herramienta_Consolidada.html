@@ -1091,6 +1091,7 @@ function _calcularCoberturaNOOficial() {
   let totalMat = 0;
   let totalArea = 0;
   let totalCosto = 0;
+  const detalleComunas = [];  // [{comuna, mat, area, costo, costPredio, costConstr}, ...]
 
   // NTC 4595: 5.36 m²/estudiante (incluye todos los espacios necesarios)
   const M2_POR_ESTUDIANTE = 5.36;
@@ -1108,14 +1109,28 @@ function _calcularCoberturaNOOficial() {
 
     const costXmNueva = costos.areaNuevaIEO || costos['AREA_CONSTRUIDA_NUEVA'] || 2500000;
     const costXmPredio = costos.predio || costos['VALOR_PREDIO_M2'] || 500000;
-    const FD = costos.FD || 1.0;
-    const IPC = IPC_H3 || 1.0;
+    const FD = costos.fd || costos.FD || 1.0;
+    const IPC = (typeof IPC_H3 !== 'undefined') ? IPC_H3 : 1.04;
 
-    // Costo = (construcción nueva + adquisición predio) × FD × IPC × 1.14 overhead
+    // Costo construcción incluye 14% (estudios+interventoría); predio no
     const areaPredioDef = areaCompuesta / POT_PCT_H3; // ocupación ~60% del lote
-    const costCom = (areaCompuesta * costXmNueva + areaPredioDef * costXmPredio) * FD * IPC * OVERHEAD_PROGRAM;
+    const costConstr   = areaCompuesta * costXmNueva * FD * IPC * OVERHEAD_PROGRAM;
+    const costPredio   = areaPredioDef * costXmPredio * FD * IPC;
+    const costCom      = costConstr + costPredio;
     totalCosto += costCom;
+    detalleComunas.push({
+      comuna: String(com || '').replace(/^COMUNA\s*/i,'C'),
+      mat:    Math.round(mat),
+      areaConstr: Math.round(areaCompuesta * 10) / 10,
+      areaPredio: Math.round(areaPredioDef * 10) / 10,
+      costConstr: Math.round(costConstr),
+      costPredio: Math.round(costPredio),
+      costTotal:  Math.round(costCom),
+    });
   });
+
+  // Ordenar comunas por costo descendente para visualización
+  detalleComunas.sort((a,b) => b.costTotal - a.costTotal);
 
   return totalMat > 0 ? {
     tipo: 'NO_OFICIAL',
@@ -1123,7 +1138,8 @@ function _calcularCoberturaNOOficial() {
     areaCompuesta: Math.round(totalArea * 10) / 10,
     costP1: Math.round(totalCosto),
     comunas: Object.keys(byCom).length,
-    desc: `Matrícula en cobertura — ${totalMat} estudiantes en ${Object.keys(byCom).length} comunas`
+    detalleComunas: detalleComunas,
+    desc: `Matrícula en cobertura — ${totalMat.toLocaleString('es-CO')} estudiantes en ${Object.keys(byCom).length} comunas · 5.36 m²/est. (NTC 4595)`
   } : null;
 }
 
@@ -1255,8 +1271,11 @@ function runTree() {
     const esUnica = s.mat > 0 && (sedesMatPorComuna[cn] || 0) <= 1;
     const esEspecial = esCasoEspecial(s.sede);
 
-    // Identificar P5 por urgencia = CRÍTICA
-    const tieneRiesgoEst = (s.urgencia || '').toUpperCase() === 'CRÍTICA';
+    // Identificar riesgo estructural significativo (criterio N5)
+    // CRÍTICA y MUY ALTA: requieren intervención por riesgo (vía N5-SÍ → P2 + P3)
+    // ALTA, MEDIA, BAJA: BE se absorbe en P3 (vía N5-NO)
+    const _urg = (s.urgencia || '').toUpperCase();
+    const tieneRiesgoEst = _urg === 'CRÍTICA' || _urg === 'CRITICA' || _urg === 'MUY ALTA';
 
     let prog_final = [], nodo = '', nota = '';
 
@@ -1794,16 +1813,16 @@ function renderFlow(){
                   children:[
                     { id:'N3a', label:'N3a: ¿POT\ndisponible?', sub:`${Q12.n3aSI+Q12.n3aNO_SI+Q12.n3aNO_NO} sedes`, type:'decision', color:'#375623',
                       children:[
-                        { id:'N3aSI', label:'P4 + N5', sub:`${Q12.n3aSI} sedes\nAmpliación sitio`, type:'prog', color:'#1F6B2A', children:[] },
+                        { id:'N3aSI', label:'P4 + P3\n(o P4+P2+P3)', sub:`${Q12.n3aSI} sedes\nAmpliación sitio`, type:'prog', color:'#1F6B2A', children:[] },
                         { id:'N4', label:'N4: ¿Redis\nposible?', sub:`${Q12.n3aNO_SI+Q12.n3aNO_NO} sedes`, type:'decision', color:'#C55A11',
                           children:[
-                            { id:'N4SI', label:'P5 + N5', sub:`${Q12.n3aNO_SI} sedes\nRedistribución`, type:'prog', color:'#7B2FBE', children:[] },
-                            { id:'N4NO', label:'P1 + N5', sub:`${Q12.n3aNO_NO} sedes\nAmpliación nuevo predio`, type:'prog', color:'#C00000', children:[] },
+                            { id:'N4SI', label:'P5 + P3\n(o P5+P2+P3)', sub:`${Q12.n3aNO_SI} sedes\nRedis ampliación`, type:'prog', color:'#7B2FBE', children:[] },
+                            { id:'N4NO', label:'P1 + P3\n(o P1+P2+P3)', sub:`${Q12.n3aNO_NO} sedes\nAmpl. nuevo predio`, type:'prog', color:'#C00000', children:[] },
                           ]
                         },
                       ]
                     },
-                    { id:'N3NO', label:'N5', sub:`${Q12.n3NO} sedes\nSolo adecuación`, type:'prog', color:'#1A5276', children:[] },
+                    { id:'N3NO', label:'P3\n(o P2+P3)', sub:`${Q12.n3NO} sedes\nSolo adecuación`, type:'prog', color:'#1A5276', children:[] },
                   ]
                 },
               ]
@@ -2502,45 +2521,142 @@ async function _buildExcel() {
           align(rCell,'center','middle');
 
           // ── Per-space breakdown (si hay detalle NTC disponible) ──
-          if (hasBFD && window._bfDetalle[s2.dane]) {
+          // P3 → solo adecuaciones (área existente × factor calificación × costo/m²)
+          // P4 → solo ampliaciones en sitio (déficit × construcción × 14%)
+          // P1 → solo ampliaciones en otro predio (déficit × constr + predio × 14%)
+          // P2 → refuerzo estructural agregado (BE) — no se desglosa por espacio
+          // P7 → 50 % de las adecuaciones aplicables
+          // P8 → reconstrucción agregada (sin desglose por espacio: cubre todo)
+          if (hasBFD && window._bfDetalle[s2.dane] && ['P1','P3','P4','P7'].includes(prog)) {
             const espData = window._bfDetalle[s2.dane];
+            const CAL_FACT_TXT = {1:'100%',2:'75%',3:'50%',4:'25%'};
             ESP_TIPOS.forEach(tipo => {
               const esp = espData[tipo];
               if (!esp) return;
-              // P3=adecuación, P4=ampliación sitio, P1=construcción otro predio
               const showAdec  = (esp.costAdeq    || 0) > 0;
               const showAmpS  = (esp.costAmpSede || 0) > 0;
               const showAmpO  = (esp.costAmpOtro || 0) > 0;
               const showP = prog==='P3' ? showAdec
+                          : prog==='P7' ? showAdec
                           : prog==='P4' ? showAmpS
                           : prog==='P1' ? showAmpO
-                          : (showAdec || showAmpS || showAmpO);
+                          : false;
               if (!showP) return;
 
-              // Valor a mostrar en col 9 (costo específico de este prog para este espacio)
               const espCostProg = prog==='P3' ? (esp.costAdeq||0)
+                                : prog==='P7' ? Math.round((esp.costAdeq||0)*0.5)
                                 : prog==='P4' ? (esp.costAmpSede||0)
                                 : prog==='P1' ? ((esp.costAmpOtro||0)+(esp.costPredio||0))
-                                : (esp.costTotal||0);
+                                : 0;
+
+              // Etiqueta de intervención según el programa
+              const intervLbl = (prog==='P3' || prog==='P7')
+                ? `Adecuación ${tipo} (Cal ${esp.cal||3} → ${CAL_FACT_TXT[esp.cal||3]||'50%'})`
+                : (prog==='P4')
+                ? `Ampliación ${tipo} (m² nuevos en sitio propio)`
+                : (prog==='P1')
+                ? `Ampliación ${tipo} (m² nuevo predio + tierra)`
+                : tipo;
+
+              // Área aplicable según programa
+              const areaShow = (prog==='P3'||prog==='P7')
+                ? (esp.areaExist ? Math.round(esp.areaExist*10)/10 : '')
+                : (esp.deficit ? Math.round(esp.deficit*10)/10 : '');
+              const areaLbl  = (prog==='P3'||prog==='P7') ? 'Á.Exist (m²)' : 'Á.Déficit (m²)';
+
               const er = ws.addRow([]); er.height = 12;
-              er.getCell(3).value = '   ↳ '+tipo;
-              er.getCell(8).value = esp.areaExist ? Math.round(esp.areaExist*10)/10 : '';
-              er.getCell(9).value = toMM(espCostProg)||'';  // costo específico del programa
-              er.getCell(10).value = esp.deficit   ? Math.round(esp.deficit*10)/10  : '';
-              er.getCell(11).value = toMM(esp.costAdeq||0)||'';    // adecuación
-              er.getCell(12).value = toMM((esp.costAmpSede||0)+(esp.costAmpOtro||0))||''; // ampliación
-              er.getCell(13).value = toMM(esp.costTotal||0)||'';   // total espacio
+              er.getCell(3).value = '   ↳ '+intervLbl;
+              er.getCell(8).value = areaShow;
+              er.getCell(9).value = toMM(espCostProg)||'';
+              // col 14 'Tipo Funcional': reusar para indicar etiqueta de área
+              er.getCell(14).value = areaLbl;
               er.eachCell(c => {
                 fill(c,'FFF8FAFD'); font(c,C.MGREY,8,false,true);
                 align(c,'left','middle'); border(c,'FFEEEEEE');
               });
-              [8,9,10,11,12,13].forEach(ci => {
+              [8,9].forEach(ci => {
                 er.getCell(ci).alignment={horizontal:'right',vertical:'middle'};
-                if(ci>=11) er.getCell(ci).numFmt='#,##0.0';
               });
+              er.getCell(9).numFmt = '#,##0.0';
             });
           }
         });
+
+        // ══════════════════════════════════════════════════════════════════════════
+        // P1: agregar bloque "MATRÍCULA NO OFICIAL — CONSTRUCCIÓN NUEVA POR COMUNA"
+        // ══════════════════════════════════════════════════════════════════════════
+        if (prog === 'P1' && coberNOOfi && Array.isArray(coberNOOfi.detalleComunas) && coberNOOfi.detalleComunas.length) {
+          // separador
+          const sep = ws.addRow([]); sep.height = 8;
+          const hdRow = ws.addRow(['','','MATRÍCULA EN COBERTURA — Sedes NUEVAS por COMUNA (NO OFICIAL)']);
+          hdRow.height = 18;
+          ws.mergeCells(hdRow.number,3,hdRow.number,COL_BASE.length);
+          const ttCell = hdRow.getCell(3);
+          fill(ttCell, '#4CAF50'); font(ttCell, C.WHITE, 10, true);
+          align(ttCell, 'left','middle');
+          // sub-header
+          const subRow = ws.addRow([]);
+          subRow.getCell(3).value = 'Comuna';
+          subRow.getCell(6).value = 'Matrícula';
+          subRow.getCell(8).value = 'Á. Construcción (m²)';
+          subRow.getCell(9).value = 'Costo Total (MM)';
+          subRow.getCell(10).value = 'Costo Constr. (MM)';
+          subRow.getCell(11).value = 'Costo Predio (MM)';
+          subRow.getCell(13).value = 'Á. Lote (m²)';
+          subRow.getCell(14).value = 'Tipo';
+          [3,6,8,9,10,11,13,14].forEach(ci => {
+            const c = subRow.getCell(ci);
+            fill(c, '#A5D6A7'); font(c, C.BLACK, 9, true); align(c,'center','middle'); border(c,'#4CAF50');
+          });
+          subRow.height = 18;
+          // data rows
+          coberNOOfi.detalleComunas.forEach((dc, idx) => {
+            const dr = ws.addRow([]);
+            dr.getCell(3).value = dc.comuna;
+            dr.getCell(6).value = dc.mat;
+            dr.getCell(8).value = dc.areaConstr;
+            dr.getCell(9).value = toMM(dc.costTotal);
+            dr.getCell(10).value = toMM(dc.costConstr);
+            dr.getCell(11).value = toMM(dc.costPredio);
+            dr.getCell(13).value = dc.areaPredio;
+            dr.getCell(14).value = 'Sede nueva (cobertura)';
+            const bg = idx%2 ? '#E8F5E9' : C.WHITE;
+            [3,6,8,9,10,11,13,14].forEach(ci => {
+              const c = dr.getCell(ci);
+              fill(c, bg); font(c, C.BLACK, 9, false);
+              align(c, ci===3||ci===14?'left':'right', 'middle');
+              border(c, '#C8E6C9');
+            });
+            dr.getCell(6).numFmt = '#,##0';
+            [8,13].forEach(ci => { dr.getCell(ci).numFmt = '#,##0.0'; });
+            [9,10,11].forEach(ci => { dr.getCell(ci).numFmt = '#,##0.0'; });
+            dr.height = 14;
+          });
+          // total row
+          const sumMat = coberNOOfi.detalleComunas.reduce((a,d)=>a+(d.mat||0),0);
+          const sumArea= coberNOOfi.detalleComunas.reduce((a,d)=>a+(d.areaConstr||0),0);
+          const sumPred= coberNOOfi.detalleComunas.reduce((a,d)=>a+(d.areaPredio||0),0);
+          const sumCTot= coberNOOfi.detalleComunas.reduce((a,d)=>a+(d.costTotal||0),0);
+          const sumCCon= coberNOOfi.detalleComunas.reduce((a,d)=>a+(d.costConstr||0),0);
+          const sumCPre= coberNOOfi.detalleComunas.reduce((a,d)=>a+(d.costPredio||0),0);
+          const trR = ws.addRow([]);
+          trR.getCell(3).value = `TOTAL ${coberNOOfi.detalleComunas.length} comunas`;
+          trR.getCell(6).value = sumMat;
+          trR.getCell(8).value = Math.round(sumArea*10)/10;
+          trR.getCell(9).value = toMM(sumCTot);
+          trR.getCell(10).value = toMM(sumCCon);
+          trR.getCell(11).value = toMM(sumCPre);
+          trR.getCell(13).value = Math.round(sumPred*10)/10;
+          trR.getCell(14).value = '5.36 m²/est. (NTC 4595)';
+          [3,6,8,9,10,11,13,14].forEach(ci => {
+            const c = trR.getCell(ci);
+            fill(c, '#4CAF50'); font(c, C.WHITE, 9, true); align(c, ci===3||ci===14?'left':'right','middle'); border(c, '#4CAF50');
+          });
+          trR.getCell(6).numFmt = '#,##0';
+          [8,13].forEach(ci => { trR.getCell(ci).numFmt = '#,##0.0'; });
+          [9,10,11].forEach(ci => { trR.getCell(ci).numFmt = '#,##0.0'; });
+          trR.height = 18;
+        }
 
         // Total row
         const totProg= sedesP.reduce((a,e)=>a+costP(e),0);
