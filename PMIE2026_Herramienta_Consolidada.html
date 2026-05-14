@@ -1151,20 +1151,25 @@ function _calcularCoberturaNOOficial() {
     const FD = costos.fd || costos.FD || 1.0;
     const IPC = (typeof IPC_H3 !== 'undefined') ? IPC_H3 : 1.04;
 
-    // Costo construcción incluye 14% (estudios+interventoría); predio no
-    const areaPredioDef = areaCompuesta / POT_PCT_H3; // ocupación ~60% del lote
+    // Fórmula oficial PMIE 2026 para sede nueva NO OFICIAL:
+    //   Costo por m² construido = Predio /m² + Constr. Con Ext. /m²
+    //   Costo total = Área construida × (Predio + Constr.) × FD × IPC × 1.14
+    // (14% por estudios+interventoría aplicado al total agregado)
+    const costoXm2  = costXmPredio + costXmNueva;          // $1,797,977 + $4,340,750 = $6,138,727
     const costConstr   = areaCompuesta * costXmNueva * FD * IPC * OVERHEAD_PROGRAM;
-    const costPredio   = areaPredioDef * costXmPredio * FD * IPC;
-    const costCom      = costConstr + costPredio;
+    const costPredioVal= areaCompuesta * costXmPredio * FD * IPC * OVERHEAD_PROGRAM;
+    const costCom      = costConstr + costPredioVal;
+    const areaPredioRef = areaCompuesta / POT_PCT_H3;       // referencia informativa
     totalCosto += costCom;
     detalleComunas.push({
       comuna: String(com || '').replace(/^COMUNA\s*/i,'C'),
       mat:    Math.round(mat),
       areaConstr: Math.round(areaCompuesta * 10) / 10,
-      areaPredio: Math.round(areaPredioDef * 10) / 10,
+      areaPredio: Math.round(areaPredioRef * 10) / 10,
       costConstr: Math.round(costConstr),
-      costPredio: Math.round(costPredio),
+      costPredio: Math.round(costPredioVal),
       costTotal:  Math.round(costCom),
+      costoXm2:   Math.round(costoXm2 * 1.14),  // referencia: costo/m² incl. 14%
     });
   });
 
@@ -2521,9 +2526,15 @@ async function _buildExcel() {
         ws.mergeCells(1,1,1,COL_BASE.length); title(pT1, bgC, C.WHITE, 12, 'left'); ws.getRow(1).height = 20;
 
         const totalV = sedesP.reduce((a,e) => a + costP(e), 0);
+        // Si es P1 y hay cobertura NO OFICIAL, incluirla en el header total
+        const totalCober = (prog === 'P1' && coberNOOfi && coberNOOfi.costP1) ? coberNOOfi.costP1 : 0;
+        const matCober   = (prog === 'P1' && coberNOOfi && coberNOOfi.matEnCobertura) ? coberNOOfi.matEnCobertura : 0;
+        const totalP1Combined = totalV + totalCober;
         const pT2 = ws.getCell('A2');
         const matTotal_p = sedesP.reduce((a,e)=>a+(e.mat_ajustada||e.mat||0),0);
-        pT2.value = `${sedesP.length} sedes  ·  Valor: $ ${toMM(totalV).toLocaleString('es-CO',{minimumFractionDigits:1,maximumFractionDigits:1})} MM COP  ·  Matrícula: ${Math.round(matTotal_p).toLocaleString('es-CO')} est.${jornNote}`;
+        pT2.value = totalCober > 0
+          ? `${sedesP.length} sedes oficiales + ${coberNOOfi.detalleComunas.length} comunas NO OFICIAL  ·  Valor: $ ${toMM(totalP1Combined).toLocaleString('es-CO',{minimumFractionDigits:1,maximumFractionDigits:1})} MM COP (oficial $${toMM(totalV).toLocaleString('es-CO',{maximumFractionDigits:1})} + cobertura $${toMM(totalCober).toLocaleString('es-CO',{maximumFractionDigits:1})})  ·  Matrícula total: ${Math.round(matTotal_p + matCober).toLocaleString('es-CO')} est.${jornNote}`
+          : `${sedesP.length} sedes  ·  Valor: $ ${toMM(totalV).toLocaleString('es-CO',{minimumFractionDigits:1,maximumFractionDigits:1})} MM COP  ·  Matrícula: ${Math.round(matTotal_p).toLocaleString('es-CO')} est.${jornNote}`;
         ws.mergeCells(2,1,2,COL_BASE.length); title(pT2, bgC, C.MGOLD, 9, 'left'); ws.getRow(2).height = 14;
 
         // Header row — col 9 personalizada según programa
@@ -2733,16 +2744,36 @@ async function _buildExcel() {
           trR.height = 18;
         }
 
-        // Total row
+        // Total row — para P1 incluye cobertura NO OFICIAL
         const totProg= sedesP.reduce((a,e)=>a+costP(e),0);
         const totBE = sedesP.reduce((a,e)=>a+(e.be||0),0);
         const totBC = sedesP.reduce((a,e)=>a+(e.bc||0),0);
         const totMat = Math.round(sedesP.reduce((a,e)=>a+(e.mat_ajustada||e.mat||0),0));
-        const tR = ws.addRow(['TOTAL','',`${sedesP.length} sedes`,'','',totMat,'','',toMM(totProg),toMM(totBE),toMM(totBC),'','','','','']);
+
+        // ── Fila TOTAL del programa (solo sedes oficiales) ──
+        const tR = ws.addRow(['TOTAL OFICIAL','',`${sedesP.length} sedes`,'','',totMat,'','',toMM(totProg),toMM(totBE),toMM(totBC),'','','','','']);
         tR.height = 18;
         tR.eachCell(c => { fill(c,bgC); font(c,C.WHITE,9,true); align(c,'right','middle'); border(c,bgC); });
         [tR.getCell(1),tR.getCell(2),tR.getCell(3)].forEach(c=>{c.alignment={horizontal:'left',vertical:'middle'};});
         [9,10,11].forEach(i=>{ tR.getCell(i).numFmt='#,##0.0'; });
+
+        // ── Fila TOTAL P1 combinado (oficial + cobertura NO OFICIAL) ──
+        if (prog === 'P1' && coberNOOfi && coberNOOfi.costP1 > 0) {
+          const totCombMat   = totMat + (coberNOOfi.matEnCobertura || 0);
+          const totCombValor = totProg + (coberNOOfi.costP1 || 0);
+          const tRC = ws.addRow([
+            'TOTAL P1 PROGRAMA','',
+            `${sedesP.length} sedes oficial + ${coberNOOfi.detalleComunas.length} comunas`,
+            '','',Math.round(totCombMat),'','',
+            toMM(totCombValor),  // col 9 — VALOR PROGRAMA combinado
+            '','','','','',
+            'OFICIAL + NO OFICIAL',''
+          ]);
+          tRC.height = 22;
+          tRC.eachCell(c => { fill(c,'FF1F3864'); font(c,'FFFFD966',10,true); align(c,'right','middle'); border(c,'FF1F3864'); });
+          [tRC.getCell(1),tRC.getCell(2),tRC.getCell(3)].forEach(c=>{c.alignment={horizontal:'left',vertical:'middle'};});
+          tRC.getCell(9).numFmt='#,##0.0';
+        }
       }
 
       // ══════════════════════════════════════════════════════
