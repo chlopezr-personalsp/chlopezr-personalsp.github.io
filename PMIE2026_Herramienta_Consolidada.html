@@ -285,8 +285,8 @@ window._excelJsReady = false;
       <span class="param-desc">Quintiles ≤ este valor = eficiencia alta → continúan en programa definido.</span>
       <select id="paramQCorte" onchange="runTree()">
         <option value="1">Q1 (solo alta)</option>
-        <option value="2" selected>Q1–Q2 (alta + buena)</option>
-        <option value="3">Q1–Q3 (hasta media)</option>
+        <option value="2">Q1–Q2 (alta + buena)</option>
+        <option value="3" selected>Q1–Q3 (hasta media · default acta 24/05/2026)</option>
       </select>
     </div>
 
@@ -527,7 +527,14 @@ window._excelJsReady = false;
                 <label style="font-size:11px;font-weight:700;color:#1a6b3c">📆 Año objetivo proyección:</label>
                 <input type="number" id="paramAnoProyeccion" value="2039" min="2024" max="2100" step="1"
                        style="width:70px;padding:3px 6px;border:1px solid #ccc;border-radius:4px;font-size:12px;font-weight:700"
-                       onchange="recalcularProyeccion()">
+                       onchange="recalcularProyeccion();runTree()">
+              </div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <label style="font-size:11px;font-weight:700;color:#1a6b3c">📈 Inflación anual sector construcción (%):</label>
+                <input type="number" id="paramInflacionAnual" value="4.5" min="0" max="20" step="0.1"
+                       style="width:60px;padding:3px 6px;border:1px solid #ccc;border-radius:4px;font-size:12px;font-weight:700"
+                       onchange="runTree()">
+                <span style="font-size:9px;color:#888">(acta §9 · ajusta costos al año objetivo)</span>
               </div>
               <div style="font-size:10px;color:#555">
                 Con 2 archivos cargados: proyección lineal<br>
@@ -773,7 +780,18 @@ const ADEQ_SOFT_H3 = 1.14;   // overhead adecuación (7% interventoría + 7% dis
 const AMP_SOFT_H3  = 1.14;   // overhead ampliación (7% interventoría + 7% diseños/estudios)
 const OVERHEAD_PROGRAM = 1.14; // overhead uniforme para todos los programas
 const POT_PCT_H3   = 0.60;   // índice de ocupación máx. del lote
-const IPC_H3       = 1.04;   // IPC 2026 aproximado
+// IPC dinámico (acta §C4): se actualiza en runTree al inicio según paramInflacionAnual
+// y paramAnoProyeccion. Valor por defecto: 1.04 (IPC 2026 aproximado).
+let IPC_H3       = 1.04;
+// Función auxiliar para recalcular el IPC dinámico (llamada al inicio de runTree)
+function _recalcularIPC() {
+  const inflPct = parseFloat(document.getElementById('paramInflacionAnual')?.value || 4);
+  const anioObj = parseInt(document.getElementById('paramAnoProyeccion')?.value) || 2039;
+  const inflacion = Math.max(0, inflPct) / 100;
+  const años = Math.max(0, anioObj - 2026);
+  IPC_H3 = Math.pow(1 + inflacion, años);
+  return IPC_H3;
+}
 
 // ── Grupos de costo por espacio ───────────────────────────────────────────────
 const SPACE_GROUPS_H3 = {
@@ -934,6 +952,10 @@ function _calcularBrechaFuncional(sede, pctJornada) {
   let ampOtroTot  = 0;
   let sumCalif    = 0;
   let sumPeso     = 0;
+  // ── Métricas para Índice NTC ponderado (acta 24/05/2026) ────────────────
+  // Disponibilidad (70%) + Estado (30%); con ajuste por mal estado (cal < 2,5)
+  let sumDispon      = 0;
+  let sumPesoDispon  = 0;
   const bfDetalle = {};
 
   for (const d of details) {
@@ -955,6 +977,10 @@ function _calcularBrechaFuncional(sede, pctJornada) {
     ampOtroTot += d.ampOtro;
     sumCalif   += d.cal * d.prioridad;
     sumPeso    += d.prioridad;
+    // Disponibilidad por tipología: área existente / área requerida (saturada en 1.0)
+    const _disp = d.req > 0 ? Math.min(1, d.areaExist / d.req) : 1;
+    sumDispon     += _disp * d.prioridad;
+    sumPesoDispon += d.prioridad;
 
     bfDetalle[d.key] = {
       nombre:      d.nombre,
@@ -973,8 +999,22 @@ function _calcularBrechaFuncional(sede, pctJornada) {
     };
   }
 
-  // ─── Indicador NTC ────────────────────────────────────────────────────────
-  const ntic = sumPeso > 0 ? Math.round((sumCalif / sumPeso) * 100) / 100 : 0;
+  // ─── Indicador NTC 4595 ponderado (acta 24/05/2026) ───────────────────────
+  //   Disponibilidad (70%)  +  Estado (30%)  · ambos normalizados a [0, 1]
+  //   Sensibilidad: si cal_promedio < 2,5/4, se reduce el índice 15-40% según estado.
+  const disponNorm = sumPesoDispon > 0 ? (sumDispon / sumPesoDispon) : 0;     // [0, 1]
+  const calProm    = sumPeso > 0 ? (sumCalif / sumPeso) : 0;                  // [0, 4]
+  const estadoNorm = calProm / 4.0;                                            // [0, 1]
+  let nticRaw      = 0.70 * disponNorm + 0.30 * estadoNorm;
+  // Factor de penalización por mal estado (cal < 2,5 → 0,625 normalizado)
+  const _malEstado = estadoNorm < 0.625;
+  const _factorEst = _malEstado ? (0.60 + 0.40 * (estadoNorm / 0.625)) : 1.0;
+  nticRaw         *= _factorEst;
+  const ntic = Math.round(nticRaw * 100) / 100;                                // [0, 1]
+  // Métricas auxiliares para reporte y dashboard:
+  const ntic_dispon = Math.round(disponNorm * 100) / 100;
+  const ntic_estado = Math.round(estadoNorm * 100) / 100;
+  const ntic_factor_estado = Math.round(_factorEst * 100) / 100;
 
   // ─── Clasificación POT ────────────────────────────────────────────────────
   let pot;
@@ -985,7 +1025,8 @@ function _calcularBrechaFuncional(sede, pctJornada) {
 
   // ─── Tipo de intervención ─────────────────────────────────────────────────
   let tipo;
-  if (totalAmp === 0 && ntic >= 3.0)              tipo = 'Mantenimiento';
+  // ntic ahora está en escala [0,1] (no [0,4]) tras el cambio metodológico del acta.
+  if (totalAmp === 0 && ntic >= 0.75)              tipo = 'Mantenimiento';
   else if (totalAmp === 0)                         tipo = 'Solo adecuación';
   else if (ampSedeTot > 0 && ampOtroTot === 0)    tipo = 'Ampliación en predio';
   else if (ampSedeTot === 0 && ampOtroTot > 0)    tipo = 'Ampliación otro predio';
@@ -993,14 +1034,15 @@ function _calcularBrechaFuncional(sede, pctJornada) {
 
   return {
     bf:         Math.round(bfTotal),
-    bfAdec:     Math.round(bfAdec),      // costo adecuación por calificación (→ P1)
-    bfAmpSede:  Math.round(bfAmpSede),   // costo ampliación en predio propio (→ P2)
-    bfAmpOtro:  Math.round(bfAmpOtro),   // costo ampliación en otro predio sin tierra (→ P3)
-    bfPredio:   Math.round(bfPredio),    // costo adquisición predio (→ P3)
+    bfAdec:     Math.round(bfAdec),      // costo adecuación por calificación (→ P3)
+    bfAmpSede:  Math.round(bfAmpSede),   // costo ampliación en predio propio (→ P4)
+    bfAmpOtro:  Math.round(bfAmpOtro),   // costo ampliación en otro predio sin tierra (→ P1)
+    bfPredio:   Math.round(bfPredio),    // costo adquisición predio (→ P1)
     areaSede:   Math.round(ampSedeTot * 10) / 10,  // m² ampliables en predio propio
     areamp:     Math.round(ampOtroTot * 10) / 10,  // m² que requieren otro predio
     hasNTC:     true,  // indica que hay datos de levantamiento NTC
     pot, tipo, ntic, bfDetalle,
+    ntic_dispon, ntic_estado, ntic_factor_estado,
   };
 }
 
@@ -1154,13 +1196,20 @@ function _calcularCoberturaNOOficial() {
     // Fórmula oficial PMIE 2026 para sede nueva NO OFICIAL:
     //   Costo por m² construido = Predio /m² + Constr. Con Ext. /m²
     //   Costo total = Área construida × (Predio + Constr.) × FD × IPC × 1.14
+    //   + Dotación de equipamiento y mobiliario (acta §C3 — 10% del costo de construcción)
     // (14% por estudios+interventoría aplicado al total agregado)
     const costoXm2  = costXmPredio + costXmNueva;          // $1,797,977 + $4,340,750 = $6,138,727
+    const FACTOR_DOTACION_COB = 0.10;
     const costConstr   = areaCompuesta * costXmNueva * FD * IPC * OVERHEAD_PROGRAM;
     const costPredioVal= areaCompuesta * costXmPredio * FD * IPC * OVERHEAD_PROGRAM;
-    const costCom      = costConstr + costPredioVal;
+    const costDotac    = costConstr * FACTOR_DOTACION_COB;
+    const costCom      = costConstr + costPredioVal + costDotac;
     const areaPredioRef = areaCompuesta / POT_PCT_H3;       // referencia informativa
     totalCosto += costCom;
+    // Acta 24/05/2026 §8: cada nueva sede oficial ≈ 1.400 estudiantes (gran formato)
+    const ESTUDIANTES_POR_SEDE_NUEVA = 1400;
+    const n_sedes_nuevas = Math.max(1, Math.ceil(mat / ESTUDIANTES_POR_SEDE_NUEVA));
+    const mat_promedio_sede = Math.round(mat / n_sedes_nuevas);
     detalleComunas.push({
       comuna: String(com || '').replace(/^COMUNA\s*/i,'C'),
       mat:    Math.round(mat),
@@ -1170,6 +1219,8 @@ function _calcularCoberturaNOOficial() {
       costPredio: Math.round(costPredioVal),
       costTotal:  Math.round(costCom),
       costoXm2:   Math.round(costoXm2 * 1.14),  // referencia: costo/m² incl. 14%
+      n_sedes_nuevas,
+      mat_promedio_sede,
     });
   });
 
@@ -1197,6 +1248,9 @@ function runTree() {
   const qCorte = parseInt(document.getElementById('paramQCorte').value);
   const minQ12 = parseInt(document.getElementById('paramMinQ12').value);
   const pctJornada = parseFloat(document.getElementById('paramJornada')?.value || 0) / 100;
+  // Recalcular IPC dinámico (acta §C4) con tasa configurable y año objetivo
+  _recalcularIPC();
+  console.log(`[runTree] IPC dinámico = ${IPC_H3.toFixed(4)} (inflación ${document.getElementById('paramInflacionAnual')?.value || 4}% · año objetivo ${document.getElementById('paramAnoProyeccion')?.value || 2039})`);
 
   // PASO 1: Obtener base y aplicar +14% de costos de contratación (interventoría + estudios)
   let _base = getBaseActiva();
@@ -1243,6 +1297,9 @@ function runTree() {
     }
     if (bfD.bfDetalle) window._bfDetalle[s.dane] = bfD.bfDetalle;
     const newBf = (bfD.bf > 0) ? bfD.bf : (s.bf || 0);
+    // Propagar bandera zona verde POT desde BASE CONSOLIDADA (acta 24/05/2026)
+    const _zv = (window._ntcByDane && window._ntcByDane[s.dane])
+              ? !!window._ntcByDane[s.dane].zonaVerde : false;
     return {
       ...s,
       bf:         newBf,
@@ -1250,13 +1307,17 @@ function runTree() {
       pot:        bfD.pot    || s.pot    || '',
       tipo:       bfD.tipo   || s.tipo   || '',
       ntic:       bfD.ntic   || 0,
+      ntic_dispon: bfD.ntic_dispon || 0,
+      ntic_estado: bfD.ntic_estado || 0,
+      ntic_factor_estado: bfD.ntic_factor_estado || 1,
       areamp:     bfD.areamp  != null ? bfD.areamp  : (s.areamp  || 0),
       areaSede:   bfD.areaSede != null ? bfD.areaSede : (s.areaSede || 0),
-      bfAdec:     bfD.bfAdec    || 0,  // → P1 Adecuación
-      bfAmpSede:  bfD.bfAmpSede || 0,  // → P2 Ampliación predio propio
-      bfAmpOtro:  bfD.bfAmpOtro || 0,  // → P3 Ampliación gestión predial (sin tierra)
-      bfPredio:   bfD.bfPredio  || 0,  // → P3 costo tierra
+      bfAdec:     bfD.bfAdec    || 0,
+      bfAmpSede:  bfD.bfAmpSede || 0,
+      bfAmpOtro:  bfD.bfAmpOtro || 0,
+      bfPredio:   bfD.bfPredio  || 0,
       hasNTC:     bfD.hasNTC    || false,
+      zonaVerde:  _zv,
     };
   }) : _base;
 
@@ -1364,7 +1425,10 @@ function runTree() {
 
     // Condiciones auxiliares
     const necesitaAmpliacion = (s.bfAmpSede || 0) > 0 || (s.bfAmpOtro || 0) > 0;
-    const tieneCapacidadSitio = (s.bfAmpSede || 0) > 0 || (s.areaSede || 0) > 0;
+    // Si la sede está en ZONA VERDE POT, no se permite ampliación en sitio propio (P4)
+    // ni construcción nueva en predio extendido (P1). Solo intervención sobre lo existente.
+    const _enZonaVerde = s.zonaVerde === true;
+    const tieneCapacidadSitio = !_enZonaVerde && ((s.bfAmpSede || 0) > 0 || (s.areaSede || 0) > 0);
 
     // ── Helper N5 (Riesgo Estructural) ──
     // Si hay BE significativa o urgencia CRÍTICA → N5-SI → P2 + P3
@@ -1415,9 +1479,16 @@ function runTree() {
               nodo = 'N1a-SÍ-N3b-NO-N4b-SÍ';
               nota = `BC/VR=${(ratio_bc_vr*100).toFixed(0)}%, sin cap. sitio + redis → P5 + P8`;
             } else {
-              prog_final = ['P5', 'P1'];
-              nodo = 'N1a-SÍ-N3b-NO-N4b-NO';
-              nota = `BC/VR=${(ratio_bc_vr*100).toFixed(0)}%, sin cap. sitio, sin redis → P5 + P1`;
+              // Si está en zona verde, no se puede construir nuevo predio → solo redistribución + P3
+              if (_enZonaVerde) {
+                prog_final = ['P5'];
+                nodo = _evalN5(prog_final, 'N1a-SÍ-N3b-NO-N4b-ZonaVerde');
+                nota = `[Zona Verde POT] No permite P1 → forzar P5 + (N5 ${tieneRiesgoEst?'SI: P2+P3':'NO: P3'})`;
+              } else {
+                prog_final = ['P5', 'P1'];
+                nodo = 'N1a-SÍ-N3b-NO-N4b-NO';
+                nota = `BC/VR=${(ratio_bc_vr*100).toFixed(0)}%, sin cap. sitio, sin redis → P5 + P1`;
+              }
             }
           }
         } else {
@@ -1431,10 +1502,15 @@ function runTree() {
               nota = `Déficit área · POT posible → P4 + (N5 ${tieneRiesgoEst?'SI: P2+P3':'NO: P3'})`;
             } else {
               // N3a-NO → N4 (para ampliación) + N5 (para existente)
-              if (redisPosible) {
+              // En zona verde POT: forzar redistribución (P5) incluso si redis no es ideal
+              if (redisPosible || _enZonaVerde) {
                 prog_final = ['P5'];
-                nodo = _evalN5(prog_final, 'N1a-NO-N3-SÍ-N3a-NO-N4-SÍ');
-                nota = `Sin cap. sitio + redis posible → P5 + (N5 ${tieneRiesgoEst?'SI: P2+P3':'NO: P3'})`;
+                nodo = _evalN5(prog_final, _enZonaVerde
+                  ? 'N1a-NO-N3-SÍ-N3a-NO-ZonaVerde'
+                  : 'N1a-NO-N3-SÍ-N3a-NO-N4-SÍ');
+                nota = _enZonaVerde
+                  ? `[Zona Verde POT] Forzar redistribución → P5 + (N5 ${tieneRiesgoEst?'SI: P2+P3':'NO: P3'})`
+                  : `Sin cap. sitio + redis posible → P5 + (N5 ${tieneRiesgoEst?'SI: P2+P3':'NO: P3'})`;
               } else {
                 prog_final = ['P1'];
                 nodo = _evalN5(prog_final, 'N1a-NO-N3-SÍ-N3a-NO-N4-NO');
@@ -1595,10 +1671,20 @@ function renderKPIs(){
   const vp5_total  = 0;   // P2 ya está dentro de vf
   // Cobertura matrícula NO OFICIAL (P1 agregado por comuna)
   let cober_total = 0;
+  let coberMatProy = 0, coberSedesNuevas = 0;
   try {
     const _cobd = (typeof _calcularCoberturaNOOficial === 'function') ? _calcularCoberturaNOOficial() : null;
-    if (_cobd) cober_total = _cobd.costP1 || 0;
+    if (_cobd) {
+      cober_total = _cobd.costP1 || 0;
+      coberMatProy = _cobd.matEnCobertura || 0;
+      coberSedesNuevas = (_cobd.detalleComunas || []).reduce((a,d)=>a+(d.n_sedes_nuevas||0),0);
+    }
   } catch(e) {}
+  // Matrícula NO OFICIAL en 3 escenarios temporales (acta 24/05/2026)
+  const matNO_2024 = (window._matBaseData?.a1?.noOficial || []).reduce((a,r)=>a+(r.total||0),0);
+  const matNO_2026 = (window._matBaseData?.a2?.noOficial || []).reduce((a,r)=>a+(r.total||0),0);
+  const anioObj = parseInt(document.getElementById('paramAnoProyeccion')?.value) || 2039;
+  const matNO_horiz = Math.round(coberMatProy);
   const valor_plan = vf_total + P6_VALOR_G + cober_total;
 
   // Indicador de jornada: diferencia BF base vs ajustada
@@ -1656,13 +1742,14 @@ function renderKPIs(){
     <div class="kpi" style="border-top-color:var(--gold);border-width:4px">
       <div class="kpi-label" style="color:var(--gold);font-size:11px;font-weight:800">VALOR TOTAL DEL PLAN</div>
       <div class="kpi-val" style="font-size:22px;color:var(--navy)">$${(valor_plan/1e12).toFixed(2)}B</div>
-      <div class="kpi-sub">P1–P8 + Cierre + Cobertura · Billones COP 2026</div>
-      <div style="font-size:9px;color:var(--mgrey);margin-top:3px">Sedes: $${(vf_total/1e12).toFixed(2)}B + Cierre P6: $${(P6_VALOR_G/1e12).toFixed(2)}B${cober_total>0?' + NO OFICIAL: $'+(cober_total/1e12).toFixed(2)+'B':''}</div>
+      <div class="kpi-sub">Plan = BC (existentes) + P6 (cierre+nuevas) + Cobertura</div>
+      <div style="font-size:9px;color:var(--mgrey);margin-top:3px">BC: $${(bc_total/1e12).toFixed(2)}B + P6: $${(P6_VALOR_G/1e12).toFixed(2)}B${cober_total>0?' + NO OFICIAL: $'+(cober_total/1e12).toFixed(2)+'B':''}</div>
     </div>
     <div class="kpi" style="border-top-color:var(--pru)">
-      <div class="kpi-label">Sedes en P3+P4 / P4+P3</div>
-      <div class="kpi-val">${vis.filter(s=>s.prog_final==='P3 + P4'||s.prog_final==='P4 + P3').length}</div>
-      <div class="kpi-sub">Adecuación + Ampliación</div>
+      <div class="kpi-label">Matrícula NO OFICIAL (privada)</div>
+      <div class="kpi-val" style="font-size:18px">${matNO_2024.toLocaleString('es-CO')} → ${matNO_2026.toLocaleString('es-CO')}</div>
+      <div class="kpi-sub" style="font-size:10px">2024 → 2026 (SIMAT) · proyectada ${anioObj}: <b>${matNO_horiz.toLocaleString('es-CO')}</b> est.</div>
+      <div style="font-size:9px;color:var(--mgrey);margin-top:3px">${coberSedesNuevas > 0 ? coberSedesNuevas+' sedes nuevas (~1.400 est/sede)' : 'Pendiente carga MATRICULA BASE PLAN'}</div>
     </div>
   `;
 }
@@ -2306,14 +2393,27 @@ async function _buildExcel() {
         const _reconAreaActual = _areaActual * _vrCons * _fd * _IPC * 1.14;
         const _predioAreaActual = (_areaActual / 0.60) * _vrPred * _fd * _IPC;
 
+        // Acta 24/05/2026 §9 (Contingencias) — Traslado temporal MEP en P8 y P4 con reconstrucción
+        // Costo de operación transitoria (arriendo + servicios + transporte) durante obra.
+        //   MEP /m²/mes = 25.000 COP  ·  P8 ≈ 18 meses obra  ·  P4 vía N3b-SÍ ≈ 12 meses obra
+        const MEP_COSTO_M2_MES = 25000;
+        const MEP_MESES_P8     = 18;
+        const MEP_MESES_P4_N3b = 12;
+        // Acta §C3 — Dotación de equipamiento y mobiliario (~10% del costo de construcción nueva)
+        const FACTOR_DOTACION = 0.10;
+
         (progArr||[]).forEach(p => {
           if (p === 'P1') {
-            // Caso A: N4b-NO → sede completa nueva en otra ubicación (recon + predio)
-            // Caso B: N4-NO  → solo la porción de ampliación (bfAmpOtro + bfPredio)
+            // Caso A: N4b-NO → sede completa nueva en otra ubicación (recon + predio + dotación)
+            // Caso B: N4-NO  → solo la porción de ampliación (bfAmpOtro + bfPredio + dotación)
             if (_esN4b_NO) {
-              costByProg['P1'] = Math.round(_reconAreaActual + _predioAreaActual);
+              const baseConstr = _reconAreaActual;
+              const dotac = Math.round(baseConstr * FACTOR_DOTACION);
+              costByProg['P1'] = Math.round(baseConstr + _predioAreaActual + dotac);
             } else {
-              costByProg['P1'] = (s2.bfAmpOtro || 0) + (s2.bfPredio || 0);
+              const baseConstr = (s2.bfAmpOtro || 0);
+              const dotac = Math.round(baseConstr * FACTOR_DOTACION);
+              costByProg['P1'] = baseConstr + (s2.bfPredio || 0) + dotac;
             }
           }
           else if (p === 'P2') {
@@ -2327,9 +2427,12 @@ async function _buildExcel() {
           }
           else if (p === 'P4') {
             // N3b-SI (reconstrucción misma área o menor) ⇒ P4 = costo de reconstrucción
-            // de la sede en área actual (reposición). En otros nodos ⇒ ampliación en sitio.
+            // de la sede en área actual (reposición) + traslado MEP + dotación.
             if (_esN3b_SI) {
-              costByProg['P4'] = Math.round(_reconAreaActual);
+              const recArea = _reconAreaActual;
+              const dotac   = Math.round(recArea * FACTOR_DOTACION);
+              const mep     = Math.round(_areaActual * MEP_COSTO_M2_MES * MEP_MESES_P4_N3b);
+              costByProg['P4'] = Math.round(recArea + dotac + mep);
             } else {
               costByProg['P4'] = s2.bfAmpSede || 0;
             }
@@ -2338,7 +2441,10 @@ async function _buildExcel() {
             costByProg['P7'] = Math.round((s2.bfAdec || 0) * 0.5) + (tieneP2 ? 0 : beAj);
           }
           else if (p === 'P8') {
-            costByProg['P8'] = reconV;
+            // P8 = reconstrucción total + traslado MEP + dotación (acta §9 y §C3)
+            const dotac = Math.round(reconV * FACTOR_DOTACION);
+            const mep   = Math.round(_areaActual * MEP_COSTO_M2_MES * MEP_MESES_P8);
+            costByProg['P8'] = reconV + dotac + mep;
           }
           // P5, P6, SIN_MAT quedan en 0
         });
@@ -2664,14 +2770,16 @@ async function _buildExcel() {
           // sub-header
           const subRow = ws.addRow([]);
           subRow.getCell(3).value = 'Comuna';
+          subRow.getCell(5).value = 'Sedes nuevas';     // ← nueva columna acta §8
           subRow.getCell(6).value = 'Matrícula';
+          subRow.getCell(7).value = 'Mat / sede';        // ← nueva columna acta §8
           subRow.getCell(8).value = 'Á. Construcción (m²)';
           subRow.getCell(9).value = 'Costo Total (MM)';
           subRow.getCell(10).value = 'Costo Constr. (MM)';
           subRow.getCell(11).value = 'Costo Predio (MM)';
           subRow.getCell(13).value = 'Á. Lote (m²)';
           subRow.getCell(14).value = 'Tipo';
-          [3,6,8,9,10,11,13,14].forEach(ci => {
+          [3,5,6,7,8,9,10,11,13,14].forEach(ci => {
             const c = subRow.getCell(ci);
             fill(c, 'FFA5D6A7'); font(c, C.BLACK, 9, true); align(c,'center','middle'); border(c,'FF4CAF50');
           });
@@ -2680,7 +2788,9 @@ async function _buildExcel() {
           coberNOOfi.detalleComunas.forEach((dc, idx) => {
             const dr = ws.addRow([]);
             dr.getCell(3).value = dc.comuna;
+            dr.getCell(5).value = dc.n_sedes_nuevas || 1;
             dr.getCell(6).value = dc.mat;
+            dr.getCell(7).value = dc.mat_promedio_sede || dc.mat;
             dr.getCell(8).value = dc.areaConstr;
             dr.getCell(9).value = toMM(dc.costTotal);
             dr.getCell(10).value = toMM(dc.costConstr);
@@ -2688,13 +2798,15 @@ async function _buildExcel() {
             dr.getCell(13).value = dc.areaPredio;
             dr.getCell(14).value = 'Sede nueva (cobertura)';
             const bg = idx%2 ? 'FFE8F5E9' : C.WHITE;
-            [3,6,8,9,10,11,13,14].forEach(ci => {
+            [3,5,6,7,8,9,10,11,13,14].forEach(ci => {
               const c = dr.getCell(ci);
               fill(c, bg); font(c, C.BLACK, 9, false);
               align(c, ci===3||ci===14?'left':'right', 'middle');
               border(c, 'FFC8E6C9');
             });
+            dr.getCell(5).numFmt = '0';
             dr.getCell(6).numFmt = '#,##0';
+            dr.getCell(7).numFmt = '#,##0';
             [8,13].forEach(ci => { dr.getCell(ci).numFmt = '#,##0.0'; });
             [9,10,11].forEach(ci => { dr.getCell(ci).numFmt = '#,##0.0'; });
             dr.height = 14;
@@ -2706,20 +2818,25 @@ async function _buildExcel() {
           const sumCTot= coberNOOfi.detalleComunas.reduce((a,d)=>a+(d.costTotal||0),0);
           const sumCCon= coberNOOfi.detalleComunas.reduce((a,d)=>a+(d.costConstr||0),0);
           const sumCPre= coberNOOfi.detalleComunas.reduce((a,d)=>a+(d.costPredio||0),0);
+          const sumSedNue = coberNOOfi.detalleComunas.reduce((a,d)=>a+(d.n_sedes_nuevas||0),0);
           const trR = ws.addRow([]);
           trR.getCell(3).value = `TOTAL ${coberNOOfi.detalleComunas.length} comunas`;
+          trR.getCell(5).value = sumSedNue;
           trR.getCell(6).value = sumMat;
+          trR.getCell(7).value = sumSedNue > 0 ? Math.round(sumMat / sumSedNue) : 0;
           trR.getCell(8).value = Math.round(sumArea*10)/10;
           trR.getCell(9).value = toMM(sumCTot);
           trR.getCell(10).value = toMM(sumCCon);
           trR.getCell(11).value = toMM(sumCPre);
           trR.getCell(13).value = Math.round(sumPred*10)/10;
-          trR.getCell(14).value = '5.36 m²/est. (NTC 4595)';
-          [3,6,8,9,10,11,13,14].forEach(ci => {
+          trR.getCell(14).value = '5.36 m²/est. (NTC 4595) · 1.400 est/sede (acta §8)';
+          [3,5,6,7,8,9,10,11,13,14].forEach(ci => {
             const c = trR.getCell(ci);
             fill(c, 'FF4CAF50'); font(c, C.WHITE, 9, true); align(c, ci===3||ci===14?'left':'right','middle'); border(c, 'FF4CAF50');
           });
+          trR.getCell(5).numFmt = '0';
           trR.getCell(6).numFmt = '#,##0';
+          trR.getCell(7).numFmt = '#,##0';
           [8,13].forEach(ci => { trR.getCell(ci).numFmt = '#,##0.0'; });
           [9,10,11].forEach(ci => { trR.getCell(ci).numFmt = '#,##0.0'; });
           trR.height = 18;
@@ -5487,6 +5604,22 @@ function _procesarBaseConsolidadaBF(wsData) {
     }
   }
 
+  // ─── Detectar columna ZONA VERDE / USO SUELO (acta 24/05/2026, sección 6) ────
+  // Busca en header1 y header2 cualquier columna con etiquetas relacionadas.
+  // Si la celda contiene "SI", "SÍ", "VERDE", "ZONA VERDE" → bloquear P4/P1.
+  let colZonaVerde = -1;
+  const _ZONA_VERDE_REGEX = /^(ZONA\s*VERDE|ZONA_VERDE|USO\s*SUELO|USO_SUELO|SUELO\s*PROTECC|AMBIENTAL|ZONA\s*PROTEG)/i;
+  [header1, header2].forEach(hdrRow => {
+    if (!Array.isArray(hdrRow)) return;
+    hdrRow.forEach((cell, ci) => {
+      const t = String(cell || '').trim().toUpperCase();
+      if (_ZONA_VERDE_REGEX.test(t) && colZonaVerde < 0) colZonaVerde = ci;
+    });
+  });
+  if (colZonaVerde >= 0) {
+    console.log(`[BF] Columna ZONA VERDE detectada en col ${colZonaVerde}`);
+  }
+
   // Process data rows (skip header rows 0-1)
   let countSedes = 0;
   for (let rowIdx = 2; rowIdx < wsData.length; rowIdx++) {
@@ -5524,6 +5657,13 @@ function _procesarBaseConsolidadaBF(wsData) {
       };
     }
 
+    // Leer flag de zona verde (acta sección 6): si está en zona verde, bloquear ampliaciones
+    let zonaVerde = false;
+    if (colZonaVerde >= 0) {
+      const v = String(row[colZonaVerde] || '').trim().toUpperCase();
+      zonaVerde = /^(SI|SÍ|S|YES|VERDE|ZONA\s*VERDE|TRUE|1|X)$/.test(v);
+    }
+
     // Populate window._ntcByDane with pre-calculated data
     if (!window._ntcByDane) window._ntcByDane = {};
     window._ntcByDane[dane] = {
@@ -5532,11 +5672,13 @@ function _procesarBaseConsolidadaBF(wsData) {
       areaLote: areaLote || 5000,
       areaOcupada: areaOcupada || areaConstruida || 0,
       nombre: ieo,
+      zonaVerde,
     };
     countSedes++;
   }
 
-  console.log(`[BF] Cargados ${countSedes} sedes con datos pre-consolidados`);
+  const _nZonaVerde = Object.values(window._ntcByDane || {}).filter(x => x.zonaVerde).length;
+  console.log(`[BF] Cargados ${countSedes} sedes con datos pre-consolidados · ${_nZonaVerde} en zona verde POT`);
   return countSedes;
 }
 
